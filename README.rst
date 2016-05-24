@@ -1,6 +1,8 @@
 molo.surveys
 =============================
 
+An implementation of wagtailsurveys as a Molo plugin
+
 .. image:: https://img.shields.io/travis/praekelt/molo.surveys.svg
         :target: https://travis-ci.org/praekelt/molo.surveys
 
