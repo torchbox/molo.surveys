@@ -3,7 +3,7 @@
 
 
 try:
-    from setuptools import setup
+    from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup
 
@@ -28,12 +28,10 @@ setup(
     author="Praekelt Foundation",
     author_email='dev@praekeltfoundation.org',
     url='https://github.com/praekelt/molo.surveys',
-    packages=[
-        'molo.surveys',
-    ],
-    package_dir={'molo.surveys':
-                 'molo.surveys'},
+    packages=find_packages(exclude='molo.project'),
+    namespace_packages=['molo'],
     include_package_data=True,
+    dependency_links=['https://github.com/torchbox/wagtailsurveys/tarball/master#egg=wagtailsurveys'],
     install_requires=requirements,
     license="BSD",
     zip_safe=False,
