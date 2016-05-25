@@ -7,7 +7,6 @@ from wagtail.wagtailcore.fields import RichTextField
 from wagtailsurveys import models as surveys_models
 
 
-LanguagePage.subpage_types += ['surveys.SurveyPage']
 SectionPage.subpage_types += ['surveys.SurveyPage']
 ArticlePage.subpage_types += ['surveys.SurveyPage']
 
