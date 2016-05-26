@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+    <h1>{{ page.title }}</h1>
+
+    {% if user.is_authenticated and user.is_active or request.is_preview %}
+        {% if form %}
+            <p>{{ self.intro }}</p>
+            <form action="{% pageurl self %}?p={{ fields_step.number|add:"1" }}" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="submit" value="{% trans 'Submit Survey' %}" />
+            </form>
+        {% else %}
+            <p>{% trans 'You have already completed this survey.' %}</p>
+        {% endif %}
+    {% else %}
+        <p>{% trans 'Please log in to take this survey.' %}</p>
+    {% endif %}
+
+
+{% endblock %}
