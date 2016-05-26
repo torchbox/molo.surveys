@@ -1,2 +1,2 @@
 molo.core
-wagtailsurveys
+wagtailsurveys==0.1.1

@@ -31,7 +31,6 @@ setup(
     packages=find_packages(exclude='molo.project'),
     namespace_packages=['molo'],
     include_package_data=True,
-    dependency_links=['https://github.com/torchbox/wagtailsurveys/tarball/master#egg=wagtailsurveys-0.1.0'],
     install_requires=requirements,
     license="BSD",
     zip_safe=False,
