@@ -1,0 +1,11 @@
+{% load wagtailcore_tags static %}
+
+{% block content %}
+    {% for survey in surveys %}
+        <div class="surveys">
+            <h3>{{ survey.title }}</h3>
+            {{ survey.intro | safe }}
+            <a href="{% pageurl survey %}">Take The Survey</a>
+        </div>
+    {% endfor %}
+{% endblock %}
