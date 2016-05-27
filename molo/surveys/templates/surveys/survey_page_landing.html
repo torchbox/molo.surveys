@@ -3,7 +3,7 @@
 {% block content %}
     <p>{{ self.thank_you_text }}</p>
 
-    {% if results %}
+    {% if self.show_results and results %}
     <h2>Results</h2>
     {% for question, answers in results.items %}
         <h3>{{ question }}</h3>

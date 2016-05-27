@@ -4,36 +4,107 @@ from django.conf import settings
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-
-from django.db.models.fields import TextField
+from django.db.models.fields import TextField, BooleanField
 from django.shortcuts import render
+
 from modelcluster.fields import ParentalKey
+
 from molo.core.models import SectionPage, ArticlePage
 
-from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel
-
+from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
+    MultiFieldPanel
 from wagtailsurveys import models as surveys_models
 
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 
-SectionPage.subpage_types += ['surveys.SurveyPage',
-                              'surveys.MultiStepSurveyPage',
-                              'surveys.SurveyWithResultsPage']
-ArticlePage.subpage_types += ['surveys.SurveyPage',
-                              'surveys.MultiStepSurveyPage',
-                              'surveys.SurveyWithResultsPage']
+SectionPage.subpage_types += ['surveys.SurveyPage']
+ArticlePage.subpage_types += ['surveys.SurveyPage']
 
 
 class SurveyPage(surveys_models.AbstractSurvey):
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
 
+    allow_anonymous_submissions = BooleanField(
+        default=False,
+        help_text='Check this to allow users who are NOT logged in to complete'
+                  ' surveys.'
+    )
+    allow_multiple_submissions_per_user = BooleanField(
+        default=False,
+        help_text='Check this to allow logged in users to complete a survey'
+                  ' more than once.'
+    )
+
+    show_results = BooleanField(
+        default=False,
+        help_text='Whether to show the survey results to the user after they'
+                  ' have submitted their answer(s).'
+    )
+
+    multi_step = BooleanField(
+        default=False,
+        verbose_name='Multi-step',
+        help_text='Whether to display the survey questions to the user one at'
+                  ' a time, instead of all at once.'
+    )
+
     content_panels = surveys_models.AbstractSurvey.content_panels + [
-        FieldPanel('intro', classname="full"),
-        InlinePanel('survey_form_fields', label="Form fields"),
-        FieldPanel('thank_you_text', classname="full"),
+        FieldPanel('intro', classname='full'),
+        InlinePanel('survey_form_fields', label='Form fields'),
+        FieldPanel('thank_you_text', classname='full'),
     ]
+
+    settings_panels = surveys_models.AbstractSurvey.content_panels + [
+        MultiFieldPanel([
+            FieldPanel('allow_anonymous_submissions'),
+            FieldPanel('allow_multiple_submissions_per_user'),
+            FieldPanel('show_results'),
+            FieldPanel('multi_step')
+        ],
+        heading='Survey Settings')
+    ]
+
+    def get_context(self, request, *args, **kwargs):
+        context = super(SurveyPage, self).get_context(
+            request, *args, **kwargs
+        )
+
+        # check request method so that results are shown only on the landing
+        # page
+        if self.show_results and request.method == 'POST':
+            results = dict()
+            # Get information about form fields
+            data_fields = [
+                (field.clean_name, field.label)
+                for field in self.get_form_fields()
+            ]
+
+            # Get all submissions for current page
+            submissions = self.get_submission_class().objects.filter(page=self)
+            for submission in submissions:
+                data = submission.get_data()
+
+                # Count results for each question
+                for name, label in data_fields:
+                    answer = data.get(name)
+                    if answer is None:
+                        # Something wrong with data.
+                        # Probably you have changed questions
+                        # and now we are receiving answers for old questions.
+                        # Just skip them.
+                        continue
+
+                    question_stats = results.get(label, {})
+                    question_stats[answer] = question_stats.get(answer, 0) + 1
+                    results[label] = question_stats
+
+            context.update({
+                'results': results,
+            })
+
+        return context
 
     def get_submission_class(self):
         return CustomFormSubmission
@@ -52,35 +123,10 @@ class SurveyPage(surveys_models.AbstractSurvey):
 
         return False
 
-    def serve(self, request, *args, **kwargs):
-        if self.has_user_submitted_survey(request.user.pk):
-            return render(request, self.template, self.get_context(request))
-
-        return super(SurveyPage, self).serve(request, *args, **kwargs)
-
-
-class SurveyFormField(surveys_models.AbstractFormField):
-    page = ParentalKey(SurveyPage, related_name='survey_form_fields')
-
-
-class CustomFormSubmission(surveys_models.AbstractFormSubmission):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ('page', 'user')
-
-
-class MultiStepSurveyPage(SurveyPage):
-    landing_page_template = 'surveys/survey_page_landing.html'
-
-    class Meta:
-        verbose_name = 'Survey Page (Multi-Step)'
-
     def get_form_class_for_step(self, step):
         return self.form_builder(step.object_list).get_form_class()
 
-    def serve(self, request, *args, **kwargs):
+    def serve_multi_step(self, request):
         """
         Implements a simple multi-step form.
 
@@ -88,10 +134,6 @@ class MultiStepSurveyPage(SurveyPage):
         When the last step is submitted correctly, the whole form is saved in
         the DB.
         """
-
-        if self.has_user_submitted_survey(request.user.pk):
-            return render(request, self.template, self.get_context(request))
-
         session_key_data = 'survey_data-%s' % self.pk
         is_last_step = False
         step_number = request.GET.get('p', 1)
@@ -161,54 +203,28 @@ class MultiStepSurveyPage(SurveyPage):
         context = self.get_context(request)
         context['form'] = form
         context['fields_step'] = step
+
         return render(
             request,
             self.template,
             context
         )
 
+    def serve(self, request, *args, **kwargs):
+        if not self.allow_multiple_submissions_per_user and \
+                self.has_user_submitted_survey(request.user.pk):
+            return render(request, self.template, self.get_context(request))
 
-class SurveyWithResultsPage(SurveyPage):
-    landing_page_template = 'surveys/survey_page_landing.html'
+        if self.multi_step:
+            return self.serve_multi_step(request)
 
-    class Meta:
-        verbose_name = 'Survey Page (with results)'
+        return super(SurveyPage, self).serve(request, *args, **kwargs)
 
-    def get_context(self, request, *args, **kwargs):
-        context = super(SurveyWithResultsPage, self).get_context(
-            request, *args, **kwargs
-        )
 
-        # show results only on landing page
-        if request.method == 'POST':
-            results = dict()
-            # Get information about form fields
-            data_fields = [
-                (field.clean_name, field.label)
-                for field in self.get_form_fields()
-                ]
+class SurveyFormField(surveys_models.AbstractFormField):
+    page = ParentalKey(SurveyPage, related_name='survey_form_fields')
 
-            # Get all submissions for current page
-            submissions = self.get_submission_class().objects.filter(page=self)
-            for submission in submissions:
-                data = submission.get_data()
 
-                # Count results for each question
-                for name, label in data_fields:
-                    answer = data.get(name)
-                    if answer is None:
-                        # Something wrong with data.
-                        # Probably you have changed questions
-                        # and now we are receiving answers for old questions.
-                        # Just skip them.
-                        continue
-
-                    question_stats = results.get(label, {})
-                    question_stats[answer] = question_stats.get(answer, 0) + 1
-                    results[label] = question_stats
-
-            context.update({
-                'results': results,
-            })
-
-        return context
+class CustomFormSubmission(surveys_models.AbstractFormSubmission):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE)
