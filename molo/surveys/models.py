@@ -18,9 +18,11 @@ from wagtailsurveys import models as surveys_models
 # See docs: https://github.com/torchbox/wagtailsurveys
 
 SectionPage.subpage_types += ['surveys.SurveyPage',
-                              'surveys.MultiStepSurveyPage']
+                              'surveys.MultiStepSurveyPage',
+                              'surveys.SurveyWithResultsPage']
 ArticlePage.subpage_types += ['surveys.SurveyPage',
-                              'surveys.MultiStepSurveyPage']
+                              'surveys.MultiStepSurveyPage',
+                              'surveys.SurveyWithResultsPage']
 
 
 class SurveyPage(surveys_models.AbstractSurvey):
@@ -164,3 +166,49 @@ class MultiStepSurveyPage(SurveyPage):
             self.template,
             context
         )
+
+
+class SurveyWithResultsPage(SurveyPage):
+    landing_page_template = 'surveys/survey_page_landing.html'
+
+    class Meta:
+        verbose_name = 'Survey Page (with results)'
+
+    def get_context(self, request, *args, **kwargs):
+        context = super(SurveyWithResultsPage, self).get_context(
+            request, *args, **kwargs
+        )
+
+        # show results only on landing page
+        if request.method == 'POST':
+            results = dict()
+            # Get information about form fields
+            data_fields = [
+                (field.clean_name, field.label)
+                for field in self.get_form_fields()
+                ]
+
+            # Get all submissions for current page
+            submissions = self.get_submission_class().objects.filter(page=self)
+            for submission in submissions:
+                data = submission.get_data()
+
+                # Count results for each question
+                for name, label in data_fields:
+                    answer = data.get(name)
+                    if answer is None:
+                        # Something wrong with data.
+                        # Probably you have changed questions
+                        # and now we are receiving answers for old questions.
+                        # Just skip them.
+                        continue
+
+                    question_stats = results.get(label, {})
+                    question_stats[answer] = question_stats.get(answer, 0) + 1
+                    results[label] = question_stats
+
+            context.update({
+                'results': results,
+            })
+
+        return context
