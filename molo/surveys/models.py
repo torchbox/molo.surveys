@@ -34,7 +34,8 @@ class SurveyPage(surveys_models.AbstractSurvey):
     allow_multiple_submissions_per_user = BooleanField(
         default=False,
         help_text='Check this to allow logged in users to complete a survey'
-                  ' more than once.'
+                  ' more than once. This setting has no effect on anonymous'
+                  ' submissions.'
     )
 
     show_results = BooleanField(
