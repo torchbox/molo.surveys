@@ -96,6 +96,11 @@ class SurveyPage(surveys_models.AbstractSurvey):
                         # Just skip them.
                         continue
 
+                    if type(answer) is list:
+                        # Fix answer is not a primitive value
+                        # TODO: create issue for wagtailsurveys
+                        answer = answer[0]
+
                     question_stats = results.get(label, {})
                     question_stats[answer] = question_stats.get(answer, 0) + 1
                     results[label] = question_stats
