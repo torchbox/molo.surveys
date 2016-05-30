@@ -12,7 +12,7 @@
             <form action="{% pageurl self %}{% if self.multi_step %}?p={{ fields_step.number|add:"1" }}{% endif %}" method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <input type="submit" value="{% trans 'Submit Survey' %}" />
+                <input type="submit" value="{% if is_intermediate_step %}{% trans 'Next Question' %}{% else %}{% trans 'Submit Survey' %}{% endif %}" />
             </form>
         {% else %}
             <p>{% trans 'You have already completed this survey.' %}</p>
@@ -20,6 +20,4 @@
     {% else %}
         <p>{% trans 'Please log in to take this survey.' %}</p>
     {% endif %}
-
-
 {% endblock %}

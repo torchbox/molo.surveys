@@ -210,6 +210,7 @@ class SurveyPage(surveys_models.AbstractSurvey):
         context = self.get_context(request)
         context['form'] = form
         context['fields_step'] = step
+        context['is_intermediate_step'] = step.has_next()
 
         return render(
             request,
