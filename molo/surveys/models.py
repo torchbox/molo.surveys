@@ -115,9 +115,11 @@ class SurveyPage(surveys_models.AbstractSurvey):
         return CustomFormSubmission
 
     def process_form_submission(self, form):
+        user = form.user if not form.user.is_anonymous() else None
+
         self.get_submission_class().objects.create(
             form_data=json.dumps(form.cleaned_data, cls=DjangoJSONEncoder),
-            page=self, user=form.user
+            page=self, user=user
         )
 
     def has_user_submitted_survey(self, user_pk):
@@ -216,8 +218,9 @@ class SurveyPage(surveys_models.AbstractSurvey):
         )
 
     def serve(self, request, *args, **kwargs):
-        if not self.allow_multiple_submissions_per_user and \
-                self.has_user_submitted_survey(request.user.pk):
+        if not self.allow_multiple_submissions_per_user \
+                and not request.user.is_anonymous() \
+                and self.has_user_submitted_survey(request.user.pk):
             return render(request, self.template, self.get_context(request))
 
         if self.multi_step:
@@ -231,5 +234,6 @@ class SurveyFormField(surveys_models.AbstractFormField):
 
 
 class CustomFormSubmission(surveys_models.AbstractFormSubmission):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True
+    )
