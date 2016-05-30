@@ -56,7 +56,7 @@ class SurveyPage(surveys_models.AbstractSurvey):
         FieldPanel('thank_you_text', classname='full'),
     ]
 
-    settings_panels = surveys_models.AbstractSurvey.content_panels + [
+    settings_panels = surveys_models.AbstractSurvey.settings_panels + [
         MultiFieldPanel([
             FieldPanel('allow_anonymous_submissions'),
             FieldPanel('allow_multiple_submissions_per_user'),
