@@ -111,6 +111,13 @@ class SurveyPage(surveys_models.AbstractSurvey):
 
         return context
 
+    def get_data_fields(self):
+        data_fields = [
+            ('username', 'Username'),
+        ]
+        data_fields += super(SurveyPage, self).get_data_fields()
+        return data_fields
+
     def get_submission_class(self):
         return CustomFormSubmission
 
@@ -238,3 +245,10 @@ class CustomFormSubmission(surveys_models.AbstractFormSubmission):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True
     )
+
+    def get_data(self):
+        form_data = super(CustomFormSubmission, self).get_data()
+        form_data.update({
+            'username': self.user.username if self.user else 'Anonymous',
+        })
+        return form_data
