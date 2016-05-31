@@ -63,8 +63,7 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
             FieldPanel('allow_multiple_submissions_per_user'),
             FieldPanel('show_results'),
             FieldPanel('multi_step')
-        ],
-        heading='Survey Settings')
+        ], heading='Survey Settings')
     ]
 
     def get_context(self, request, *args, **kwargs):
