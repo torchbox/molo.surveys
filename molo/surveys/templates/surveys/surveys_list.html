@@ -4,7 +4,7 @@
     {% for survey in surveys %}
         <div class="surveys">
             <h3>{{ survey.title }}</h3>
-            {{ survey.intro | safe }}
+            {{ survey.intro }}
             <a href="{% pageurl survey %}">Take The Survey</a>
         </div>
     {% endfor %}
