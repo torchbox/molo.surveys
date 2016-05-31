@@ -7,9 +7,8 @@ from molo.surveys.models import MoloSurveyPage
 register = template.Library()
 
 
-@register.inclusion_tag('surveys/surveys_list.html',
-                        takes_context=True)
-def survey_page(context, pk=None, page=None):
+@register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
+def surveys_list(context, pk=None, page=None):
     context = copy(context)
     if page:
         context.update({
