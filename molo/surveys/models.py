@@ -18,11 +18,11 @@ from wagtailsurveys import models as surveys_models
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 
-SectionPage.subpage_types += ['surveys.SurveyPage']
-ArticlePage.subpage_types += ['surveys.SurveyPage']
+SectionPage.subpage_types += ['surveys.MoloSurveyPage']
+ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
 
 
-class SurveyPage(surveys_models.AbstractSurvey):
+class MoloSurveyPage(surveys_models.AbstractSurvey):
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
 
@@ -68,7 +68,7 @@ class SurveyPage(surveys_models.AbstractSurvey):
     ]
 
     def get_context(self, request, *args, **kwargs):
-        context = super(SurveyPage, self).get_context(
+        context = super(MoloSurveyPage, self).get_context(
             request, *args, **kwargs
         )
 
@@ -116,11 +116,11 @@ class SurveyPage(surveys_models.AbstractSurvey):
         data_fields = [
             ('username', 'Username'),
         ]
-        data_fields += super(SurveyPage, self).get_data_fields()
+        data_fields += super(MoloSurveyPage, self).get_data_fields()
         return data_fields
 
     def get_submission_class(self):
-        return CustomFormSubmission
+        return MoloSurveySubmission
 
     def process_form_submission(self, form):
         user = form.user if not form.user.is_anonymous() else None
@@ -235,20 +235,20 @@ class SurveyPage(surveys_models.AbstractSurvey):
         if self.multi_step:
             return self.serve_multi_step(request)
 
-        return super(SurveyPage, self).serve(request, *args, **kwargs)
+        return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
 
 
-class SurveyFormField(surveys_models.AbstractFormField):
-    page = ParentalKey(SurveyPage, related_name='survey_form_fields')
+class MoloSurveyFormField(surveys_models.AbstractFormField):
+    page = ParentalKey(MoloSurveyPage, related_name='survey_form_fields')
 
 
-class CustomFormSubmission(surveys_models.AbstractFormSubmission):
+class MoloSurveySubmission(surveys_models.AbstractFormSubmission):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True
     )
 
     def get_data(self):
-        form_data = super(CustomFormSubmission, self).get_data()
+        form_data = super(MoloSurveySubmission, self).get_data()
         form_data.update({
             'username': self.user.username if self.user else 'Anonymous',
         })

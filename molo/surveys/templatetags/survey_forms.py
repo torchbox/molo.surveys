@@ -2,7 +2,7 @@ from django import template
 
 from copy import copy
 
-from molo.surveys.models import SurveyPage
+from molo.surveys.models import MoloSurveyPage
 
 register = template.Library()
 
@@ -13,6 +13,6 @@ def survey_page(context, pk=None, page=None):
     context = copy(context)
     if page:
         context.update({
-            'surveys': SurveyPage.objects.live().child_of(page)
+            'surveys': MoloSurveyPage.objects.live().child_of(page)
         })
     return context
