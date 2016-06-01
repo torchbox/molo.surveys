@@ -49,3 +49,6 @@ ve/
 
 # PyCharm / IntelliJ
 .idea/
+
+# testapp
+testapp/

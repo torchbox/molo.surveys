@@ -16,7 +16,11 @@ install:
   - pip install -e .
 
 script:
-  - flake8
+  - flake8 molo
+  - molo scaffold testapp --require molo.surveys
+  - flake8 testapp
+  - cp test_settings.py testapp/testapp/settings/local.py
+  - pip install -e testapp
   - py.test --cov=molo.surveys --cov-report=term
 
 after_success:
