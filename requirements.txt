@@ -1,2 +1,5 @@
-molo.core
+molo.core==2.6.17
+celery
+django-celery
+
 wagtailsurveys==0.1.1
