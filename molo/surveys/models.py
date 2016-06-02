@@ -97,9 +97,8 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
                         continue
 
                     if type(answer) is list:
-                        # Fix answer is not a primitive value
-                        # TODO: create issue for wagtailsurveys
-                        answer = answer[0]
+                        # answer is a list if the field type is 'Checkboxes'
+                        answer = u', '.join(answer)
 
                     question_stats = results.get(label, {})
                     question_stats[answer] = question_stats.get(answer, 0) + 1
