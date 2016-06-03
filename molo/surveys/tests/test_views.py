@@ -159,3 +159,45 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.assertContains(response, 'Results')
         self.assertContains(response, molo_survey_form_field.label)
         self.assertContains(response, 'python: 1')
+
+    def test_multi_step_option(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.english,
+                allow_anonymous_submissions=True,
+                multi_step=True
+            )
+
+        extra_molo_survey_form_field = MoloSurveyFormField.objects.create(
+            page=molo_survey_page,
+            sort_order=2,
+            label='Your favourite actor',
+            field_type='singleline',
+            required=True
+        )
+
+        response = self.client.get(molo_survey_page.url)
+
+        self.assertContains(response, molo_survey_page.title)
+        self.assertContains(response, molo_survey_page.intro)
+        self.assertContains(response, molo_survey_form_field.label)
+        self.assertNotContains(response, extra_molo_survey_form_field.label)
+        self.assertContains(response, 'Next Question')
+
+
+        response = self.client.post(molo_survey_page.url + '?p=2', {
+            molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
+        })
+
+        self.assertContains(response, molo_survey_page.title)
+        self.assertContains(response, molo_survey_page.intro)
+        self.assertNotContains(response, molo_survey_form_field.label)
+        self.assertContains(response, extra_molo_survey_form_field.label)
+        self.assertContains(response, 'Submit Survey')
+
+        response = self.client.post(molo_survey_page.url + '?p=3', {
+            extra_molo_survey_form_field.label.lower().replace(' ', '-'):
+                'Steven Seagal ;)'
+        })
+
+        self.assertContains(response, molo_survey_page.thank_you_text)
