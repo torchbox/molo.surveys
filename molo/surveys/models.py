@@ -130,9 +130,8 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
 
     def has_user_submitted_survey(self, request, survey_id, user_pk):
         if user_pk is not None and self.get_submission_class().objects.filter(
-                page=self, user__pk=user_pk
-        ).exists() or request.user.is_anonymous() \
-                and survey_id in request.session['completed_survey']:
+            page=self, user__pk=user_pk
+        ).exists() or survey_id in request.session['completed_survey']:
             return True
 
         return False
