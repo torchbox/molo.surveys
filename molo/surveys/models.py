@@ -9,7 +9,7 @@ from django.shortcuts import render
 
 from modelcluster.fields import ParentalKey
 
-from molo.core.models import SectionPage, ArticlePage
+from molo.core.models import SectionPage, ArticlePage, LanguagePage
 
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
     MultiFieldPanel
@@ -18,6 +18,7 @@ from wagtailsurveys import models as surveys_models
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 
+LanguagePage.subpage_types += ['surveys.MoloSurveyPage']
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
 ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
 
@@ -97,9 +98,8 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
                         continue
 
                     if type(answer) is list:
-                        # Fix answer is not a primitive value
-                        # TODO: create issue for wagtailsurveys
-                        answer = answer[0]
+                        # answer is a list if the field type is 'Checkboxes'
+                        answer = u', '.join(answer)
 
                     question_stats = results.get(label, {})
                     question_stats[answer] = question_stats.get(answer, 0) + 1
