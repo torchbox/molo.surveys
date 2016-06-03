@@ -129,10 +129,11 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
             page=self, user=user
         )
 
-    def has_user_submitted_survey(self, user_pk):
-        if self.get_submission_class().objects.filter(
-            page=self, user__pk=user_pk
-        ).exists():
+    def has_user_submitted_survey(self, request, survey_id, user_pk):
+        if user_pk is not None and self.get_submission_class().objects.filter(
+                page=self, user__pk=user_pk
+        ).exists() or request.user.is_anonymous() \
+                and survey_id in request.session['completed_survey']:
             return True
 
         return False
@@ -226,13 +227,20 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
         )
 
     def serve(self, request, *args, **kwargs):
+        if 'completed_survey' not in request.session:
+            request.session['completed_survey'] = []
+
         if not self.allow_multiple_submissions_per_user \
-                and not request.user.is_anonymous() \
-                and self.has_user_submitted_survey(request.user.pk):
+                and self.has_user_submitted_survey(request, self.id,
+                                                   request.user.pk):
             return render(request, self.template, self.get_context(request))
 
         if self.multi_step:
             return self.serve_multi_step(request)
+
+        if request.method == 'POST':
+            request.session['completed_survey'].append(self.id)
+            request.session.modified = True
 
         return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
 
