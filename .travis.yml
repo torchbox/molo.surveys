@@ -20,6 +20,7 @@ script:
   - molo scaffold testapp --require molo.surveys
   - flake8 testapp
   - cp local_test_settings.py testapp/testapp/settings/local.py
+  - cp molo/surveys/tests/*.html testapp/testapp/templates/core/
   - pip install -e testapp
   - py.test --cov=molo.surveys --cov-report=term
 

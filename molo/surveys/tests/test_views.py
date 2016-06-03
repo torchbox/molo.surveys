@@ -201,3 +201,36 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         })
 
         self.assertContains(response, molo_survey_page.thank_you_text)
+
+    def test_survey_template_tag_on_language_page(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(parent=self.english)
+
+        response = self.client.get(self.english.url)
+
+        self.assertContains(response,
+                            '<a href="{0}">Take The Survey</a>'.format(
+                                molo_survey_page.url))
+        self.assertContains(response, molo_survey_page.intro)
+
+    def test_survey_template_tag_on_section_page(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(parent=self.section)
+
+        response = self.client.get(self.section.url)
+
+        self.assertContains(response,
+                            '<a href="{0}">Take The Survey</a>'.format(
+                                molo_survey_page.url))
+        self.assertContains(response, molo_survey_page.intro)
+
+    def test_survey_template_tag_on_article_page(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(parent=self.article)
+
+        response = self.client.get(self.article.url)
+
+        self.assertContains(response,
+                            '<a href="{0}">Take The Survey</a>'.format(
+                                molo_survey_page.url))
+        self.assertContains(response, molo_survey_page.intro)
