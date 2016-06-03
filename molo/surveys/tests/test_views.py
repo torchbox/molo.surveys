@@ -73,8 +73,10 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
 
     def test_anonymous_submissions_option(self):
         molo_survey_page, molo_survey_form_field = \
-            self.create_molo_survey_page(parent=self.english,
-                                         allow_anonymous_submissions=True)
+            self.create_molo_survey_page(
+                parent=self.english,
+                allow_anonymous_submissions=True
+            )
 
         response = self.client.get(molo_survey_page.url)
 
@@ -134,3 +136,26 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
 
     def test_multiple_submissions_option_anonymous(self):
         self.test_multiple_submissions_option(True)
+
+    def test_show_results_option(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.english,
+                allow_anonymous_submissions=True,
+                show_results=True
+            )
+
+        response = self.client.get(molo_survey_page.url)
+
+        self.assertContains(response, molo_survey_page.title)
+        self.assertContains(response, molo_survey_page.intro)
+        self.assertContains(response, molo_survey_form_field.label)
+
+        response = self.client.post(molo_survey_page.url, {
+            molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
+        })
+
+        self.assertContains(response, molo_survey_page.thank_you_text)
+        self.assertContains(response, 'Results')
+        self.assertContains(response, molo_survey_form_field.label)
+        self.assertContains(response, 'python: 1')
