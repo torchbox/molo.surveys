@@ -34,9 +34,8 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
     )
     allow_multiple_submissions_per_user = BooleanField(
         default=False,
-        help_text='Check this to allow logged in users to complete a survey'
-                  ' more than once. This setting has no effect on anonymous'
-                  ' submissions.'
+        help_text='Check this to allow users to complete a survey more than'
+                  ' once.'
     )
 
     show_results = BooleanField(
