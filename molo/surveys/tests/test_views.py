@@ -111,7 +111,8 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(
                 parent=self.english,
-                allow_multiple_submissions_per_user=True
+                allow_multiple_submissions_per_user=True,
+                allow_anonymous_submissions=anonymous
             )
 
         if not anonymous:
