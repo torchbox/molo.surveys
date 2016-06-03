@@ -184,7 +184,6 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.assertNotContains(response, extra_molo_survey_form_field.label)
         self.assertContains(response, 'Next Question')
 
-
         response = self.client.post(molo_survey_page.url + '?p=2', {
             molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
         })
