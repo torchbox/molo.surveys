@@ -201,6 +201,9 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
 
         self.assertContains(response, molo_survey_page.thank_you_text)
 
+        # for test_multi_step_multi_submissions_anonymous
+        return molo_survey_page.url
+
     def test_can_submit_after_validation_error(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(
@@ -223,6 +226,18 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         })
 
         self.assertContains(response, molo_survey_page.thank_you_text)
+
+    def test_multi_step_multi_submissions_anonymous(self):
+        '''
+        Tests that multiple anonymous submissions are not allowed for
+        multi-step surveys by default
+        '''
+        molo_survey_page_url = self.test_multi_step_option()
+
+        response = self.client.get(molo_survey_page_url)
+
+        self.assertContains(response,
+                            'You have already completed this survey.')
 
     def test_survey_template_tag_on_language_page(self):
         molo_survey_page, molo_survey_form_field = \
