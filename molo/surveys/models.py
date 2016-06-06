@@ -128,14 +128,16 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
             page=self, user=user
         )
 
-    def has_user_submitted_survey(self, request, survey_id, user_pk):
+    def has_user_submitted_survey(self, request, survey_page_id):
         if 'completed_survey' not in request.session:
             request.session['completed_survey'] = []
 
-        if user_pk is not None and self.get_submission_class().objects.filter(
-            page=self, user__pk=user_pk
-        ).exists() or survey_id in request.session['completed_survey']:
-            return True
+        if request.user.pk is not None \
+            and self.get_submission_class().objects.filter(
+                page=self, user__pk=request.user.pk
+            ).exists() \
+                or survey_page_id in request.session['completed_survey']:
+                    return True
 
         return False
 
@@ -238,8 +240,7 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
 
     def serve(self, request, *args, **kwargs):
         if not self.allow_multiple_submissions_per_user \
-                and self.has_user_submitted_survey(request, self.id,
-                                                   request.user.pk):
+                and self.has_user_submitted_survey(request, self.id):
             return render(request, self.template, self.get_context(request))
 
         if self.multi_step:
