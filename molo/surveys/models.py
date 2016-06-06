@@ -237,8 +237,10 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
             return self.serve_multi_step(request)
 
         if request.method == 'POST':
-            request.session['completed_survey'].append(self.id)
-            request.session.modified = True
+            form = self.get_form(request.POST, page=self, user=request.user)
+            if form.is_valid():
+                request.session['completed_survey'].append(self.id)
+                request.session.modified = True
 
         return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
 
