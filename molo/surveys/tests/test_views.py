@@ -201,6 +201,29 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
 
         self.assertContains(response, molo_survey_page.thank_you_text)
 
+    def test_can_submit_after_validation_error(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.english,
+                allow_anonymous_submissions=True
+            )
+
+        response = self.client.get(molo_survey_page.url)
+
+        self.assertContains(response, molo_survey_page.title)
+        self.assertContains(response, molo_survey_page.intro)
+        self.assertContains(response, molo_survey_form_field.label)
+
+        response = self.client.post(molo_survey_page.url, {})
+
+        self.assertContains(response, 'This field is required.')
+
+        response = self.client.post(molo_survey_page.url, {
+            molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
+        })
+
+        self.assertContains(response, molo_survey_page.thank_you_text)
+
     def test_survey_template_tag_on_language_page(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.english)
