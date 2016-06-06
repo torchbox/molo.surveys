@@ -129,12 +129,22 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
         )
 
     def has_user_submitted_survey(self, request, survey_id, user_pk):
+        if 'completed_survey' not in request.session:
+            request.session['completed_survey'] = []
+
         if user_pk is not None and self.get_submission_class().objects.filter(
             page=self, user__pk=user_pk
         ).exists() or survey_id in request.session['completed_survey']:
             return True
 
         return False
+
+    def set_survey_as_submitted_for_session(self, request):
+        if 'completed_survey' not in request.session:
+            request.session['completed_survey'] = []
+
+        request.session['completed_survey'].append(self.id)
+        request.session.modified = True
 
     def get_form_class_for_step(self, step):
         return self.form_builder(step.object_list).get_form_class()
@@ -193,6 +203,8 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
                         # Perform validation again for whole form.
                         # After successful validation, save data into DB,
                         # and remove from the session.
+                        self.set_survey_as_submitted_for_session(request)
+
                         self.process_form_submission(form)
                         del request.session[session_key_data]
 
@@ -225,9 +237,6 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
         )
 
     def serve(self, request, *args, **kwargs):
-        if 'completed_survey' not in request.session:
-            request.session['completed_survey'] = []
-
         if not self.allow_multiple_submissions_per_user \
                 and self.has_user_submitted_survey(request, self.id,
                                                    request.user.pk):
@@ -239,8 +248,7 @@ class MoloSurveyPage(surveys_models.AbstractSurvey):
         if request.method == 'POST':
             form = self.get_form(request.POST, page=self, user=request.user)
             if form.is_valid():
-                request.session['completed_survey'].append(self.id)
-                request.session.modified = True
+                self.set_survey_as_submitted_for_session(request)
 
         return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
 
