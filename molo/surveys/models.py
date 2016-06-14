@@ -9,7 +9,7 @@ from django.shortcuts import render
 
 from modelcluster.fields import ParentalKey
 
-from molo.core.models import SectionPage, ArticlePage
+from molo.core.models import SectionPage, ArticlePage, TranslatablePageMixin
 
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
@@ -28,7 +28,7 @@ class SurveysIndexPage(Page):
     subpage_types = ['surveys.MoloSurveyPage']
 
 
-class MoloSurveyPage(surveys_models.AbstractSurvey):
+class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
 
