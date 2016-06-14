@@ -2,16 +2,43 @@ from django import template
 
 from copy import copy
 
-from molo.surveys.models import MoloSurveyPage
+from molo.surveys.models import MoloSurveyPage, SurveysIndexPage
 
 register = template.Library()
 
 
 @register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
-def surveys_list(context, pk=None, page=None):
+def surveys_list(context, pk=None):
     context = copy(context)
+    locale_code = context.get('locale_code')
+    page = SurveysIndexPage.objects.live().first()
     if page:
-        context.update({
-            'surveys': MoloSurveyPage.objects.live().child_of(page)
-        })
+        questions = (
+            MoloSurveyPage.objects.live().child_of(page).filter(
+                languages__language__is_main_language=True).specific())
+    else:
+        questions = []
+
+    context.update({
+        'surveys': [
+            a.get_translation_for(locale_code) or a for a in questions]
+    })
+    return context
+
+
+@register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
+def surveys_list_for_pages(context, pk=None, page=None):
+    context = copy(context)
+    locale_code = context.get('locale_code')
+    if page:
+        questions = (
+            MoloSurveyPage.objects.live().child_of(page).filter(
+                languages__language__is_main_language=True).specific())
+    else:
+        questions = []
+
+    context.update({
+        'surveys': [
+            a.get_translation_for(locale_code) or a for a in questions]
+    })
     return context
