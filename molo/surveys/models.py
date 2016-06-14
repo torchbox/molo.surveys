@@ -9,8 +9,9 @@ from django.shortcuts import render
 
 from modelcluster.fields import ParentalKey
 
-from molo.core.models import SectionPage, ArticlePage, LanguagePage
+from molo.core.models import SectionPage, ArticlePage
 
+from wagtail.wagtailcore.models import Page
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
     MultiFieldPanel
 from wagtailsurveys import models as surveys_models
@@ -18,9 +19,13 @@ from wagtailsurveys import models as surveys_models
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 
-LanguagePage.subpage_types += ['surveys.MoloSurveyPage']
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
 ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
+
+
+class SurveysIndexPage(Page):
+    parent_page_types = []
+    subpage_types = ['surveys.MoloSurveyPage']
 
 
 class MoloSurveyPage(surveys_models.AbstractSurvey):
