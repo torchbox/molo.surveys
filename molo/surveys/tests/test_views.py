@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
+from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
+
+from molo.core.models import SiteLanguage
 from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.models import (MoloSurveyPage, MoloSurveyFormField,
                                  SurveysIndexPage)
-from molo.core.models import SiteLanguage
 
 User = get_user_model()
 
@@ -253,6 +255,28 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
                             '<a href="{0}">Take The Survey</a>'.format(
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
+
+    def test_tranlated_survey(self):
+        self.user = self.login()
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(parent=self.surveys_index)
+
+        self.client.post(reverse(
+            'add_translation', args=[molo_survey_page.id, 'fr']))
+        tranlated_survey = MoloSurveyPage.objects.get(
+            slug='french-translation-of-test-survey')
+        tranlated_survey.save_revision().publish()
+
+        response = self.client.get("/")
+        self.assertContains(response, '<h3>Test Survey</h3>')
+        self.assertNotContains(
+            response, '<h3>French translation of Test Survey</h3>')
+
+        response = self.client.get('/locale/fr/')
+        response = self.client.get('/')
+        self.assertNotContains(response, '<h3>Test Survey</h3>')
+        self.assertContains(
+            response, '<h3>French translation of Test Survey</h3>')
 
     def test_survey_template_tag_on_section_page(self):
         molo_survey_page, molo_survey_form_field = \
