@@ -256,16 +256,16 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
 
-    def test_tranlated_survey(self):
+    def test_translated_survey(self):
         self.user = self.login()
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.surveys_index)
 
         self.client.post(reverse(
             'add_translation', args=[molo_survey_page.id, 'fr']))
-        tranlated_survey = MoloSurveyPage.objects.get(
+        translated_survey = MoloSurveyPage.objects.get(
             slug='french-translation-of-test-survey')
-        tranlated_survey.save_revision().publish()
+        translated_survey.save_revision().publish()
 
         response = self.client.get("/")
         self.assertContains(response, '<h3>Test Survey</h3>')
@@ -287,6 +287,28 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
                             '<a href="{0}">Take The Survey</a>'.format(
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
+
+    def test_translated_survey_on_section_page(self):
+        self.user = self.login()
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(parent=self.section)
+
+        self.client.post(reverse(
+            'add_translation', args=[molo_survey_page.id, 'fr']))
+        translated_survey = MoloSurveyPage.objects.get(
+            slug='french-translation-of-test-survey')
+        translated_survey.save_revision().publish()
+
+        response = self.client.get(self.section.url)
+        self.assertContains(response, '<h3>Test Survey</h3>')
+        self.assertNotContains(
+            response, '<h3>French translation of Test Survey</h3>')
+
+        response = self.client.get('/locale/fr/')
+        response = self.client.get(self.section.url)
+        self.assertNotContains(response, '<h3>Test Survey</h3>')
+        self.assertContains(
+            response, '<h3>French translation of Test Survey</h3>')
 
     def test_survey_template_tag_on_article_page(self):
         molo_survey_page, molo_survey_form_field = \
