@@ -1,4 +1,4 @@
-molo.core==2.6.17
+molo.core==3.2.0
 celery
 django-celery
 

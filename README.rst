@@ -1,8 +1,6 @@
 molo.surveys
 =============================
 
-An implementation of wagtailsurveys as a Molo plugin
-
 .. image:: https://img.shields.io/travis/praekelt/molo.surveys.svg
         :target: https://travis-ci.org/praekelt/molo.surveys
 
@@ -13,6 +11,33 @@ An implementation of wagtailsurveys as a Molo plugin
     :target: https://coveralls.io/r/praekelt/molo.surveys?branch=develop
     :alt: Code Coverage
 
-.. image:: https://readthedocs.org/projects/molo.surveys/badge/?version=latest
-    :target: https://molo.surveys.readthedocs.org
-    :alt: molo.surveys Docs
+An implementation of wagtailsurveys as a Molo plugin
+
+Installation::
+
+   pip install molo.surveys
+
+
+Django setup::
+
+   INSTALLED_APPS = (
+      'wagtailsurveys',
+      'molo.surveys'
+   )
+
+
+In your main.html::
+
+   {% load molo_survey_tags %}
+
+   {% block content %}
+      {% surveys_list %}
+   {% endblock %}
+
+In your section page or article page::
+
+   {% load molo_survey_tags %}
+
+   {% block content %}
+    {{% surveys_list_for_pages page=self %}
+   {% endblock %}
