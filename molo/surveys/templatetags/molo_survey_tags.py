@@ -13,15 +13,15 @@ def surveys_list(context, pk=None):
     locale_code = context.get('locale_code')
     page = SurveysIndexPage.objects.live().first()
     if page:
-        questions = (
+        surveys = (
             MoloSurveyPage.objects.live().child_of(page).filter(
                 languages__language__is_main_language=True).specific())
     else:
-        questions = []
+        surveys = []
 
     context.update({
         'surveys': [
-            a.get_translation_for(locale_code) or a for a in questions]
+            a.get_translation_for(locale_code) or a for a in surveys]
     })
     return context
 
@@ -31,14 +31,14 @@ def surveys_list_for_pages(context, pk=None, page=None):
     context = copy(context)
     locale_code = context.get('locale_code')
     if page:
-        questions = (
+        surveys = (
             MoloSurveyPage.objects.live().child_of(page).filter(
                 languages__language__is_main_language=True).specific())
     else:
-        questions = []
+        surveys = []
 
     context.update({
         'surveys': [
-            a.get_translation_for(locale_code) or a for a in questions]
+            a.get_translation_for(locale_code) or a for a in surveys]
     })
     return context
