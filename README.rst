@@ -11,10 +11,6 @@ molo.surveys
     :target: https://coveralls.io/r/praekelt/molo.surveys?branch=develop
     :alt: Code Coverage
 
-.. image:: https://readthedocs.org/projects/molo.surveys/badge/?version=latest
-    :target: https://molo.surveys.readthedocs.org
-    :alt: molo.surveys Docs
-
 An implementation of wagtailsurveys as a Molo plugin
 
 Installation::
