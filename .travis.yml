@@ -10,17 +10,18 @@ env:
   - TZ=UTC
 
 install:
-  - pip install coveralls
-  - pip install wheel
-  - pip install -r requirements-dev.txt
-  - pip install -e .
-
+  - pip install twine
+  - pip install --upgrade pip --cache-dir $HOME/.pip-cache/
+  - pip install coveralls coverage --cache-dir $HOME/.pip-cache/
+  - pip install flake8 --cache-dir $HOME/.pip-cache/
+  - pip install -r requirements-dev.txt --cache-dir $HOME/.pip-cache/
+  - pip install -e . --cache-dir $HOME/.pip-cache/
 script:
   - flake8 molo
   - molo scaffold testapp --require molo.surveys
-  - flake8 testapp
   - cp local_test_settings.py testapp/testapp/settings/local.py
   - cp molo/surveys/test_templates/*.html testapp/testapp/templates/core/
+  - flake8 testapp
   - pip install -e testapp
   - py.test --cov=molo.surveys --cov-report=term
 
