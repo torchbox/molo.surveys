@@ -2,7 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test.client import Client
 from molo.core.tests.base import MoloTestCaseMixin
-from molo.surveys.models import MoloSurveyPage, MoloSurveyFormField, SurveysIndexPage
+from molo.surveys.models import (MoloSurveyPage, MoloSurveyFormField,
+                                 SurveysIndexPage)
 from molo.core.models import SiteLanguage
 
 User = get_user_model()
