@@ -1,0 +1,11 @@
+{% load wagtailcore_tags i18n %}
+
+{% block content %}
+    {% for survey in surveys %}
+        <div class="surveys">
+            <h3>{{ survey.title }}</h3>
+            {{ survey.intro }}
+            <a href="{% pageurl survey %}">{% trans 'Take The Survey' %}</a>
+        </div>
+    {% endfor %}
+{% endblock %}

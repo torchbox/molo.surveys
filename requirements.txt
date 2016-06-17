@@ -1,0 +1,5 @@
+molo.core<4.0.0,>=3.0.0
+celery
+django-celery
+
+wagtailsurveys==0.1.1
