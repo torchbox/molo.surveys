@@ -1,15 +1,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <p>{{ self.thank_you_text }}</p>
-
+<div class="surveys">
+    <h4 class="surveys__thank-you">{{ self.thank_you_text }}</h4>
     {% if self.show_results and results %}
-    <h2>Results</h2>
+    <h3 class="surveys__title">Results</h3>
     {% for question, answers in results.items %}
-        <h3>{{ question }}</h3>
+        <h3 class="surveys__question">{{ question }}</h3>
         {% for answer, count in answers.items %}
-            <div>{{ answer }}: {{ count }}</div>
+          <div class="surveys__answer">
+            <span>{{ answer }}</span>
+            {{ count }}
+          </div>
         {% endfor %}
     {% endfor %}
     {% endif %}
+</div>
 {% endblock %}

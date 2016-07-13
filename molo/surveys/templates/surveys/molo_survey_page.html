@@ -4,20 +4,40 @@
 {% load wagtailcore_tags %}
 
 {% block content %}
-    <h1>{{ page.title }}</h1>
+<div class="surveys">
+  <h1 class="surveys__title">{{ page.title }}</h1>
+  {% if user.is_authenticated and user.is_active or request.is_preview or self.allow_anonymous_submissions %}
+    {% if form %}
+      <h4 class="surveys__intro">{{ self.intro }}</h4>
+      <form
+        class="surveys__form"
+        action="{% pageurl self %}{% if self.multi_step %}?p={{ fields_step.number|add:"1" }}{% endif %}"
+        method="post"
+      >
+        {% csrf_token %}
+        {% for field in form %}
+          <fieldset>
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
 
-    {% if user.is_authenticated and user.is_active or request.is_preview or self.allow_anonymous_submissions %}
-        {% if form %}
-            <p>{{ self.intro }}</p>
-            <form action="{% pageurl self %}{% if self.multi_step %}?p={{ fields_step.number|add:"1" }}{% endif %}" method="post">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <input type="submit" value="{% if is_intermediate_step %}{% trans 'Next Question' %}{% else %}{% trans 'Submit Survey' %}{% endif %}" />
-            </form>
-        {% else %}
-            <p>{% trans 'You have already completed this survey.' %}</p>
-        {% endif %}
+            {% if field.errors %}
+              <ul class="error error--surveys">
+              {% for error in field.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+              </ul>
+            {% endif %}
+          </fieldset>
+        {% endfor %}
+        <input type="submit" value="{% if is_intermediate_step %}{% trans 'Next Question' %}{% else %}{% trans 'Submit Survey' %}{% endif %}" />
+      </form>
     {% else %}
-        <p>{% trans 'Please log in to take this survey.' %}</p>
+      <p class="error error--surveys">{% trans 'You have already completed this survey.' %}</p>
     {% endif %}
+  {% else %}
+    <div class="call-to-action call-to-action--surveys">
+      <p>{% trans 'Please log in to take this survey.' %}</p>
+    </div>
+  {% endif %}
+</div>
 {% endblock %}
