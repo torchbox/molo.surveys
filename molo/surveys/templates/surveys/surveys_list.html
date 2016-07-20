@@ -7,7 +7,8 @@
         <h2 class="surveys__title">{{ survey.title }}</h2>
         <h4 class="surveys__intro">{{ survey.intro }}</h4>
         <div class="call-to-action call-to-action--surveys">
-          <a href="{% pageurl survey %}" class="call-to-action__nav-item  call-to-action__nav-item--surveys">{% trans 'Take The Survey' %}</a>
+          <a href="{% pageurl survey %}" class="call-to-action__nav-item  call-to-action__nav-item--surveys">
+          {% trans 'Take The Survey' %}</a>
         </div>
       </div>
     {% endfor %}
