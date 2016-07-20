@@ -4,7 +4,7 @@
 {% load wagtailcore_tags %}
 
 {% block content %}
-<div class="surveys surveys{{self.get_parent_section.get_effective_extra_style_hints}}">
+<div class="surveys surveys{{page.get_effective_extra_style_hints | default:"--orange"}}">
   <h1 class="surveys__title">{{ page.title }}</h1>
   {% if user.is_authenticated and user.is_active or request.is_preview or self.allow_anonymous_submissions %}
     {% if form %}
@@ -33,10 +33,14 @@
       </form>
     {% else %}
       <p class="error error--surveys">{% trans 'You have already completed this survey.' %}</p>
+      <div class="call-to-action call-to-action--surveys">
+        <a href="{{request.site.root_page.url}}" class="call-to-action__nav-item call-to-action__nav-item--back-home">
+        {% trans "Back to Home page" %}</a>
+      </div>
     {% endif %}
   {% else %}
-    <div class="call-to-action__nav-item  call-to-action__nav-item--surveys">
-      <p>{% trans 'Please log in to take this survey.' %}</p>
+    <div class="call-to-action call-to-action--surveys">
+      <p class="call-to-action__nav-item call-to-action__nav-item--surveys">{% trans 'Please log in to take this survey.' %}</p>
     </div>
   {% endif %}
 </div>
