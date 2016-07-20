@@ -1,13 +1,13 @@
 {% load wagtailcore_tags i18n %}
 
 {% block content %}
-  <div class="surveys">
+  <div class="surveys surveys{{get_parent_section.get_effective_extra_style_hints}}">
     {% for survey in surveys %}
       <div class="surveys__item">
-        <h3 class="surveys__title">{{ survey.title }}</h3>
+        <h2 class="surveys__title">{{ survey.title }}</h2>
         <h4 class="surveys__intro">{{ survey.intro }}</h4>
         <div class="call-to-action call-to-action--surveys">
-          <a href="{% pageurl survey %}" class="call-to-action__item">{% trans 'Take The Survey' %}</a>
+          <a href="{% pageurl survey %}" class="call-to-action__nav-item  call-to-action__nav-item--surveys">{% trans 'Take The Survey' %}</a>
         </div>
       </div>
     {% endfor %}
