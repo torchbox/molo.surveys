@@ -1,7 +1,7 @@
 {% load wagtailcore_tags i18n %}
 
 {% block content %}
-  <div class="surveys surveys{{get_parent_section.get_effective_extra_style_hints}}">
+  <div class="surveys surveys{{self.get_effective_extra_style_hints | default:"--orange"}}">
     {% for survey in surveys %}
       <div class="surveys__item">
         <h2 class="surveys__title">{{ survey.title }}</h2>
