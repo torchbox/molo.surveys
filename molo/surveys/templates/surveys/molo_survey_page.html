@@ -40,7 +40,8 @@
     {% endif %}
   {% else %}
     <div class="call-to-action call-to-action--surveys">
-      <p class="call-to-action__nav-item call-to-action__nav-item--surveys">{% trans 'Please log in to take this survey.' %}</p>
+      <a href="{% url 'molo.profiles:auth_login' %}?next={{request.path}}" class="call-to-action__nav-item call-to-action__nav-item--surveys">
+      {% trans 'Please log in to take this survey' %}</a>
     </div>
   {% endif %}
 </div>
