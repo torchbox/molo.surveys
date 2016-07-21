@@ -4,13 +4,12 @@
 <div class="surveys">
     <h4 class="surveys__thank-you">{{ self.thank_you_text }}</h4>
     {% if self.show_results and results %}
-    <h3 class="surveys__title">Results</h3>
+    <h1 class="surveys__title">Results</h1>
     {% for question, answers in results.items %}
         <h3 class="surveys__question">{{ question }}</h3>
         {% for answer, count in answers.items %}
           <div class="surveys__answer">
-            <span>{{ answer }}</span>
-            {{ count }}
+            <span>{{ answer }}</span> {{ count }}
           </div>
         {% endfor %}
     {% endfor %}
