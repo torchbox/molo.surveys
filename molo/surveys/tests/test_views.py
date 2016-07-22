@@ -56,7 +56,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client.get(molo_survey_page.url)
 
         self.assertContains(response, molo_survey_page.title)
-        self.assertContains(response, 'Please log in to take this survey.')
+        self.assertContains(response, 'Please log in to take this survey')
 
     def test_submit_survey_as_logged_in_user(self):
         molo_survey_page, molo_survey_form_field = \
@@ -166,7 +166,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.assertContains(response, molo_survey_page.thank_you_text)
         self.assertContains(response, 'Results')
         self.assertContains(response, molo_survey_form_field.label)
-        self.assertContains(response, 'python: 1')
+        self.assertContains(response, 'python</span> 1')
 
     def test_multi_step_option(self):
         molo_survey_page, molo_survey_form_field = \
@@ -252,7 +252,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             self.create_molo_survey_page(parent=self.surveys_index)
         response = self.client.get("/")
         self.assertContains(response,
-                            '<a href="{0}">Take The Survey</a>'.format(
+                            'Take The Survey</a>'.format(
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
 
@@ -268,15 +268,22 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         translated_survey.save_revision().publish()
 
         response = self.client.get("/")
-        self.assertContains(response, '<h3>Test Survey</h3>')
+        self.assertContains(response,
+                            '<h1 class="surveys__title">Test Survey</h1>')
         self.assertNotContains(
-            response, '<h3>French translation of Test Survey</h3>')
+            response,
+            '<h1 class="surveys__title">French translation of Test Survey</h1>'
+        )
 
         response = self.client.get('/locale/fr/')
         response = self.client.get('/')
-        self.assertNotContains(response, '<h3>Test Survey</h3>')
+        self.assertNotContains(
+            response,
+            '<h1 class="surveys__title">Test Survey</h1>')
         self.assertContains(
-            response, '<h3>French translation of Test Survey</h3>')
+            response,
+            '<h1 class="surveys__title">French translation of Test Survey</h1>'
+        )
 
     def test_survey_template_tag_on_section_page(self):
         molo_survey_page, molo_survey_form_field = \
@@ -284,7 +291,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
 
         response = self.client.get(self.section.url)
         self.assertContains(response,
-                            '<a href="{0}">Take The Survey</a>'.format(
+                            'Take The Survey</a>'.format(
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
 
@@ -300,21 +307,28 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         translated_survey.save_revision().publish()
 
         response = self.client.get(self.section.url)
-        self.assertContains(response, '<h3>Test Survey</h3>')
+        self.assertContains(response,
+                            '<h1 class="surveys__title">Test Survey</h1>')
         self.assertNotContains(
-            response, '<h3>French translation of Test Survey</h3>')
+            response,
+            '<h1 class="surveys__title">French translation of Test Survey</h1>'
+        )
 
         response = self.client.get('/locale/fr/')
         response = self.client.get(self.section.url)
-        self.assertNotContains(response, '<h3>Test Survey</h3>')
+        self.assertNotContains(
+            response,
+            '<h1 class="surveys__title">Test Survey</h1>')
         self.assertContains(
-            response, '<h3>French translation of Test Survey</h3>')
+            response,
+            '<h1 class="surveys__title">French translation of Test Survey</h1>'
+        )
 
     def test_survey_template_tag_on_article_page(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.article)
         response = self.client.get(self.article.url)
         self.assertContains(response,
-                            '<a href="{0}">Take The Survey</a>'.format(
+                            'Take The Survey</a>'.format(
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
