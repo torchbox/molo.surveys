@@ -56,7 +56,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client.get(molo_survey_page.url)
 
         self.assertContains(response, molo_survey_page.title)
-        self.assertContains(response, 'Please log in to take this survey.')
+        self.assertContains(response, 'Please log in to take this survey')
 
     def test_submit_survey_as_logged_in_user(self):
         molo_survey_page, molo_survey_form_field = \
@@ -162,11 +162,12 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client.post(molo_survey_page.url, {
             molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
         })
-        print response
+
         self.assertContains(response, molo_survey_page.thank_you_text)
         self.assertContains(response, 'Results')
         self.assertContains(response, molo_survey_form_field.label)
-        self.assertContains(response, '<span>python</span> 1')
+        self.assertContains(response, 'python</span> 1')
+
 
     def test_multi_step_option(self):
         molo_survey_page, molo_survey_form_field = \
@@ -251,8 +252,9 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.surveys_index)
         response = self.client.get("/")
+        print response
         self.assertContains(response,
-                            '<a href="{0}">Take The Survey</a>'.format(
+                            'Take The Survey</a>'.format(
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
 
@@ -292,11 +294,10 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client.get(self.section.url)
         print response
         self.assertContains(response,
-                            '<a href="{0}" class="call-to-action__nav-item'
-                            '  call-to-action__nav-item--surveys">'
                             'Take The Survey</a>'.format(
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
+
 
     def test_translated_survey_on_section_page(self):
         self.user = self.login()
@@ -331,9 +332,8 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.article)
         response = self.client.get(self.article.url)
+        print response
         self.assertContains(response,
-                            '<a href="{0}" class="call-to-action__nav-item'
-                            '  call-to-action__nav-item--surveys">'
                             'Take The Survey</a>'.format(
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
