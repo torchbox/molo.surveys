@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+1.1.0
+-----
+- Adding BEM rules to the template
+
 1.0.0
 -----
 - Added multi-language support

@@ -44,6 +44,8 @@ docs/_build
 .cache/
 /_trial_temp/
 
+.DS_Store
+
 # Virtualenv
 ve/
 

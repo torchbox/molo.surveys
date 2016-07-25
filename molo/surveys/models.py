@@ -125,6 +125,9 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
     def get_submission_class(self):
         return MoloSurveySubmission
 
+    def get_parent_section(self):
+        return SectionPage.objects.all().ancestor_of(self).last()
+
     def process_form_submission(self, form):
         user = form.user if not form.user.is_anonymous() else None
 
