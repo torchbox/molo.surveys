@@ -14,6 +14,7 @@
         {% for field in form %}
           <fieldset>
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            <span class="surveys__helptext">{{ field.help_text }}</span>
             {{ field }}
             {% if field.errors %}
               <ul class="error error--surveys">
