@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+1.2.0
+-----
+- Add support for hiding untranslated content
+
 1.1.0
 -----
 - Adding BEM rules to the template
