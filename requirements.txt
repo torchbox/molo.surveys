@@ -1,5 +1,6 @@
-molo.core<4.0.0,>=3.0.0
+molo.core<4.0.0,>=3.7.1
 celery
 django-celery
-
 wagtailsurveys==0.1.1
+psycopg2
+html5lib==0.9999999

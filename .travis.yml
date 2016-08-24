@@ -18,7 +18,8 @@ install:
   - pip install -e . --cache-dir $HOME/.pip-cache/
 script:
   - flake8 molo
-  - molo scaffold testapp --require molo.surveys
+  - pip install molo.profiles
+  - molo scaffold testapp --require molo.surveys --include molo.profiles ^profiles/
   - cp local_test_settings.py testapp/testapp/settings/local.py
   - cp molo/surveys/test_templates/*.html testapp/testapp/templates/core/
   - flake8 testapp
