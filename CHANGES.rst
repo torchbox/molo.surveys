@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+1.2.1
+-----
+- Make sure when submitting numbers in a number field it gets stored in the correct format
+
 1.2.0
 -----
 - Add support for hiding untranslated content
