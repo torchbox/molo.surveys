@@ -193,9 +193,11 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
                                         user=request.user)
             if prev_form.is_valid():
                 # If data for step is valid, update the session
-                survey_data = request.session.get(session_key_data, {})
+                survey_data = json.loads(
+                    request.session.get(session_key_data, '{}'))
                 survey_data.update(prev_form.cleaned_data)
-                request.session[session_key_data] = survey_data
+                request.session[session_key_data] = json.dumps(
+                    survey_data, cls=DjangoJSONEncoder)
 
                 if prev_step.has_next():
                     # Create a new form for a following step, if the following
@@ -205,7 +207,7 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
                 else:
                     # If there is no more steps, create form for all fields
                     form = self.get_form(
-                        request.session[session_key_data],
+                        json.loads(request.session[session_key_data]),
                         page=self, user=request.user
                     )
 
