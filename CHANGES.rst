@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+1.2.2
+-----
+- Return None if there is no survey
+
 1.2.1
 -----
 - Make sure when submitting numbers in a number field it gets stored in the correct format
