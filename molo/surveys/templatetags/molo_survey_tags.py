@@ -19,7 +19,7 @@ def surveys_list(context, pk=None):
             MoloSurveyPage.objects.child_of(page).filter(
                 languages__language__is_main_language=True).specific())
     else:
-        surveys = []
+        surveys = MoloSurveyPage.objects.none()
 
     context.update({
         'surveys': get_pages(context, surveys, locale_code)
@@ -36,7 +36,7 @@ def surveys_list_for_pages(context, pk=None, page=None):
             MoloSurveyPage.objects.child_of(page).filter(
                 languages__language__is_main_language=True).specific())
     else:
-        surveys = []
+        surveys = MoloSurveyPage.objects.none()
 
     context.update({
         'surveys': get_pages(context, surveys, locale_code)
