@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+1.2.3
+-----
+- Add surveys permissions to groups
+
 1.2.2
 -----
 - Return None if there is no survey
