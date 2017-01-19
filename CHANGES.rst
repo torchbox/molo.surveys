@@ -1,6 +1,26 @@
 CHANGE LOG
 ==========
 
+2.0.0
+-----
+- Upgraded dependency to molo v4
+
+1.2.3
+-----
+- Add surveys permissions to groups
+
+1.2.2
+-----
+- Return None if there is no survey
+
+1.2.1
+-----
+- Make sure when submitting numbers in a number field it gets stored in the correct format
+
+1.2.0
+-----
+- Add support for hiding untranslated content
+
 1.1.0
 -----
 - Adding BEM rules to the template
