@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+2.0.0
+-----
+- Upgraded dependency to molo v4
+
 1.2.3
 -----
 - Add surveys permissions to groups
