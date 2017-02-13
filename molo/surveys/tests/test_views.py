@@ -8,6 +8,8 @@ from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.models import (MoloSurveyPage, MoloSurveyFormField,
                                  SurveysIndexPage)
 
+from bs4 import BeautifulSoup
+
 User = get_user_model()
 
 
