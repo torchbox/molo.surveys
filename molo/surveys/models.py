@@ -9,7 +9,12 @@ from django.shortcuts import render
 
 from modelcluster.fields import ParentalKey
 
-from molo.core.models import SectionPage, ArticlePage, TranslatablePageMixin
+from molo.core.models import (
+    SectionPage,
+    ArticlePage,
+    TranslatablePageMixin,
+    PreventDeleteMixin,
+)
 
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
@@ -23,7 +28,7 @@ SectionPage.subpage_types += ['surveys.MoloSurveyPage']
 ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
 
 
-class SurveysIndexPage(Page):
+class SurveysIndexPage(Page, PreventDeleteMixin):
     parent_page_types = []
     subpage_types = ['surveys.MoloSurveyPage']
 

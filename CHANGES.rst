@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+2.1.0
+-----
+- Removed ability to delete Surveys IndexPage in the Admin UI
+
 2.0.0
 -----
 - Upgraded dependency to molo v4
