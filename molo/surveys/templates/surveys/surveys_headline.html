@@ -1,0 +1,8 @@
+{% load wagtailcore_tags i18n %}
+
+{% block content %}
+		{% for survey in surveys %}
+		<a href="{% pageurl survey %}">{{ survey.title }}</a>
+		<span class="menu-list__description">{{ survey.intro }}</span>
+		{% endfor %}
+{% endblock %}
