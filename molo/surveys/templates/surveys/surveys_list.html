@@ -2,9 +2,7 @@
 
 {% block content %}
 	<div class="surveys surveys{{self.get_effective_extra_style_hints}}">
-    <h1 class="heading">{% trans "Surveys" %}</h1>
 		{% for survey in surveys %}
-
 			<div class="surveys__item">
 				<h1 class="surveys__title">{{ survey.title }}</h1>
 				<h4 class="surveys__intro">{{ survey.intro }}</h4>
