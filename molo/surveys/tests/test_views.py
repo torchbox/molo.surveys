@@ -286,6 +286,33 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             '<h1 class="surveys__title">French translation of Test Survey</h1>'
         )
 
+    def test_survey_template_tag_on_footer(self):
+        self.user = self.login()
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(parent=self.surveys_index)
+
+        self.client.post(reverse(
+            'add_translation', args=[molo_survey_page.id, 'fr']))
+        translated_survey = MoloSurveyPage.objects.get(
+            slug='french-translation-of-test-survey')
+        translated_survey.save_revision().publish()
+
+        response = self.client.get('/')
+        self.assertContains(
+            response,
+            '<a href="/surveys/test-survey/" class="footer-link">'
+            '<img src="/static/img/clipboard.png" width="auto" '
+            'class="menu-list__item--icon" />Test Survey</a>', html=True)
+
+        self.client.get('/locale/fr/')
+        response = self.client.get('/')
+        self.assertContains(
+            response,
+            '<a href="/surveys/french-translation-of-test-survey/" '
+            'class="footer-link"><img src="/static/img/clipboard.png" '
+            'width="auto" class="menu-list__item--icon" />'
+            'French translation of Test Survey</a>', html=True)
+
     def test_survey_template_tag_on_section_page(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.section)
