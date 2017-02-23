@@ -1,5 +1,8 @@
 CHANGE LOG
 ==========
+2.2.0
+-----
+- Added Surveys headline template tag and Surveys headline template file for footer headline link
 
 2.1.0
 -----
