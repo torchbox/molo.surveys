@@ -9,8 +9,7 @@ from molo.core.templatetags.core_tags import get_pages
 register = template.Library()
 
 
-@register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
-def surveys_list(context, pk=None):
+def get_survey_list(context):
     context = copy(context)
     locale_code = context.get('locale_code')
     page = SurveysIndexPage.objects.live().first()
@@ -25,6 +24,16 @@ def surveys_list(context, pk=None):
         'surveys': get_pages(context, surveys, locale_code)
     })
     return context
+
+
+@register.inclusion_tag('surveys/surveys_headline.html', takes_context=True)
+def surveys_list_headline(context):
+    return get_survey_list(context)
+
+
+@register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
+def surveys_list(context, pk=None):
+    return get_survey_list(context)
 
 
 @register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
