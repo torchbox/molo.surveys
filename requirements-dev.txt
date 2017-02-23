@@ -1,7 +1,8 @@
+pytest==2.9.2
+pytest-django==2.9.1
 flake8==2.4.1
 coverage==4.0
 Sphinx==1.3.1
-pytest==2.8.2
 pytest-xdist==1.13.1
 pytest-cov==2.2.0
-pytest-django
+beautifulsoup4

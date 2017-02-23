@@ -3,10 +3,12 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
 
-from molo.core.models import SiteLanguage
+from molo.core.models import SiteLanguage, Main
 from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.models import (MoloSurveyPage, MoloSurveyFormField,
                                  SurveysIndexPage)
+
+from bs4 import BeautifulSoup
 
 User = get_user_model()
 
@@ -284,6 +286,33 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             '<h1 class="surveys__title">French translation of Test Survey</h1>'
         )
 
+    def test_survey_template_tag_on_footer(self):
+        self.user = self.login()
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(parent=self.surveys_index)
+
+        self.client.post(reverse(
+            'add_translation', args=[molo_survey_page.id, 'fr']))
+        translated_survey = MoloSurveyPage.objects.get(
+            slug='french-translation-of-test-survey')
+        translated_survey.save_revision().publish()
+
+        response = self.client.get('/')
+        self.assertContains(
+            response,
+            '<a href="/surveys/test-survey/" class="footer-link">'
+            '<img src="/static/img/clipboard.png" width="auto" '
+            'class="menu-list__item--icon" />Test Survey</a>', html=True)
+
+        self.client.get('/locale/fr/')
+        response = self.client.get('/')
+        self.assertContains(
+            response,
+            '<a href="/surveys/french-translation-of-test-survey/" '
+            'class="footer-link"><img src="/static/img/clipboard.png" '
+            'width="auto" class="menu-list__item--icon" />'
+            'French translation of Test Survey</a>', html=True)
+
     def test_survey_template_tag_on_section_page(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.section)
@@ -331,3 +360,61 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
                             'Take The Survey</a>'.format(
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
+
+
+class TestDeleteButtonRemoved(TestCase, MoloTestCaseMixin):
+
+    def setUp(self):
+        self.mk_main()
+        self.english = SiteLanguage.objects.create(locale='en')
+
+        self.login()
+
+        self.surveys_index = SurveysIndexPage(
+            title='Security Questions',
+            slug='security-questions')
+        self.main.add_child(instance=self.surveys_index)
+        self.surveys_index.save_revision().publish()
+
+    def test_delete_btn_removed_for_surveys_index_page_in_main(self):
+
+        main_page = Main.objects.first()
+        response = self.client.get('/admin/pages/{0}/'
+                                   .format(str(main_page.pk)))
+        self.assertEquals(response.status_code, 200)
+
+        surveys_index_page_title = (
+            SurveysIndexPage.objects.first().title)
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        index_page_rows = soup.find_all('tbody')[0].find_all('tr')
+
+        for row in index_page_rows:
+            if row.h2.a.string == surveys_index_page_title:
+                self.assertTrue(row.find('a', string='Edit'))
+                self.assertFalse(row.find('a', string='Delete'))
+
+    def test_delete_button_removed_from_dropdown_menu(self):
+        surveys_index_page = SurveysIndexPage.objects.first()
+
+        response = self.client.get('/admin/pages/{0}/'
+                                   .format(str(surveys_index_page.pk)))
+        self.assertEquals(response.status_code, 200)
+
+        delete_link = ('<a href="/admin/pages/{0}/delete/" '
+                       'title="Delete this page" class="u-link '
+                       'is-live ">Delete</a>'
+                       .format(str(surveys_index_page.pk)))
+        self.assertNotContains(response, delete_link, html=True)
+
+    def test_delete_button_removed_in_edit_menu(self):
+        surveys_index_page = SurveysIndexPage.objects.first()
+
+        response = self.client.get('/admin/pages/{0}/edit/'
+                                   .format(str(surveys_index_page.pk)))
+        self.assertEquals(response.status_code, 200)
+
+        delete_button = ('<li><a href="/admin/pages/{0}/delete/" '
+                         'class="shortcut">Delete</a></li>'
+                         .format(str(surveys_index_page.pk)))
+        self.assertNotContains(response, delete_button, html=True)
