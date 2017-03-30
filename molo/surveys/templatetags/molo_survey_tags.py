@@ -16,7 +16,7 @@ def get_survey_list(context):
     page = SurveysIndexPage.objects.child_of(main).live().first()
     if page:
         surveys = (
-            MoloSurveyPage.objects.descendant_of(page).filter(
+            MoloSurveyPage.objects.child_of(page).filter(
                 languages__language__is_main_language=True).specific())
     else:
         surveys = MoloSurveyPage.objects.none()
