@@ -274,24 +274,19 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.surveys_index)
         response = self.client.get("/")
-        self.assertContains(response,
-                            'Take The Survey</a>'.format(
-                                molo_survey_page.url))
+        self.assertContains(response, 'Take The Survey</a>')
         self.assertContains(response, molo_survey_page.intro)
         user = User.objects.create_superuser(
             username='testuser', password='password', email='test@email.com')
         self.client2.login(user=user)
         response = self.client2.get(self.site2.root_url)
-        self.assertNotContains(
-            response, 'Take The Survey</a>'.format(molo_survey_page.url))
+        self.assertNotContains(response, 'Take The Survey</a>')
 
     def test_can_only_see_sites_surveys_in_admin(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.surveys_index)
         response = self.client.get("/")
-        self.assertContains(response,
-                            'Take The Survey</a>'.format(
-                                molo_survey_page.url))
+        self.assertContains(response, 'Take The Survey</a>')
         self.assertContains(response, molo_survey_page.intro)
         user = User.objects.create_superuser(
             username='testuser', password='password', email='test@email.com')
@@ -393,9 +388,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             self.create_molo_survey_page(parent=self.section)
 
         response = self.client.get(self.section.url)
-        self.assertContains(response,
-                            'Take The Survey</a>'.format(
-                                molo_survey_page.url))
+        self.assertContains(response, 'Take The Survey</a>')
         self.assertContains(response, molo_survey_page.intro)
 
     def test_translated_survey_on_section_page(self):
