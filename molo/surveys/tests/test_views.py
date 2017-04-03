@@ -292,8 +292,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             username='testuser', password='password', email='test@email.com')
         self.client2.login(user=user)
         response = self.client2.get(self.site2.root_url)
-        self.assertNotContains(
-            response, 'Take The Survey</a>'.format(molo_survey_page.url))
+        self.assertNotContains(response, 'Take The Survey</a>')
         self.login()
         response = self.client.get('/admin/surveys/')
         self.assertContains(
