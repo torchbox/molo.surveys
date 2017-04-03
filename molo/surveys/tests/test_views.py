@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
 
-from molo.core.models import SiteLanguage, Main
+from molo.core.models import SiteLanguageRelation, Main, Languages
 from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.models import (MoloSurveyPage, MoloSurveyFormField,
                                  SurveysIndexPage)
@@ -16,21 +16,46 @@ User = get_user_model()
 class TestSurveyViews(TestCase, MoloTestCaseMixin):
     def setUp(self):
         self.client = Client()
-        self.english = SiteLanguage.objects.create(locale='en')
-        self.french = SiteLanguage.objects.create(locale='fr')
         self.mk_main()
+        self.main = Main.objects.all().first()
+        self.language_setting = Languages.objects.create(
+            site_id=self.main.get_site().pk)
+        self.english = SiteLanguageRelation.objects.create(
+            language_setting=self.language_setting,
+            locale='en',
+            is_active=True)
+        self.french = SiteLanguageRelation.objects.create(
+            language_setting=self.language_setting,
+            locale='fr',
+            is_active=True)
 
         self.section = self.mk_section(self.section_index, title='section')
         self.article = self.mk_article(self.section, title='article')
 
         # Create surveys index pages
-        self.surveys_index = SurveysIndexPage(title='Surveys', slug='surveys')
-        self.main.add_child(instance=self.surveys_index)
+        self.surveys_index = SurveysIndexPage.objects.child_of(
+            self.main).first()
 
         self.user = User.objects.create_user(
             username='tester',
             email='tester@example.com',
             password='tester')
+
+        self.mk_main2()
+        self.main2 = Main.objects.all().last()
+        self.language_setting2 = Languages.objects.create(
+            site_id=self.main2.get_site().pk)
+        self.english2 = SiteLanguageRelation.objects.create(
+            language_setting=self.language_setting2,
+            locale='en',
+            is_active=True)
+        self.french2 = SiteLanguageRelation.objects.create(
+            language_setting=self.language_setting2,
+            locale='fr',
+            is_active=True)
+
+        self.mk_main2(title='main3', slug='main3', path=00010003)
+        self.client2 = Client(HTTP_HOST=self.main2.get_site().hostname)
 
     def create_molo_survey_page(self, parent, **kwargs):
         molo_survey_page = MoloSurveyPage(
@@ -41,7 +66,6 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         )
 
         parent.add_child(instance=molo_survey_page)
-
         molo_survey_form_field = MoloSurveyFormField.objects.create(
             page=molo_survey_page,
             sort_order=1,
@@ -67,7 +91,6 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.client.login(username='tester', password='tester')
 
         response = self.client.get(molo_survey_page.url)
-
         self.assertContains(response, molo_survey_page.title)
         self.assertContains(response, molo_survey_page.intro)
         self.assertContains(response, molo_survey_form_field.label)
@@ -156,7 +179,6 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             )
 
         response = self.client.get(molo_survey_page.url)
-
         self.assertContains(response, molo_survey_page.title)
         self.assertContains(response, molo_survey_page.intro)
         self.assertContains(response, molo_survey_form_field.label)
@@ -248,14 +270,61 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.assertContains(response,
                             'You have already completed this survey.')
 
-    def test_survey_template_tag_on_home_page(self):
+    def test_survey_template_tag_on_home_page_specific(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.surveys_index)
         response = self.client.get("/")
-        self.assertContains(response,
-                            'Take The Survey</a>'.format(
-                                molo_survey_page.url))
+        self.assertContains(response, 'Take The Survey</a>')
         self.assertContains(response, molo_survey_page.intro)
+        user = User.objects.create_superuser(
+            username='testuser', password='password', email='test@email.com')
+        self.client2.login(user=user)
+        response = self.client2.get(self.site2.root_url)
+        self.assertNotContains(response, 'Take The Survey</a>')
+
+    def test_can_only_see_sites_surveys_in_admin(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(parent=self.surveys_index)
+        response = self.client.get("/")
+        self.assertContains(response, 'Take The Survey</a>')
+        self.assertContains(response, molo_survey_page.intro)
+        user = User.objects.create_superuser(
+            username='testuser', password='password', email='test@email.com')
+        self.client2.login(user=user)
+        response = self.client2.get(self.site2.root_url)
+        self.assertNotContains(response, 'Take The Survey</a>')
+        self.login()
+        response = self.client.get('/admin/surveys/')
+        self.assertContains(
+            response,
+            '<h2><a href="/admin/surveys/submissions/19/">'
+            'Test Survey</a></h2>')
+        user = get_user_model().objects.create_superuser(
+            username='superuser2',
+            email='superuser2@email.com', password='pass2')
+        self.client2.login(username='superuser2', password='pass2')
+
+        response = self.client2.get(self.site2.root_url + '/admin/surveys/')
+        self.assertNotContains(
+            response,
+            '<h2><a href="/admin/surveys/submissions/19/">'
+            'Test Survey</a></h2>')
+
+    def test_no_duplicate_indexes(self):
+        self.assertTrue(SurveysIndexPage.objects.child_of(self.main2).exists())
+        self.assertEquals(
+            SurveysIndexPage.objects.child_of(self.main2).count(), 1)
+        self.client.post(reverse(
+            'wagtailadmin_pages:copy',
+            args=(self.surveys_index.pk,)),
+            data={
+                'new_title': 'blank',
+                'new_slug': 'blank',
+                'new_parent_page': self.main2,
+                'copy_subpages': 'true',
+                'publish_copies': 'true'})
+        self.assertEquals(
+            SurveysIndexPage.objects.child_of(self.main2).count(), 1)
 
     def test_translated_survey(self):
         self.user = self.login()
@@ -300,7 +369,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client.get('/')
         self.assertContains(
             response,
-            '<a href="/surveys/test-survey/" class="footer-link">'
+            '<a href="/surveys-main-1/test-survey/" class="footer-link">'
             '<img src="/static/img/clipboard.png" width="auto" '
             'class="menu-list__item--icon" />Test Survey</a>', html=True)
 
@@ -308,7 +377,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client.get('/')
         self.assertContains(
             response,
-            '<a href="/surveys/french-translation-of-test-survey/" '
+            '<a href="/surveys-main-1/french-translation-of-test-survey/" '
             'class="footer-link"><img src="/static/img/clipboard.png" '
             'width="auto" class="menu-list__item--icon" />'
             'French translation of Test Survey</a>', html=True)
@@ -318,9 +387,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             self.create_molo_survey_page(parent=self.section)
 
         response = self.client.get(self.section.url)
-        self.assertContains(response,
-                            'Take The Survey</a>'.format(
-                                molo_survey_page.url))
+        self.assertContains(response, 'Take The Survey</a>')
         self.assertContains(response, molo_survey_page.intro)
 
     def test_translated_survey_on_section_page(self):
@@ -366,7 +433,13 @@ class TestDeleteButtonRemoved(TestCase, MoloTestCaseMixin):
 
     def setUp(self):
         self.mk_main()
-        self.english = SiteLanguage.objects.create(locale='en')
+        self.main = Main.objects.all().first()
+        self.language_setting = Languages.objects.create(
+            site_id=self.main.get_site().pk)
+        self.english = SiteLanguageRelation.objects.create(
+            language_setting=self.language_setting,
+            locale='en',
+            is_active=True)
 
         self.login()
 
