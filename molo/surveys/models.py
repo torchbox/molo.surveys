@@ -13,8 +13,7 @@ from molo.core.models import (
     SectionPage,
     ArticlePage,
     TranslatablePageMixinNotRoutable,
-    PreventDeleteMixin, index_pages_after_copy,
-    Main
+    PreventDeleteMixin, index_pages_after_copy, Main
 )
 from molo.core.utils import generate_slug
 

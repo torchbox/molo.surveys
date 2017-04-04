@@ -1,5 +1,10 @@
 CHANGE LOG
 ==========
+
+2.2.1
+-----
+- Bug Fix: Survey model inherited from non routable page mixin
+
 2.2.0
 -----
 - Added Surveys headline template tag and Surveys headline template file for footer headline link
