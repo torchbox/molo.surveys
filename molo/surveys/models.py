@@ -6,15 +6,16 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.fields import TextField, BooleanField
 from django.shortcuts import render
-
+from django.dispatch import receiver
 from modelcluster.fields import ParentalKey
 
 from molo.core.models import (
     SectionPage,
     ArticlePage,
-    TranslatablePageMixin,
-    PreventDeleteMixin,
+    TranslatablePageMixinNotRoutable,
+    PreventDeleteMixin, index_pages_after_copy, Main
 )
+from molo.core.utils import generate_slug
 
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
@@ -29,11 +30,29 @@ ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
 
 
 class SurveysIndexPage(Page, PreventDeleteMixin):
-    parent_page_types = []
+    parent_page_types = ['core.Main']
     subpage_types = ['surveys.MoloSurveyPage']
 
+    def copy(self, *args, **kwargs):
+        site = kwargs['to'].get_site()
+        main = site.root_page
+        SurveysIndexPage.objects.child_of(main).delete()
+        super(SurveysIndexPage, self).copy(*args, **kwargs)
 
-class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
+
+@receiver(index_pages_after_copy, sender=Main)
+def create_survey_index_page(sender, instance, **kwargs):
+    if not instance.get_children().filter(
+            title='Surveys').exists():
+        survey_index = SurveysIndexPage(
+            title='Surveys', slug=('surveys-%s' % (
+                generate_slug(instance.title), )))
+        instance.add_child(instance=survey_index)
+        survey_index.save_revision().publish()
+
+
+class MoloSurveyPage(
+        TranslatablePageMixinNotRoutable, surveys_models.AbstractSurvey):
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
 
@@ -151,13 +170,11 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
             ).exists() \
                 or survey_page_id in request.session['completed_surveys']:
                     return True
-
         return False
 
     def set_survey_as_submitted_for_session(self, request):
         if 'completed_surveys' not in request.session:
             request.session['completed_surveys'] = []
-
         request.session['completed_surveys'].append(self.id)
         request.session.modified = True
 
@@ -241,7 +258,6 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
             # Create empty form for non-POST requests
             form_class = self.get_form_class_for_step(step)
             form = form_class(page=self, user=request.user)
-
         context = self.get_context(request)
         context['form'] = form
         context['fields_step'] = step
@@ -265,7 +281,6 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
             form = self.get_form(request.POST, page=self, user=request.user)
             if form.is_valid():
                 self.set_survey_as_submitted_for_session(request)
-
         return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
 
 
