@@ -12,7 +12,7 @@ from modelcluster.fields import ParentalKey
 from molo.core.models import (
     SectionPage,
     ArticlePage,
-    TranslatablePageMixin,
+    TranslatablePageMixinNotRoutable,
     PreventDeleteMixin,
 )
 
@@ -33,7 +33,8 @@ class SurveysIndexPage(Page, PreventDeleteMixin):
     subpage_types = ['surveys.MoloSurveyPage']
 
 
-class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
+class MoloSurveyPage(
+        TranslatablePageMixinNotRoutable, surveys_models.AbstractSurvey):
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
 
