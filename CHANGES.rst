@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+3.0.0-beta.1
+-----
+- Added merged cms functionality to surveys
+- Only able to see relevant surveys for site in admin and csv
+
 2.2.1
 -----
 - Bug Fix: Survey model inherited from non routable page mixin
