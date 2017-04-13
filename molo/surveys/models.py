@@ -5,7 +5,9 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.fields import TextField, BooleanField
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.core.urlresolvers import reverse
+from django.views.generic import TemplateView
 
 from modelcluster.fields import ParentalKey
 
@@ -35,6 +37,7 @@ class SurveysIndexPage(Page, PreventDeleteMixin):
 
 class MoloSurveyPage(
         TranslatablePageMixinNotRoutable, surveys_models.AbstractSurvey):
+
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
 
@@ -227,11 +230,12 @@ class MoloSurveyPage(
                         del request.session[session_key_data]
 
                         # Render the landing page
-                        return render(
-                            request,
-                            self.landing_page_template,
-                            self.get_context(request)
-                        )
+                        return redirect(reverse('molo.surveys:success', args=(self.pk, )))
+                        # return render(
+                        #     request,
+                        #     self.landing_page_template,
+                        #     self.get_context(request)
+                        # )
             else:
                 # If data for step is invalid
                 # we will need to display form again with errors,
@@ -264,10 +268,23 @@ class MoloSurveyPage(
 
         if request.method == 'POST':
             form = self.get_form(request.POST, page=self, user=request.user)
+
             if form.is_valid():
                 self.set_survey_as_submitted_for_session(request)
 
-        return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
+                # render the landing_page
+                return redirect(
+                    reverse('molo.surveys:success', args=(self.pk, )))
+        else:
+            form = self.get_form(page=self, user=request.user)
+
+        context = self.get_context(request)
+        context['form'] = form
+        return render(
+            request,
+            self.template,
+            context
+        )
 
 
 class MoloSurveyFormField(surveys_models.AbstractFormField):
