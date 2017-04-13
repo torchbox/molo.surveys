@@ -19,7 +19,7 @@ install:
 script:
   - flake8 molo
   - pip install molo.profiles
-  - molo scaffold testapp --require molo.surveys --include molo.profiles ^profiles/
+  - molo scaffold testapp --require molo.surveys --include molo.surveys ^surveys/ --include molo.profiles ^profiles/
   - cp local_test_settings.py testapp/testapp/settings/local.py
   - cp molo/surveys/test_templates/*.html testapp/testapp/templates/core/
   - cp molo/surveys/test_templates/base.html testapp/testapp/templates/base.html
