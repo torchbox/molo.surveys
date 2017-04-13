@@ -8,9 +8,9 @@ class SurveySuccess(TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super(TemplateView, self).get_context_data(*args, **kwargs)
-        survey = get_object_or_404(MoloSurveyPage, pk=kwargs['pk'])
+        survey = get_object_or_404(MoloSurveyPage, slug=kwargs['slug'])
+        results = dict()
         if survey.show_results:
-            results = dict()
             # Get information about form fields
             data_fields = [
                 (field.clean_name, field.label)
@@ -40,6 +40,5 @@ class SurveySuccess(TemplateView):
                     question_stats = results.get(label, {})
                     question_stats[answer] = question_stats.get(answer, 0) + 1
                     results[label] = question_stats
-
         context.update({'self': survey, 'results': results})
         return context

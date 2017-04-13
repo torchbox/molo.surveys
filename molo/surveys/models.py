@@ -79,50 +79,6 @@ class MoloSurveyPage(
         ], heading='Survey Settings')
     ]
 
-    def get_context(self, request, *args, **kwargs):
-        context = super(MoloSurveyPage, self).get_context(
-            request, *args, **kwargs
-        )
-
-        # check request method so that results are shown only on the landing
-        # page
-        if self.show_results and request.method == 'POST':
-            results = dict()
-            # Get information about form fields
-            data_fields = [
-                (field.clean_name, field.label)
-                for field in self.get_form_fields()
-            ]
-
-            # Get all submissions for current page
-            submissions = self.get_submission_class().objects.filter(page=self)
-            for submission in submissions:
-                data = submission.get_data()
-
-                # Count results for each question
-                for name, label in data_fields:
-                    answer = data.get(name)
-                    if answer is None:
-                        # Something wrong with data.
-                        # Probably you have changed questions
-                        # and now we are receiving answers for old questions.
-                        # Just skip them.
-                        continue
-
-                    if type(answer) is list:
-                        # answer is a list if the field type is 'Checkboxes'
-                        answer = u', '.join(answer)
-
-                    question_stats = results.get(label, {})
-                    question_stats[answer] = question_stats.get(answer, 0) + 1
-                    results[label] = question_stats
-
-            context.update({
-                'results': results,
-            })
-
-        return context
-
     def get_data_fields(self):
         data_fields = [
             ('username', 'Username'),
@@ -230,7 +186,8 @@ class MoloSurveyPage(
 
                         # Render the landing page
                         return redirect(
-                            reverse('molo.surveys:success', args=(self.pk, )))
+                            reverse(
+                                'molo.surveys:success', args=(self.slug, )))
 
             else:
                 # If data for step is invalid
@@ -267,20 +224,13 @@ class MoloSurveyPage(
 
             if form.is_valid():
                 self.set_survey_as_submitted_for_session(request)
+                self.process_form_submission(form)
 
                 # render the landing_page
                 return redirect(
-                    reverse('molo.surveys:success', args=(self.pk, )))
-        else:
-            form = self.get_form(page=self, user=request.user)
+                    reverse('molo.surveys:success', args=(self.slug, )))
 
-        context = self.get_context(request)
-        context['form'] = form
-        return render(
-            request,
-            self.template,
-            context
-        )
+        return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
 
 
 class MoloSurveyFormField(surveys_models.AbstractFormField):
