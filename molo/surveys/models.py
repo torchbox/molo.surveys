@@ -5,9 +5,8 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.fields import TextField, BooleanField
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
-from django.views.generic import TemplateView
 
 from modelcluster.fields import ParentalKey
 
@@ -230,12 +229,9 @@ class MoloSurveyPage(
                         del request.session[session_key_data]
 
                         # Render the landing page
-                        return redirect(reverse('molo.surveys:success', args=(self.pk, )))
-                        # return render(
-                        #     request,
-                        #     self.landing_page_template,
-                        #     self.get_context(request)
-                        # )
+                        return redirect(
+                            reverse('molo.surveys:success', args=(self.pk, )))
+
             else:
                 # If data for step is invalid
                 # we will need to display form again with errors,
