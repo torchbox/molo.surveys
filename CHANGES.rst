@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+2.3.0
+-----
+- Add a success url after user submit answers to a survey
+
 2.2.2
 -----
 - Create a success page after user submit answers to a survey
