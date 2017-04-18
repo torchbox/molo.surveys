@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+2.2.2
+-----
+- Create a success page after user submit answers to a survey
+
 2.2.1
 -----
 - Bug Fix: Survey model inherited from non routable page mixin
