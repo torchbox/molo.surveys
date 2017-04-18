@@ -22,8 +22,16 @@ Django setup::
 
    INSTALLED_APPS = (
       'wagtailsurveys',
-      'molo.surveys'
    )
+
+
+In your urls.py::
+
+    url(
+        r"^(?P<slug>[\w-]+)/success/$",
+        SurveySuccess.as_view(),
+        name="success"
+    ),
 
 
 In your main.html::
