@@ -97,7 +97,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
 
         response = self.client.post(molo_survey_page.url, {
             molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
-        })
+        }, follow=True)
 
         self.assertContains(response, molo_survey_page.thank_you_text)
 
@@ -116,11 +116,9 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.assertContains(response, molo_survey_page.title)
         self.assertContains(response, molo_survey_page.intro)
         self.assertContains(response, molo_survey_form_field.label)
-
         response = self.client.post(molo_survey_page.url, {
             molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
-        })
-
+        }, follow=True)
         self.assertContains(response, molo_survey_page.thank_you_text)
 
         # for test_multiple_submissions_not_allowed_by_default_anonymous
@@ -163,7 +161,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             response = self.client.post(molo_survey_page.url, {
                 molo_survey_form_field.label.lower().replace(' ', '-'):
                     'python'
-            })
+            }, follow=True)
 
             self.assertContains(response, molo_survey_page.thank_you_text)
 
@@ -185,7 +183,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
 
         response = self.client.post(molo_survey_page.url, {
             molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
-        })
+        }, follow=True)
         self.assertContains(response, molo_survey_page.thank_you_text)
         self.assertContains(response, 'Results')
         self.assertContains(response, molo_survey_form_field.label)
@@ -228,7 +226,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client.post(molo_survey_page.url + '?p=3', {
             extra_molo_survey_form_field.label.lower().replace(' ', '-'):
                 'Steven Seagal ;)'
-        })
+        }, follow=True)
 
         self.assertContains(response, molo_survey_page.thank_you_text)
 
@@ -254,7 +252,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
 
         response = self.client.post(molo_survey_page.url, {
             molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
-        })
+        }, follow=True)
 
         self.assertContains(response, molo_survey_page.thank_you_text)
 
