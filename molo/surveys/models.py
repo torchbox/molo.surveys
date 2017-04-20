@@ -6,6 +6,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.fields import TextField, BooleanField
 from django.shortcuts import render, redirect
+from django.dispatch import receiver
 from django.core.urlresolvers import reverse
 
 from modelcluster.fields import ParentalKey
