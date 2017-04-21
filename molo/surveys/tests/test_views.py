@@ -295,8 +295,8 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client.get('/admin/surveys/')
         self.assertContains(
             response,
-            '<h2><a href="/admin/surveys/submissions/19/">'
-            'Test Survey</a></h2>')
+            '<h2><a href="/admin/surveys/submissions/%s/">'
+            'Test Survey</a></h2>' % molo_survey_page.pk)
         user = get_user_model().objects.create_superuser(
             username='superuser2',
             email='superuser2@email.com', password='pass2')
@@ -305,8 +305,8 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client2.get(self.site2.root_url + '/admin/surveys/')
         self.assertNotContains(
             response,
-            '<h2><a href="/admin/surveys/submissions/19/">'
-            'Test Survey</a></h2>')
+            '<h2><a href="/admin/surveys/submissions/%s/">'
+            'Test Survey</a></h2>' % molo_survey_page.pk)
 
     def test_no_duplicate_indexes(self):
         self.assertTrue(SurveysIndexPage.objects.child_of(self.main2).exists())
