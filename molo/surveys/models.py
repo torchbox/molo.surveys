@@ -26,7 +26,6 @@ from wagtailsurveys import models as surveys_models
 
 
 # See docs: https://github.com/torchbox/wagtailsurveys
-
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
 ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
 
@@ -55,6 +54,9 @@ def create_survey_index_page(sender, instance, **kwargs):
 
 class MoloSurveyPage(
         TranslatablePageMixinNotRoutable, surveys_models.AbstractSurvey):
+    parent_page_types = [
+        'surveys.SurveysIndexPage', 'core.SectionPage', 'core.ArticlePage']
+    subpage_types = []
 
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
