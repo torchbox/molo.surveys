@@ -1,7 +1,7 @@
 CHANGE LOG
 ==========
 
-3.0.0-beta.1
+5.0.0
 -----
 - Added merged cms functionality to surveys
 - Only able to see relevant surveys for site in admin and csv
