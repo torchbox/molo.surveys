@@ -5,11 +5,19 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.fields import TextField, BooleanField
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.dispatch import receiver
+from django.core.urlresolvers import reverse
 
 from modelcluster.fields import ParentalKey
 
-from molo.core.models import SectionPage, ArticlePage, TranslatablePageMixin
+from molo.core.models import (
+    SectionPage,
+    ArticlePage,
+    TranslatablePageMixinNotRoutable,
+    PreventDeleteMixin, index_pages_after_copy, Main
+)
+from molo.core.utils import generate_slug
 
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
@@ -18,17 +26,38 @@ from wagtailsurveys import models as surveys_models
 
 
 # See docs: https://github.com/torchbox/wagtailsurveys
-
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
 ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
 
 
-class SurveysIndexPage(Page):
-    parent_page_types = []
+class SurveysIndexPage(Page, PreventDeleteMixin):
+    parent_page_types = ['core.Main']
     subpage_types = ['surveys.MoloSurveyPage']
 
+    def copy(self, *args, **kwargs):
+        site = kwargs['to'].get_site()
+        main = site.root_page
+        SurveysIndexPage.objects.child_of(main).delete()
+        super(SurveysIndexPage, self).copy(*args, **kwargs)
 
-class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
+
+@receiver(index_pages_after_copy, sender=Main)
+def create_survey_index_page(sender, instance, **kwargs):
+    if not instance.get_children().filter(
+            title='Surveys').exists():
+        survey_index = SurveysIndexPage(
+            title='Surveys', slug=('surveys-%s' % (
+                generate_slug(instance.title), )))
+        instance.add_child(instance=survey_index)
+        survey_index.save_revision().publish()
+
+
+class MoloSurveyPage(
+        TranslatablePageMixinNotRoutable, surveys_models.AbstractSurvey):
+    parent_page_types = [
+        'surveys.SurveysIndexPage', 'core.SectionPage', 'core.ArticlePage']
+    subpage_types = []
+
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
 
@@ -71,50 +100,6 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
         ], heading='Survey Settings')
     ]
 
-    def get_context(self, request, *args, **kwargs):
-        context = super(MoloSurveyPage, self).get_context(
-            request, *args, **kwargs
-        )
-
-        # check request method so that results are shown only on the landing
-        # page
-        if self.show_results and request.method == 'POST':
-            results = dict()
-            # Get information about form fields
-            data_fields = [
-                (field.clean_name, field.label)
-                for field in self.get_form_fields()
-            ]
-
-            # Get all submissions for current page
-            submissions = self.get_submission_class().objects.filter(page=self)
-            for submission in submissions:
-                data = submission.get_data()
-
-                # Count results for each question
-                for name, label in data_fields:
-                    answer = data.get(name)
-                    if answer is None:
-                        # Something wrong with data.
-                        # Probably you have changed questions
-                        # and now we are receiving answers for old questions.
-                        # Just skip them.
-                        continue
-
-                    if type(answer) is list:
-                        # answer is a list if the field type is 'Checkboxes'
-                        answer = u', '.join(answer)
-
-                    question_stats = results.get(label, {})
-                    question_stats[answer] = question_stats.get(answer, 0) + 1
-                    results[label] = question_stats
-
-            context.update({
-                'results': results,
-            })
-
-        return context
-
     def get_data_fields(self):
         data_fields = [
             ('username', 'Username'),
@@ -146,13 +131,11 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
             ).exists() \
                 or survey_page_id in request.session['completed_surveys']:
                     return True
-
         return False
 
     def set_survey_as_submitted_for_session(self, request):
         if 'completed_surveys' not in request.session:
             request.session['completed_surveys'] = []
-
         request.session['completed_surveys'].append(self.id)
         request.session.modified = True
 
@@ -221,11 +204,10 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
                         del request.session[session_key_data]
 
                         # Render the landing page
-                        return render(
-                            request,
-                            self.landing_page_template,
-                            self.get_context(request)
-                        )
+                        return redirect(
+                            reverse(
+                                'molo.surveys:success', args=(self.slug, )))
+
             else:
                 # If data for step is invalid
                 # we will need to display form again with errors,
@@ -236,7 +218,6 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
             # Create empty form for non-POST requests
             form_class = self.get_form_class_for_step(step)
             form = form_class(page=self, user=request.user)
-
         context = self.get_context(request)
         context['form'] = form
         context['fields_step'] = step
@@ -258,8 +239,14 @@ class MoloSurveyPage(TranslatablePageMixin, surveys_models.AbstractSurvey):
 
         if request.method == 'POST':
             form = self.get_form(request.POST, page=self, user=request.user)
+
             if form.is_valid():
                 self.set_survey_as_submitted_for_session(request)
+                self.process_form_submission(form)
+
+                # render the landing_page
+                return redirect(
+                    reverse('molo.surveys:success', args=(self.slug, )))
 
         return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
 

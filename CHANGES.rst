@@ -1,6 +1,35 @@
 CHANGE LOG
 ==========
 
+5.0.0
+-----
+- Added merged cms functionality to surveys
+- Only able to see relevant surveys for site in admin and csv
+
+2.3.0
+-----
+- Add a success url after user submit answers to a survey
+
+2.2.2
+-----
+- Create a success page after user submit answers to a survey
+
+2.2.1
+-----
+- Bug Fix: Survey model inherited from non routable page mixin
+
+2.2.0
+-----
+- Added Surveys headline template tag and Surveys headline template file for footer headline link
+
+2.1.0
+-----
+- Removed ability to delete Surveys IndexPage in the Admin UI
+
+2.0.0
+-----
+- Upgraded dependency to molo v4
+
 1.2.3
 -----
 - Add surveys permissions to groups
