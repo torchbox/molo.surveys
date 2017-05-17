@@ -12,7 +12,8 @@ class SurveySuccess(TemplateView):
         ids = []
         for page in pages:
             ids.append(page.id)
-        survey = get_object_or_404(MoloSurveyPage, slug=kwargs['slug'], id__in=ids)
+        survey = get_object_or_404(
+            MoloSurveyPage, slug=kwargs['slug'], id__in=ids)
         results = dict()
         if survey.show_results:
             # Get information about form fields
