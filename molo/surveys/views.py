@@ -8,7 +8,11 @@ class SurveySuccess(TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super(TemplateView, self).get_context_data(*args, **kwargs)
-        survey = get_object_or_404(MoloSurveyPage, slug=kwargs['slug'])
+        pages = self.request.site.root_page.get_descendants()
+        ids = []
+        for page in pages:
+            ids.append(page.id)
+        survey = get_object_or_404(MoloSurveyPage, slug=kwargs['slug'], id__in=ids)
         results = dict()
         if survey.show_results:
             # Get information about form fields
