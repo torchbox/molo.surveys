@@ -3,6 +3,10 @@ CHANGE LOG
 
 5.0.0
 -----
+- Bug Fix: Filter by id for site specific surveys
+
+5.0.0
+-----
 - Added merged cms functionality to surveys
 - Only able to see relevant surveys for site in admin and csv
 
