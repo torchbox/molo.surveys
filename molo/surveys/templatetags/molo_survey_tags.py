@@ -27,6 +27,27 @@ def get_survey_list(context):
     return context
 
 
+def add_form_objects_to_surveys(context):
+    surveys = []
+    for survey in context['surveys']:
+        form = None
+        if (survey.allow_multiple_submissions_per_user or
+                not survey.has_user_submitted_survey(
+                    context['request'], survey.id)):
+            form = survey.get_form()
+
+        surveys.append({
+            'molo_survey_page': survey,
+            'form': form,
+        })
+
+    context.update({
+        'surveys': surveys,
+    })
+
+    return context
+
+
 @register.inclusion_tag('surveys/surveys_headline.html', takes_context=True)
 def surveys_list_headline(context):
     return get_survey_list(context)
@@ -34,7 +55,8 @@ def surveys_list_headline(context):
 
 @register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
 def surveys_list(context, pk=None):
-    return get_survey_list(context)
+    context = get_survey_list(context)
+    return add_form_objects_to_surveys(context)
 
 
 @register.simple_tag(takes_context=True)
@@ -67,4 +89,4 @@ def surveys_list_for_pages(context, pk=None, page=None):
     context.update({
         'surveys': get_pages(context, surveys, locale_code)
     })
-    return context
+    return add_form_objects_to_surveys(context)
