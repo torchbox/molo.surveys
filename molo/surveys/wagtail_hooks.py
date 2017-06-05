@@ -12,13 +12,15 @@ def show_surveys_entries_for_users_have_access(request, menu_items):
         menu_items[:] = [
             item for item in menu_items if item.name != 'surveys']
 
+
 @hooks.register('insert_global_admin_js')
 def global_admin_js():
     js_files = [
         'js/survey-admin.js',
     ]
 
-    js_includes = format_html_join('\n', '<script src="{0}{1}"></script>',
+    js_includes = format_html_join(
+        '\n', '<script src="{0}{1}"></script>',
         ((settings.STATIC_URL, filename) for filename in js_files)
     )
     return js_includes

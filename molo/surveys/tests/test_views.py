@@ -488,7 +488,6 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
                 allow_multiple_submissions_per_user=True,
             )
 
-
         self.user = self.login()
         response = self.client.post(molo_survey_page.url, {
             molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
@@ -498,7 +497,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         response = self.client.get('/')
         self.assertContains(response, molo_survey_form_field.label)
         self.assertNotContains(response,
-                            'You have already completed this survey.')
+                               'You have already completed this survey.')
 
 
 class TestDeleteButtonRemoved(TestCase, MoloTestCaseMixin):
