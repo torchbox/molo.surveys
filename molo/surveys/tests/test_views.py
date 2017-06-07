@@ -426,6 +426,79 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
                                 molo_survey_page.url))
         self.assertContains(response, molo_survey_page.intro)
 
+    def test_survey_list_display_direct_logged_out(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.surveys_index,
+                display_survey_directly=True)
+        response = self.client.get('/')
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'Please log in to take this survey')
+        self.assertNotContains(response, molo_survey_form_field.label)
+
+    def test_survey_list_display_direct_logged_in(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.surveys_index,
+                display_survey_directly=True)
+
+        self.user = self.login()
+        response = self.client.get('/')
+        self.assertEquals(response.status_code, 200)
+        self.assertNotContains(response, 'Please log in to take this survey')
+        self.assertContains(response, molo_survey_form_field.label)
+
+        response = self.client.post(molo_survey_page.url, {
+            molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
+        }, follow=True)
+
+        self.assertContains(response, molo_survey_page.thank_you_text)
+
+        response = self.client.get('/')
+        self.assertNotContains(response, molo_survey_form_field.label)
+        self.assertContains(response,
+                            'You have already completed this survey.')
+
+    def test_anonymous_submissions_option_display_direct(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.surveys_index,
+                display_survey_directly=True,
+                allow_anonymous_submissions=True,
+            )
+
+        response = self.client.get('/')
+
+        self.assertContains(response, molo_survey_form_field.label)
+        response = self.client.post(molo_survey_page.url, {
+            molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
+        }, follow=True)
+        self.assertContains(response, molo_survey_page.thank_you_text)
+
+        response = self.client.get('/')
+        self.assertNotContains(response, molo_survey_form_field.label)
+        self.assertContains(response,
+                            'You have already completed this survey.')
+
+    def test_multiple_submissions_display_direct(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.surveys_index,
+                display_survey_directly=True,
+                allow_multiple_submissions_per_user=True,
+            )
+
+        self.user = self.login()
+        response = self.client.post(molo_survey_page.url, {
+            molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
+        }, follow=True)
+        self.assertContains(response, molo_survey_page.thank_you_text)
+
+        response = self.client.get('/')
+        self.assertContains(response, molo_survey_form_field.label)
+        self.assertNotContains(response,
+                               'You have already completed this survey.')
+
 
 class TestDeleteButtonRemoved(TestCase, MoloTestCaseMixin):
 
