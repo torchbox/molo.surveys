@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+5.1.0
+-----
+- Add poll like functionality
+
 5.0.1
 -----
 - Bug Fix: Filter by id for site specific surveys
