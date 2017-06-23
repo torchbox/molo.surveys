@@ -54,8 +54,21 @@ def surveys_list_headline(context):
 
 
 @register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
-def surveys_list(context, pk=None):
+def surveys_list(context, pk=None, only_linked_surveys=False, only_direct_surveys=False):
+    if only_linked_surveys and only_direct_surveys:
+        raise ValueError('arguments "only_linked_surveys" and "only_direct_surveys" cannot both be True')
     context = get_survey_list(context)
+    if only_linked_surveys:
+        context.update({
+            'surveys': [survey for survey in context['surveys']
+                        if not survey.display_survey_directly]
+        })
+        return context
+    elif only_direct_surveys:
+        context.update({
+            'surveys': [survey for survey in context['surveys']
+                        if survey.display_survey_directly]
+        })
     return add_form_objects_to_surveys(context)
 
 
