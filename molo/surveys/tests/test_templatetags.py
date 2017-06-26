@@ -1,5 +1,5 @@
 from django.test import TestCase, RequestFactory
-from django.template import Template, Context
+from django.template import Context
 from django.contrib.auth.models import User
 from django.contrib.sessions.middleware import SessionMiddleware
 
@@ -82,14 +82,13 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
                 display_survey_directly=False,
             )
 
-
     def test_get_survey_list_default(self):
         context = Context({
             'locale_code': 'en',
             'request': self.request,
         })
         context = get_survey_list(context)
-        self.assertTrue(len(context['surveys'])==2)
+        self.assertTrue(len(context['surveys']) == 2)
         self.assertTrue(self.direct_molo_survey_page in context['surveys'])
         self.assertTrue(self.linked_molo_survey_page in context['surveys'])
 
@@ -99,7 +98,7 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
             'request': self.request,
         })
         context = get_survey_list(context, only_direct_surveys=True)
-        self.assertTrue(len(context['surveys'])==1)
+        self.assertTrue(len(context['surveys']) == 1)
         self.assertTrue(self.direct_molo_survey_page in context['surveys'])
         self.assertTrue(self.linked_molo_survey_page not in context['surveys'])
 
@@ -109,7 +108,7 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
             'request': self.request,
         })
         context = get_survey_list(context, only_linked_surveys=True)
-        self.assertTrue(len(context['surveys'])==1)
+        self.assertTrue(len(context['surveys']) == 1)
         self.assertTrue(self.direct_molo_survey_page not in context['surveys'])
         self.assertTrue(self.linked_molo_survey_page in context['surveys'])
 

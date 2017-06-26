@@ -9,7 +9,9 @@ from molo.core.templatetags.core_tags import get_pages
 register = template.Library()
 
 
-def get_survey_list(context, only_linked_surveys=False, only_direct_surveys=False):
+def get_survey_list(context,
+                    only_linked_surveys=False,
+                    only_direct_surveys=False):
     if only_linked_surveys and only_direct_surveys:
         raise ValueError('arguments "only_linked_surveys" and '
                          '"only_direct_surveys" cannot both be True')
