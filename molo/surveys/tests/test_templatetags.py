@@ -8,6 +8,8 @@ from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.models import (MoloSurveyPage, MoloSurveyFormField,
                                  SurveysIndexPage)
 
+from molo.surveys.templatetags.molo_survey_tags import get_survey_list
+
 
 def add_session_to_request(request):
     """Annotate a request object with a session"""
@@ -64,7 +66,7 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
         add_session_to_request(self.request)
 
         # create direct questions
-        direct_molo_survey_page, direct_molo_survey_form_field = \
+        self.direct_molo_survey_page, direct_molo_survey_form_field = \
             self.create_molo_survey_page(
                 parent=self.surveys_index,
                 title="direct survey title",
@@ -80,56 +82,43 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
                 display_survey_directly=False,
             )
 
-    def test_default_survey_list_tag(self):
-        template = Template("""
-        {% load molo_survey_tags %}
-        {% surveys_list  %}
-        """)
 
-        output = template.render(Context({
+    def test_get_survey_list_default(self):
+        context = Context({
             'locale_code': 'en',
             'request': self.request,
-        }))
+        })
+        context = get_survey_list(context)
+        self.assertTrue(len(context['surveys'])==2)
+        self.assertTrue(self.direct_molo_survey_page in context['surveys'])
+        self.assertTrue(self.linked_molo_survey_page in context['surveys'])
 
-        self.assertTrue("direct survey title" in output)
-        self.assertTrue("linked survey title" in output)
-
-    def test_direct_survey_list_tag(self):
-        template = Template("""
-        {% load molo_survey_tags %}
-        {% surveys_list only_direct_surveys=True %}
-        """)
-
-        output = template.render(Context({
+    def test_get_survey_list_only_direct(self):
+        context = Context({
             'locale_code': 'en',
             'request': self.request,
-        }))
+        })
+        context = get_survey_list(context, only_direct_surveys=True)
+        self.assertTrue(len(context['surveys'])==1)
+        self.assertTrue(self.direct_molo_survey_page in context['surveys'])
+        self.assertTrue(self.linked_molo_survey_page not in context['surveys'])
 
-        self.assertTrue("direct survey title" in output)
-        self.assertFalse("linked survey title" in output)
-
-    def test_linked_survey_list_tag(self):
-        template = Template("""
-        {% load molo_survey_tags %}
-        {% surveys_list only_linked_surveys=True %}
-        """)
-
-        output = template.render(Context({
+    def test_get_survey_list_only_linked(self):
+        context = Context({
             'locale_code': 'en',
             'request': self.request,
-        }))
+        })
+        context = get_survey_list(context, only_linked_surveys=True)
+        self.assertTrue(len(context['surveys'])==1)
+        self.assertTrue(self.direct_molo_survey_page not in context['surveys'])
+        self.assertTrue(self.linked_molo_survey_page in context['surveys'])
 
-        self.assertFalse("direct survey title" in output)
-        self.assertTrue("linked survey title" in output)
-
-    def test_option_error_survey_list_tag(self):
-        template = Template("""
-        {% load molo_survey_tags %}
-        {% surveys_list only_linked_surveys=True only_direct_surveys=True %}
-        """)
-
+    def test_get_survey_list_arg_error(self):
+        context = Context({
+            'locale_code': 'en',
+            'request': self.request,
+        })
         with self.assertRaises(ValueError):
-            template.render(Context({
-                'locale_code': 'en',
-                'request': self.request,
-            }))
+            context = get_survey_list(context,
+                                      only_linked_surveys=True,
+                                      only_direct_surveys=True,)
