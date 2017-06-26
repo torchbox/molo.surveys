@@ -77,10 +77,7 @@ def surveys_list(context, pk=None, only_linked_surveys=False,
     context = get_survey_list(context,
                               only_linked_surveys=only_linked_surveys,
                               only_direct_surveys=only_direct_surveys)
-    if only_linked_surveys:
-        return context
-    else:
-        return add_form_objects_to_surveys(context)
+    return add_form_objects_to_surveys(context)
 
 
 @register.simple_tag(takes_context=True)
