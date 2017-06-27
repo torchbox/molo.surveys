@@ -53,7 +53,7 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
             language_setting=self.language_setting,
             locale='en',
             is_active=True)
-        self.english = SiteLanguageRelation.objects.create(
+        self.french = SiteLanguageRelation.objects.create(
             language_setting=self.language_setting,
             locale='fr',
             is_active=True)
