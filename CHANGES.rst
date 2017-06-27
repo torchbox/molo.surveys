@@ -1,6 +1,14 @@
 CHANGE LOG
 ==========
 
+5.2.0
+-----
+- Add templatetags filters for direct and linked surveys
+
+5.1.0
+-----
+- Add poll like functionality
+
 5.0.1
 -----
 - Bug Fix: Filter by id for site specific surveys

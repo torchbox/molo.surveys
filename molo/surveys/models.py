@@ -85,6 +85,15 @@ class MoloSurveyPage(
                   ' a time, instead of all at once.'
     )
 
+    display_survey_directly = BooleanField(
+        default=False,
+        verbose_name='Display Question Directly',
+        help_text='This is similar to polls, in which the questions are '
+                  'displayed directly on the page, instead of displaying '
+                  'a link to another page to complete the survey.'
+
+    )
+
     content_panels = surveys_models.AbstractSurvey.content_panels + [
         FieldPanel('intro', classname='full'),
         InlinePanel('survey_form_fields', label='Form fields'),
@@ -96,7 +105,8 @@ class MoloSurveyPage(
             FieldPanel('allow_anonymous_submissions'),
             FieldPanel('allow_multiple_submissions_per_user'),
             FieldPanel('show_results'),
-            FieldPanel('multi_step')
+            FieldPanel('multi_step'),
+            FieldPanel('display_survey_directly'),
         ], heading='Survey Settings')
     ]
 

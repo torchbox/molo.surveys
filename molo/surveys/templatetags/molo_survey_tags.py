@@ -9,15 +9,33 @@ from molo.core.templatetags.core_tags import get_pages
 register = template.Library()
 
 
-def get_survey_list(context):
+def get_survey_list(context,
+                    only_linked_surveys=False,
+                    only_direct_surveys=False):
+    if only_linked_surveys and only_direct_surveys:
+        raise ValueError('arguments "only_linked_surveys" and '
+                         '"only_direct_surveys" cannot both be True')
+
     context = copy(context)
     locale_code = context.get('locale_code')
     main = context['request'].site.root_page
     page = SurveysIndexPage.objects.child_of(main).live().first()
     if page:
-        surveys = (
-            MoloSurveyPage.objects.child_of(page).filter(
-                languages__language__is_main_language=True).specific())
+        surveys = []
+        if only_linked_surveys:
+            surveys = (MoloSurveyPage.objects.child_of(page)
+                       .filter(languages__language__is_main_language=True)
+                       .filter(display_survey_directly=False)
+                       .specific())
+        elif only_direct_surveys:
+            surveys = (MoloSurveyPage.objects.child_of(page)
+                       .filter(languages__language__is_main_language=True)
+                       .filter(display_survey_directly=True)
+                       .specific())
+        else:
+            surveys = (MoloSurveyPage.objects.child_of(page)
+                       .filter(languages__language__is_main_language=True)
+                       .specific())
     else:
         surveys = MoloSurveyPage.objects.none()
 
@@ -27,14 +45,39 @@ def get_survey_list(context):
     return context
 
 
+def add_form_objects_to_surveys(context):
+    surveys = []
+    for survey in context['surveys']:
+        form = None
+        if (survey.allow_multiple_submissions_per_user or
+                not survey.has_user_submitted_survey(
+                    context['request'], survey.id)):
+            form = survey.get_form()
+
+        surveys.append({
+            'molo_survey_page': survey,
+            'form': form,
+        })
+
+    context.update({
+        'surveys': surveys,
+    })
+
+    return context
+
+
 @register.inclusion_tag('surveys/surveys_headline.html', takes_context=True)
 def surveys_list_headline(context):
     return get_survey_list(context)
 
 
 @register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
-def surveys_list(context, pk=None):
-    return get_survey_list(context)
+def surveys_list(context, pk=None, only_linked_surveys=False,
+                 only_direct_surveys=False):
+    context = get_survey_list(context,
+                              only_linked_surveys=only_linked_surveys,
+                              only_direct_surveys=only_direct_surveys)
+    return add_form_objects_to_surveys(context)
 
 
 @register.simple_tag(takes_context=True)
@@ -67,4 +110,4 @@ def surveys_list_for_pages(context, pk=None, page=None):
     context.update({
         'surveys': get_pages(context, surveys, locale_code)
     })
-    return context
+    return add_form_objects_to_surveys(context)
