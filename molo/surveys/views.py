@@ -45,5 +45,10 @@ class SurveySuccess(TemplateView):
                     question_stats = results.get(label, {})
                     question_stats[answer] = question_stats.get(answer, 0) + 1
                     results[label] = question_stats
+        if survey.show_results_as_percentage:
+            for question, answers in results.items():
+                total = sum(answers.values())
+                for key in answers.keys():
+                    answers[key] = (answers[key] * 100) / total
         context.update({'self': survey, 'results': results})
         return context
