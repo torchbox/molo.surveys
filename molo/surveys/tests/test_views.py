@@ -254,7 +254,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.assertContains(response, molo_survey_page.intro)
         self.assertNotContains(response, molo_survey_form_field.label)
         self.assertContains(response, extra_molo_survey_form_field.label)
-        self.assertContains(response, 'Submit Survey')
+        self.assertContains(response, molo_survey_page.submit_text)
 
         response = self.client.post(molo_survey_page.url + '?p=3', {
             extra_molo_survey_form_field.label.lower().replace(' ', '-'):
