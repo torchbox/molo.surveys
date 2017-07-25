@@ -32,7 +32,8 @@
 					            {% endif %}
 					          </fieldset>
 					        {% endfor %}
-					        <input type="submit" value="{% if is_intermediate_step %}{% trans 'Next Question' %}{% else %}{{survey.submit_text}}{% endif %}" />
+									{% trans "Submit Survey" as text %}
+					        <input type="submit" value="{% if is_intermediate_step %}{% trans 'Next Question' %}{% else %}{{self.submit_text|default:text }}{% endif %}" />
 					      </form>
 					    {% else %}
 					      <p class="error error--surveys">{% trans 'You have already completed this survey.' %}</p>
