@@ -62,6 +62,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             title='Test Survey', slug='test-survey',
             intro='Introduction to Test Survey ...',
             thank_you_text='Thank you for taking the Test Survey',
+            submit_text='survey submission text',
             **kwargs
         )
 
@@ -94,6 +95,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.assertContains(response, molo_survey_page.title)
         self.assertContains(response, molo_survey_page.intro)
         self.assertContains(response, molo_survey_form_field.label)
+        self.assertContains(response, molo_survey_page.submit_text)
 
         response = self.client.post(molo_survey_page.url, {
             molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
@@ -189,6 +191,37 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.assertContains(response, molo_survey_form_field.label)
         self.assertContains(response, 'python</span> 1')
 
+    def test_show_results_as_percentage_option(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.section_index,
+                allow_anonymous_submissions=True,
+                allow_multiple_submissions_per_user=True,
+                show_results=True,
+                show_results_as_percentage=True
+            )
+
+        response = self.client.get(molo_survey_page.url)
+        self.assertContains(response, molo_survey_page.title)
+        self.assertContains(response, molo_survey_page.intro)
+        self.assertContains(response, molo_survey_form_field.label)
+
+        response = self.client.post(molo_survey_page.url, {
+            molo_survey_form_field.label.lower().replace(' ', '-'): 'python'
+        }, follow=True)
+        self.assertContains(response, molo_survey_page.thank_you_text)
+        self.assertContains(response, 'Results')
+        self.assertContains(response, molo_survey_form_field.label)
+        self.assertContains(response, 'python</span> 100%')
+
+        response = self.client.post(molo_survey_page.url, {
+            molo_survey_form_field.label.lower().replace(' ', '-'): 'java'
+        }, follow=True)
+        self.assertContains(response, molo_survey_page.thank_you_text)
+        self.assertContains(response, 'Results')
+        self.assertContains(response, molo_survey_form_field.label)
+        self.assertContains(response, 'python</span> 50%')
+
     def test_multi_step_option(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(
@@ -221,7 +254,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         self.assertContains(response, molo_survey_page.intro)
         self.assertNotContains(response, molo_survey_form_field.label)
         self.assertContains(response, extra_molo_survey_form_field.label)
-        self.assertContains(response, 'Submit Survey')
+        self.assertContains(response, molo_survey_page.submit_text)
 
         response = self.client.post(molo_survey_page.url + '?p=3', {
             extra_molo_survey_form_field.label.lower().replace(' ', '-'):

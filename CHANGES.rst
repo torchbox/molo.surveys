@@ -1,6 +1,15 @@
 CHANGE LOG
 ==========
 
+5.2.1
+-----
+- Add option to show results as percentage
+- Add option to enter customised submit text
+
+5.2.0
+-----
+- Add templatetags filters for direct and linked surveys
+
 5.1.0
 -----
 - Add poll like functionality
