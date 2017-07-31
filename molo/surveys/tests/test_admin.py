@@ -80,7 +80,7 @@ class TestSurveyAdminViews(TestCase, MoloTestCaseMixin):
         # test shows convert to article button when no article created yet
         response = self.client.get(
             '/admin/surveys/submissions/%s/' % molo_survey_page.id)
-        self.assertContains(response, 'convert to article')
+        self.assertContains(response, 'Convert to Article')
 
         # convert submission to article
         SubmissionClass = molo_survey_page.get_submission_class()
@@ -119,4 +119,4 @@ class TestSurveyAdminViews(TestCase, MoloTestCaseMixin):
             '/admin/surveys/submissions/%s/' % molo_survey_page.id)
 
         # it should not show convert to article as there is already article
-        self.assertNotContains(response, 'convert to article')
+        self.assertNotContains(response, 'Convert to Article')
