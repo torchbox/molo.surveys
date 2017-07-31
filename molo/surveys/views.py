@@ -1,6 +1,14 @@
-from django.shortcuts import get_object_or_404
+from __future__ import unicode_literals
+
+import json
+from wagtail.wagtailcore.models import Page
+
 from django.views.generic import TemplateView
-from molo.surveys.models import MoloSurveyPage
+from molo.surveys.models import MoloSurveyPage, SurveysIndexPage
+from molo.core.models import ArticlePage
+from django.shortcuts import get_object_or_404, redirect
+
+from wagtail.wagtailcore.utils import cautious_slugify
 
 
 class SurveySuccess(TemplateView):
@@ -52,3 +60,31 @@ class SurveySuccess(TemplateView):
                     answers[key] = (answers[key] * 100) / total
         context.update({'self': survey, 'results': results})
         return context
+
+
+def submission_article(request, survey_id, submission_id):
+    # get the specific submission entry
+    survey_page = get_object_or_404(Page, id=survey_id).specific
+    SubmissionClass = survey_page.get_submission_class()
+
+    submission = SubmissionClass.objects.filter(
+        page=survey_page).filter(pk=submission_id).first()
+    if not submission.article_page:
+        survey_index_page = (
+            SurveysIndexPage.objects.live().first())
+        body = []
+        for value in submission.get_data().values():
+            body.append({"type": "paragraph", "value": str(value)})
+        article = ArticlePage(
+            title='yourwords-entry-%s' % cautious_slugify(submission_id),
+            slug='yourwords-entry-%s' % cautious_slugify(submission_id),
+            body=json.dumps(body)
+        )
+        survey_index_page.add_child(instance=article)
+        article.save_revision()
+        article.unpublish()
+
+        submission.article_page = article
+        submission.save()
+        return redirect('/admin/pages/%d/move/' % article.id)
+    return redirect('/admin/pages/%d/edit/' % submission.article_page.id)
