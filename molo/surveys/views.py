@@ -62,7 +62,7 @@ class SurveySuccess(TemplateView):
         return context
 
 
-def article(request, survey_id, submission_id):
+def submission_article(request, survey_id, submission_id):
     # get the specific submission entry
     survey_page = get_object_or_404(Page, id=survey_id).specific
     SubmissionClass = survey_page.get_submission_class()

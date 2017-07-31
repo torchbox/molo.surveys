@@ -1,6 +1,6 @@
 
 from django.conf.urls import url
-from molo.surveys.views import SurveySuccess, article
+from molo.surveys.views import SurveySuccess, submission_article
 
 
 urlpatterns = [
@@ -11,5 +11,5 @@ urlpatterns = [
     ),
     url(
         r'^submissions/(\d+)/article/(\d+)/$',
-        article, name='article'),
+        submission_article, name='article'),
 ]

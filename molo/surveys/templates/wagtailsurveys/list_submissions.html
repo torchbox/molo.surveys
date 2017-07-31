@@ -10,6 +10,7 @@
                 <th>{{ heading }}</th>
             {% endfor %}
             <th>{% trans "Actions" %}</th>
+            <th>{% trans "Article" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -30,9 +31,9 @@
                     {% url 'molo.surveys:article' survey_page.id row.model_id %}">
                     {% submission_has_article survey_page.id row.model_id as has_article %}
                     {% if has_article %}
-                      {% trans 'article' %}</a>
+                      {% trans 'Article' %}</a>
                     {% else %}
-                      {% trans 'convert to article' %}</a>
+                      {% trans 'Convert to Article' %}</a>
                     {% endif %}
 
                 </td>

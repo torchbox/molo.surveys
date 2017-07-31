@@ -102,7 +102,7 @@ class MoloSurveyPage(
     your_words_competition = BooleanField(
         default=False,
         verbose_name='Is YourWords Competition',
-        help_text='This will display the correct admin template for yourwords'
+        help_text='This will display the correct template for yourwords'
     )
     content_panels = surveys_models.AbstractSurvey.content_panels + [
         FieldPanel('intro', classname='full'),

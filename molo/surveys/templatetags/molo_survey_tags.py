@@ -39,7 +39,6 @@ def get_survey_list(context,
                        .specific())
     else:
         surveys = MoloSurveyPage.objects.none()
-
     context.update({
         'surveys': get_pages(context, surveys, locale_code)
     })
@@ -95,7 +94,6 @@ def get_survey_list_for_site(context):
 
 @register.simple_tag(takes_context=True)
 def submission_has_article(context, survey_id, submission_id):
-    context = copy(context)
     survey_page = get_object_or_404(Page, id=survey_id).specific
     SubmissionClass = survey_page.get_submission_class()
     submission = SubmissionClass.objects.filter(
