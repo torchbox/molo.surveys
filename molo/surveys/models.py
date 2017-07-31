@@ -60,7 +60,7 @@ class MoloSurveyPage(
 
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
-
+    submit_text = TextField(blank=True)
     allow_anonymous_submissions = BooleanField(
         default=False,
         help_text='Check this to allow users who are NOT logged in to complete'
@@ -76,6 +76,12 @@ class MoloSurveyPage(
         default=False,
         help_text='Whether to show the survey results to the user after they'
                   ' have submitted their answer(s).'
+    )
+    show_results_as_percentage = BooleanField(
+        default=False,
+        help_text='Whether to show the survey results to the user after they'
+                  ' have submitted their answer(s) as a percentage or as'
+                  ' a number.'
     )
 
     multi_step = BooleanField(
@@ -102,6 +108,7 @@ class MoloSurveyPage(
         FieldPanel('intro', classname='full'),
         InlinePanel('survey_form_fields', label='Form fields'),
         FieldPanel('thank_you_text', classname='full'),
+        FieldPanel('submit_text', classname='full'),
     ]
 
     settings_panels = surveys_models.AbstractSurvey.settings_panels + [
@@ -109,6 +116,7 @@ class MoloSurveyPage(
             FieldPanel('allow_anonymous_submissions'),
             FieldPanel('allow_multiple_submissions_per_user'),
             FieldPanel('show_results'),
+            FieldPanel('show_results_as_percentage'),
             FieldPanel('multi_step'),
             FieldPanel('display_survey_directly'),
             FieldPanel('your_words_competition'),
