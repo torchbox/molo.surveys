@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+5.3.0
+-----
+- Add option to convert survey submission to an article
+
 5.2.1
 -----
 - Add option to show results as percentage

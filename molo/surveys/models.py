@@ -99,7 +99,11 @@ class MoloSurveyPage(
                   'a link to another page to complete the survey.'
 
     )
-
+    your_words_competition = BooleanField(
+        default=False,
+        verbose_name='Is YourWords Competition',
+        help_text='This will display the correct template for yourwords'
+    )
     content_panels = surveys_models.AbstractSurvey.content_panels + [
         FieldPanel('intro', classname='full'),
         InlinePanel('survey_form_fields', label='Form fields'),
@@ -115,6 +119,7 @@ class MoloSurveyPage(
             FieldPanel('show_results_as_percentage'),
             FieldPanel('multi_step'),
             FieldPanel('display_survey_directly'),
+            FieldPanel('your_words_competition'),
         ], heading='Survey Settings')
     ]
 
@@ -276,6 +281,14 @@ class MoloSurveyFormField(surveys_models.AbstractFormField):
 class MoloSurveySubmission(surveys_models.AbstractFormSubmission):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True
+    )
+    article_page = models.ForeignKey(
+        'core.ArticlePage',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        help_text='Page to which the entry was converted to'
     )
 
     def get_data(self):
