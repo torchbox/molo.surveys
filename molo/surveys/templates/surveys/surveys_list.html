@@ -1,7 +1,8 @@
-{% load wagtailcore_tags i18n %}
+{% load wagtailcore_tags i18n personalise_extras %}
 
 {% block content %}
-	{% for survey in surveys %}
+{% filter_surveys_by_segments surveys request as filtered_surveys %}
+	{% for survey in filtered_surveys %}
 		{% with survey=survey.molo_survey_page form=survey.form %}
 			<div class="surveys surveys{{survey.get_effective_extra_style_hints}}">
 				<div class="surveys__item">
