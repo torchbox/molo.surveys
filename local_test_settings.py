@@ -2,5 +2,6 @@ from .base import *
 
 
 INSTALLED_APPS += (
-    'wagtailsurveys',
+    'wagtail_personalisation',
+    'wagtailfontawesome',
 )
