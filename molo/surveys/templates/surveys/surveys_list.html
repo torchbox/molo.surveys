@@ -9,8 +9,9 @@
 					<h4 class="surveys__intro">{{ survey.intro }}</h4>
 
 					{% if not survey.display_survey_directly %}
+					{% trans "Take The Survey" as button_text %}
 					<div class="call-to-action call-to-action--surveys">
-						<a href="{% pageurl survey %}" class="call-to-action__nav-item call-to-action__nav-item--surveys">{% trans 'Take The Survey' %}</a>
+						<a href="{% pageurl survey %}" class="call-to-action__nav-item call-to-action__nav-item--surveys">{{ survey.homepage_button_text|default:button_text }}</a>
 					</div>
 
 					{% else %}
