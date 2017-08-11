@@ -61,6 +61,7 @@ class MoloSurveyPage(
     intro = TextField(blank=True)
     thank_you_text = TextField(blank=True)
     submit_text = TextField(blank=True)
+    homepage_button_text = TextField(blank=True)
     allow_anonymous_submissions = BooleanField(
         default=False,
         help_text='Check this to allow users who are NOT logged in to complete'
@@ -109,6 +110,7 @@ class MoloSurveyPage(
         InlinePanel('survey_form_fields', label='Form fields'),
         FieldPanel('thank_you_text', classname='full'),
         FieldPanel('submit_text', classname='full'),
+        FieldPanel('homepage_button_text', classname='full'),
     ]
 
     settings_panels = surveys_models.AbstractSurvey.settings_panels + [
