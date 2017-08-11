@@ -76,6 +76,16 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         )
         return molo_survey_page, molo_survey_form_field
 
+    def test_homepage_button_text_customisable(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.surveys_index,
+                homepage_button_text='share your story yo')
+        self.client.login(username='tester', password='tester')
+        response = self.client.get('/')
+        self.assertContains(response, 'share your story yo')
+        self.assertNotContains(response, 'Take the Survey')
+
     def test_anonymous_submissions_not_allowed_by_default(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(parent=self.section_index)
