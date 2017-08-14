@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('wagtail_personalisation', '0012_remove_personalisablepagemetadata_is_segmented'),
-        ('surveys', '0008_submission_article_yourwords_settings'),
+        ('surveys', '0009_homepage_button_text'),
     ]
 
     operations = [
