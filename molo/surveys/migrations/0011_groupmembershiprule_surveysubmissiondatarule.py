@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('auth', '0007_alter_validators_add_error_messages'),
         ('wagtail_personalisation', '0012_remove_personalisablepagemetadata_is_segmented'),
-        ('surveys', '0009_personalisablesurvey_personalisablesurveyformfield'),
+        ('surveys', '0010_personalisablesurvey_personalisablesurveyformfield'),
     ]
 
     operations = [
