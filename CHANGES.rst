@@ -3,6 +3,10 @@ CHANGE LOG
 
 5.4.0
 -----
+- Add advanced surveys
+
+5.4.0
+-----
 - Add option to enter customised homepage button text
 
 5.3.0
