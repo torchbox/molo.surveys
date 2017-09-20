@@ -1,4 +1,4 @@
-{% load wagtailcore_tags i18n personalise_extras %}
+{% load wagtailcore_tags i18n personalise_extras wagtailimages_tags core_tags  %}
 
 {% block content %}
 {% filter_surveys_by_segments surveys request as filtered_surveys %}
@@ -17,6 +17,31 @@
 
 					{% else %}
 						{% if user.is_authenticated and user.is_active or request.is_preview or survey.allow_anonymous_submissions %}
+						<div class="surveys--inner-content">
+					  {% for block in survey.content %}
+					      {% if block.block_type == 'heading' %}
+					      <h1 class="heading">
+					        {{ block.value }}
+					      </h1>
+					      {% elif block.block_type == 'image' %}
+					        {% image block.value width-240 %}
+					      {% elif block.block_type == 'numbered_list' %}
+					        <ol>
+					        {% for item in block.value %}
+					          <li>{{ item|handle_markdown }}</li>
+					        {% endfor %}
+					        </ol>
+					      {% elif block.block_type == 'list' %}
+					        <ul>
+					        {% for item in block.value %}
+					          <li>{{ item|handle_markdown }}</li>
+					        {% endfor %}
+					      </ul>
+					      {% else %}
+					          {{ block }}
+					      {% endif %}
+					  {% endfor %}
+					  </div>
 				    	{% if form %}
 					      <form class="surveys__form" action="{% pageurl survey %}{% if survey.multi_step %}?p={{ fields_step.number|add:"1" }}{% endif %}" method="post">
 					        {% csrf_token %}
