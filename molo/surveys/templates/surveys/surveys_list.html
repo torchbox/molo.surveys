@@ -11,7 +11,7 @@
 				{% if survey.image %}
 					{% image survey.image width-98 as tmp_photo_small %}
 					{% image survey.image width-320 as tmp_photo_large %}
-					 <img src="{{ tmp_photo_small.url }}" srcset="{{ tmp_photo_large.url }}" alt="{{ self.get_effective_image.title }}" class="feature-image" />
+					 <img src="{{ tmp_photo_small.url }}" srcset="{{ tmp_photo_large.url }}" alt="{{ self.title }}" class="feature-image" />
 				{% endif %}
 
 				{% if not survey.display_survey_directly %}

@@ -10,7 +10,7 @@
   {% if page.image %}
     {% image page.image width-98 as tmp_photo_small %}
     {% image page.image width-320 as tmp_photo_large %}
-     <img src="{{ tmp_photo_small.url }}" srcset="{{ tmp_photo_large.url }}" alt="{{ self.get_effective_image.title }}" class="feature-image" />
+     <img src="{{ tmp_photo_small.url }}" srcset="{{ tmp_photo_large.url }}" alt="{{ self.title }}" class="feature-image" />
   {% endif %}
   <div class="surveys--inner-content">
   {% for block in page.content %}
