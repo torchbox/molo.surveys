@@ -1,12 +1,17 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
-{% load wagtailcore_tags wagtailimages_tags core_tags %}
+{% load wagtailcore_tags wagtailimages_tags core_tags static %}
 
 {% block content %}
 <div class="surveys surveys{{page.get_parent_section.get_effective_extra_style_hints}}">
   <h1 class="surveys__title">{{ page.title }}</h1>
   <h4 class="surveys__intro">{{ page.intro }}</h4>
+  {% if page.image %}
+    {% image page.image width-98 as tmp_photo_small %}
+    {% image page.image width-320 as tmp_photo_large %}
+     <img src="{{ tmp_photo_small.url }}" srcset="{{ tmp_photo_large.url }}" alt="{{ self.get_effective_image.title }}" class="feature-image" />
+  {% endif %}
   <div class="surveys--inner-content">
   {% for block in page.content %}
       {% if block.block_type == 'heading' %}
@@ -68,3 +73,4 @@
   {% endif %}
 </div>
 {% endblock %}
+
