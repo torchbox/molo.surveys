@@ -21,7 +21,7 @@ from molo.core.utils import generate_slug
 
 from wagtail.wagtailcore.models import Page, Orderable
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
-    MultiFieldPanel, StreamFieldPanel, PageChooserPanel
+    MultiFieldPanel, StreamFieldPanel, PageChooserPanel, FieldRowPanel
 from wagtail.wagtailcore.fields import StreamField
 from wagtail.wagtailcore import blocks
 from wagtail.wagtailimages.blocks import ImageChooserBlock
@@ -40,18 +40,13 @@ from .rules import SurveySubmissionDataRule, GroupMembershipRule  # noqa
 # See docs: https://github.com/torchbox/wagtailsurveys
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
 ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
+ArticlePage.parent_page_types += ['surveys.TermsAndConditionsIndexPage']
 
 
 class TermsAndConditionsIndexPage(
         TranslatablePageMixinNotRoutable, Page, PreventDeleteMixin):
     parent_page_types = ['surveys.SurveysIndexPage']
     subpage_types = ['core.ArticlePage']
-
-    def copy(self, *args, **kwargs):
-        site = kwargs['to'].get_site()
-        main = site.root_page
-        TermsAndConditionsIndexPage.objects.descendant_of(main).delete()
-        super(TermsAndConditionsIndexPage, self).copy(*args, **kwargs)
 
 
 class SurveysIndexPage(Page, PreventDeleteMixin):
@@ -76,11 +71,6 @@ def create_survey_index_pages(sender, instance, **kwargs):
                 generate_slug(instance.title), )))
         instance.add_child(instance=survey_index)
         survey_index.save_revision().publish()
-        terms_conditions_index = TermsAndConditionsIndexPage(
-            title='Terms and Conditions', slug=('terms-and-conditions-%s' % (
-                generate_slug(instance.title), )))
-        survey_index.add_child(instance=terms_conditions_index)
-        terms_conditions_index.save_revision().publish()
 
 
 class MoloSurveyPage(
@@ -151,6 +141,12 @@ class MoloSurveyPage(
         verbose_name='Is YourWords Competition',
         help_text='This will display the correct template for yourwords'
     )
+    extra_style_hints = models.TextField(
+        default='',
+        null=True, blank=True,
+        help_text=_(
+            "Styling options that can be applied to this page "
+            "and all its descendants"))
     content_panels = surveys_models.AbstractSurvey.content_panels + [
         FieldPanel('intro', classname='full'),
         ImageChooserPanel('image'),
@@ -171,8 +167,18 @@ class MoloSurveyPage(
             FieldPanel('multi_step'),
             FieldPanel('display_survey_directly'),
             FieldPanel('your_words_competition'),
-        ], heading='Survey Settings')
+        ], heading='Survey Settings'),
+        MultiFieldPanel(
+            [FieldRowPanel(
+                [FieldPanel('extra_style_hints')], classname="label-above")],
+            "Meta")
     ]
+
+    def get_effective_extra_style_hints(self):
+            return self.extra_style_hints
+
+    def get_effective_image(self):
+        return self.image
 
     def get_data_fields(self):
         data_fields = [
@@ -336,7 +342,7 @@ class SurveyArticlePage(Orderable):
         help_text=_('Terms and Conditions')
     )
     panels = [PageChooserPanel(
-        'terms_and_conditions', 'surveys.MoloSurveyPage')]
+        'terms_and_conditions', 'core.ArticlePage')]
 
 
 class MoloSurveyFormField(surveys_models.AbstractFormField):
