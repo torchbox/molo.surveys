@@ -5,3 +5,4 @@ wagtailsurveys==0.1.1
 wagtail-personalisation==0.9.1
 psycopg2
 html5lib==0.9999999
+Unidecode==0.04.16
