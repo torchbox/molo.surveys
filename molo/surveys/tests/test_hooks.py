@@ -74,7 +74,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         )
         return molo_survey_page, molo_survey_form_field
 
-    def test_copying_main_copies_surveys_correctly(self):
+    def test_copying_main_copies_surveys_relations_correctly(self):
         self.user = self.login()
         # create survey page
         molo_survey_page, molo_survey_form_field = \
