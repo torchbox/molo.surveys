@@ -6,3 +6,6 @@ INSTALLED_APPS += (
     'wagtailfontawesome',
     'wagtailsurveys',
 )
+
+CELERY_ALWAYS_EAGER = True
+BROKER_BACKEND = 'memory'
