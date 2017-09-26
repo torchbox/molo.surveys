@@ -35,6 +35,7 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
         )
 
         parent.add_child(instance=molo_survey_page)
+        molo_survey_page.save_revision().publish()
         molo_survey_form_field = MoloSurveyFormField.objects.create(
             page=molo_survey_page,
             sort_order=1,
