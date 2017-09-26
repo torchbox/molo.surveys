@@ -175,7 +175,7 @@ class MoloSurveyPage(
     ]
 
     def get_effective_extra_style_hints(self):
-            return self.extra_style_hints
+        return self.extra_style_hints
 
     def get_effective_image(self):
         return self.image
