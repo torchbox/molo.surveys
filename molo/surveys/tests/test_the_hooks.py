@@ -6,7 +6,7 @@ from django.test.client import Client
 from molo.core.models import SiteLanguageRelation, Main, Languages
 from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.models import (MoloSurveyPage, MoloSurveyFormField,
-                                 SurveysIndexPage, SurveyArticlePage,
+                                 SurveysIndexPage, SurveyTermsConditions,
                                  TermsAndConditionsIndexPage)
 
 User = get_user_model()
@@ -83,7 +83,7 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
                 homepage_button_text='share your story yo')
 
         # create the terms and conditions relation with survey page
-        SurveyArticlePage.objects.create(
+        SurveyTermsConditions.objects.create(
             page=molo_survey_page, terms_and_conditions=self.article)
         # copy one main to create another
         response = self.client.post(reverse(

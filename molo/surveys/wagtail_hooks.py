@@ -10,7 +10,7 @@ from django.utils.translation import ugettext as _
 
 from wagtail.wagtailadmin.menu import MenuItem
 
-from molo.surveys.models import MoloSurveyPage, SurveyArticlePage
+from molo.surveys.models import MoloSurveyPage, SurveyTermsConditions
 from molo.core.models import ArticlePage
 
 from .views import create
@@ -63,7 +63,7 @@ def create_new_page_relations(request, page, new_page):
             for survey in MoloSurveyPage.objects.descendant_of(new_page):
 
                 # replace old terms and conditions with new one, if it exists
-                relations = SurveyArticlePage.objects.filter(page=survey)
+                relations = SurveyTermsConditions.objects.filter(page=survey)
                 for relation in relations:
                     if relation.terms_and_conditions:
                         new_article = ArticlePage.objects.descendant_of(

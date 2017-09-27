@@ -13,7 +13,7 @@ from modelcluster.fields import ParentalKey
 
 from molo.core.models import (
     SectionPage,
-    ArticlePage,
+    ArticlePage, FooterPage,
     TranslatablePageMixinNotRoutable,
     PreventDeleteMixin, index_pages_after_copy, Main
 )
@@ -40,13 +40,13 @@ from .rules import SurveySubmissionDataRule, GroupMembershipRule  # noqa
 # See docs: https://github.com/torchbox/wagtailsurveys
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
 ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
-ArticlePage.parent_page_types += ['surveys.TermsAndConditionsIndexPage']
+FooterPage.parent_page_types += ['surveys.TermsAndConditionsIndexPage']
 
 
 class TermsAndConditionsIndexPage(
         TranslatablePageMixinNotRoutable, Page, PreventDeleteMixin):
     parent_page_types = ['surveys.SurveysIndexPage']
-    subpage_types = ['core.ArticlePage']
+    subpage_types = ['core.Footerpage']
 
 
 class SurveysIndexPage(Page, PreventDeleteMixin):
@@ -331,7 +331,7 @@ class MoloSurveyPage(
         return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
 
 
-class SurveyArticlePage(Orderable):
+class SurveyTermsConditions(Orderable):
     page = ParentalKey(MoloSurveyPage, related_name='terms_and_conditions')
     terms_and_conditions = models.ForeignKey(
         'wagtailcore.Page',
@@ -342,7 +342,7 @@ class SurveyArticlePage(Orderable):
         help_text=_('Terms and Conditions')
     )
     panels = [PageChooserPanel(
-        'terms_and_conditions', 'core.ArticlePage')]
+        'terms_and_conditions', 'core.FooterPage')]
 
 
 class MoloSurveyFormField(surveys_models.AbstractFormField):
