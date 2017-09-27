@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+5.6.1
+-----
+- Use FooterPage instead of ArticlePage for the Surveys Ts&Cs
+
 5.6.0
 -----
 - Added Terms and Conditions index page and page relation to molo survey page
