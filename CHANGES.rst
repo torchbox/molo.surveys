@@ -1,6 +1,40 @@
 CHANGE LOG
 ==========
 
+5.6.0
+-----
+- Added Terms and Conditions index page and page relation to molo survey page
+- Added image and body content to survey
+
+5.5.0
+-----
+- Add advanced surveys
+
+5.4.0
+-----
+- Add option to enter customised homepage button text
+
+5.3.0
+-----
+- Add option to convert survey submission to an article
+
+5.2.1
+-----
+- Add option to show results as percentage
+- Add option to enter customised submit text
+
+5.2.0
+-----
+- Add templatetags filters for direct and linked surveys
+
+5.1.0
+-----
+- Add poll like functionality
+
+5.0.1
+-----
+- Bug Fix: Filter by id for site specific surveys
+
 5.0.0
 -----
 - Added merged cms functionality to surveys
