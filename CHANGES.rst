@@ -1,7 +1,12 @@
 CHANGE LOG
 ==========
 
-5.4.0
+5.6.0
+-----
+- Added Terms and Conditions index page and page relation to molo survey page
+- Added image and body content to survey
+
+5.5.0
 -----
 - Add advanced surveys
 
