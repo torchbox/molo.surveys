@@ -43,8 +43,7 @@ ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
 FooterPage.parent_page_types += ['surveys.TermsAndConditionsIndexPage']
 
 
-class TermsAndConditionsIndexPage(
-        TranslatablePageMixinNotRoutable, Page, PreventDeleteMixin):
+class TermsAndConditionsIndexPage(TranslatablePageMixinNotRoutable, Page):
     parent_page_types = ['surveys.SurveysIndexPage']
     subpage_types = ['core.Footerpage']
 
