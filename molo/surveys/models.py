@@ -13,15 +13,21 @@ from modelcluster.fields import ParentalKey
 
 from molo.core.models import (
     SectionPage,
-    ArticlePage,
+    ArticlePage, FooterPage,
     TranslatablePageMixinNotRoutable,
     PreventDeleteMixin, index_pages_after_copy, Main
 )
 from molo.core.utils import generate_slug
 
-from wagtail.wagtailcore.models import Page
+from wagtail.wagtailcore.models import Page, Orderable
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
-    MultiFieldPanel
+    MultiFieldPanel, StreamFieldPanel, PageChooserPanel, FieldRowPanel
+from wagtail.wagtailcore.fields import StreamField
+from wagtail.wagtailcore import blocks
+from wagtail.wagtailimages.blocks import ImageChooserBlock
+from wagtail.wagtailimages.edit_handlers import ImageChooserPanel
+
+from molo.core.blocks import MarkDownBlock
 from wagtailsurveys import models as surveys_models
 from django.db.models import Q
 from django.http import Http404
@@ -34,11 +40,19 @@ from .rules import SurveySubmissionDataRule, GroupMembershipRule  # noqa
 # See docs: https://github.com/torchbox/wagtailsurveys
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
 ArticlePage.subpage_types += ['surveys.MoloSurveyPage']
+FooterPage.parent_page_types += ['surveys.TermsAndConditionsIndexPage']
+
+
+class TermsAndConditionsIndexPage(TranslatablePageMixinNotRoutable, Page):
+    parent_page_types = ['surveys.SurveysIndexPage']
+    subpage_types = ['core.Footerpage']
 
 
 class SurveysIndexPage(Page, PreventDeleteMixin):
     parent_page_types = ['core.Main']
-    subpage_types = ['surveys.MoloSurveyPage', 'surveys.PersonalisableSurvey']
+    subpage_types = [
+        'surveys.MoloSurveyPage', 'surveys.PersonalisableSurvey',
+        'surveys.TermsAndConditionsIndexPage']
 
     def copy(self, *args, **kwargs):
         site = kwargs['to'].get_site()
@@ -48,7 +62,7 @@ class SurveysIndexPage(Page, PreventDeleteMixin):
 
 
 @receiver(index_pages_after_copy, sender=Main)
-def create_survey_index_page(sender, instance, **kwargs):
+def create_survey_index_pages(sender, instance, **kwargs):
     if not instance.get_children().filter(
             title='Surveys').exists():
         survey_index = SurveysIndexPage(
@@ -65,6 +79,21 @@ class MoloSurveyPage(
     subpage_types = []
 
     intro = TextField(blank=True)
+    image = models.ForeignKey(
+        'wagtailimages.Image',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+'
+    )
+    content = StreamField([
+        ('heading', blocks.CharBlock(classname="full title")),
+        ('paragraph', MarkDownBlock()),
+        ('image', ImageChooserBlock()),
+        ('list', blocks.ListBlock(blocks.CharBlock(label="Item"))),
+        ('numbered_list', blocks.ListBlock(blocks.CharBlock(label="Item"))),
+        ('page', blocks.PageChooserBlock()),
+    ], null=True, blank=True)
     thank_you_text = TextField(blank=True)
     submit_text = TextField(blank=True)
     homepage_button_text = TextField(blank=True)
@@ -111,12 +140,21 @@ class MoloSurveyPage(
         verbose_name='Is YourWords Competition',
         help_text='This will display the correct template for yourwords'
     )
+    extra_style_hints = models.TextField(
+        default='',
+        null=True, blank=True,
+        help_text=_(
+            "Styling options that can be applied to this page "
+            "and all its descendants"))
     content_panels = surveys_models.AbstractSurvey.content_panels + [
         FieldPanel('intro', classname='full'),
+        ImageChooserPanel('image'),
+        StreamFieldPanel('content'),
         InlinePanel('survey_form_fields', label='Form fields'),
         FieldPanel('thank_you_text', classname='full'),
         FieldPanel('submit_text', classname='full'),
         FieldPanel('homepage_button_text', classname='full'),
+        InlinePanel('terms_and_conditions', label="Terms and Conditions"),
     ]
 
     settings_panels = surveys_models.AbstractSurvey.settings_panels + [
@@ -128,8 +166,18 @@ class MoloSurveyPage(
             FieldPanel('multi_step'),
             FieldPanel('display_survey_directly'),
             FieldPanel('your_words_competition'),
-        ], heading='Survey Settings')
+        ], heading='Survey Settings'),
+        MultiFieldPanel(
+            [FieldRowPanel(
+                [FieldPanel('extra_style_hints')], classname="label-above")],
+            "Meta")
     ]
+
+    def get_effective_extra_style_hints(self):
+        return self.extra_style_hints
+
+    def get_effective_image(self):
+        return self.image
 
     def get_data_fields(self):
         data_fields = [
@@ -280,6 +328,20 @@ class MoloSurveyPage(
                     reverse('molo.surveys:success', args=(self.slug, )))
 
         return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
+
+
+class SurveyTermsConditions(Orderable):
+    page = ParentalKey(MoloSurveyPage, related_name='terms_and_conditions')
+    terms_and_conditions = models.ForeignKey(
+        'wagtailcore.Page',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        help_text=_('Terms and Conditions')
+    )
+    panels = [PageChooserPanel(
+        'terms_and_conditions', 'core.FooterPage')]
 
 
 class MoloSurveyFormField(surveys_models.AbstractFormField):
