@@ -93,6 +93,13 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
                 slug="linked_survey_title",
                 display_survey_directly=False,
             )
+        self.yourwords_molo_survey_page, yourwords_molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.surveys_index,
+                title="yourwords survey title",
+                slug="yourwords_survey_title",
+                is_yourwords=True,
+            )
         self.client.post(reverse(
             'add_translation', args=[self.linked_molo_survey_page.id, 'fr']))
         self.translated_linked_survey = MoloSurveyPage.objects.get(
@@ -136,6 +143,16 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
         self.assertTrue(self.translated_direct_survey in context['surveys'])
         self.assertTrue(
             self.translated_linked_survey not in context['surveys'])
+
+    def test_get_survey_list_only_yourwords(self):
+        context = Context({
+            'locale_code': 'en',
+            'request': self.request,
+        })
+        context = get_survey_list(context, only_yourwords=True)
+        self.assertTrue(len(context['surveys']) == 1)
+        self.assertTrue(self.yourwords_molo_survey_page in context['surveys'])
+        self.assertTrue(self.linked_molo_survey_page not in context['surveys'])
 
     def test_get_survey_list_only_linked(self):
         context = Context({

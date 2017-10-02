@@ -12,7 +12,8 @@ register = template.Library()
 
 def get_survey_list(context,
                     only_linked_surveys=False,
-                    only_direct_surveys=False):
+                    only_direct_surveys=False,
+                    only_yourwords=False):
     if only_linked_surveys and only_direct_surveys:
         raise ValueError('arguments "only_linked_surveys" and '
                          '"only_direct_surveys" cannot both be True')
@@ -32,6 +33,11 @@ def get_survey_list(context,
             surveys = (MoloSurveyPage.objects.child_of(page)
                        .filter(languages__language__is_main_language=True)
                        .filter(display_survey_directly=True)
+                       .specific())
+        elif only_yourwords:
+            surveys = (MoloSurveyPage.objects.child_of(page)
+                       .filter(languages__language__is_main_language=True)
+                       .filter(is_yourwords=True)
                        .specific())
         else:
             surveys = (MoloSurveyPage.objects.child_of(page)
