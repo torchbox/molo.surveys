@@ -35,6 +35,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail_personalisation.adapters import get_segment_adapter
 from wagtailsurveys.models import AbstractFormField
+from .blocks import SkipLogicBlock, SkipLogicStreamPanel
 from .rules import SurveySubmissionDataRule, GroupMembershipRule  # noqa
 
 # See docs: https://github.com/torchbox/wagtailsurveys
@@ -346,7 +347,7 @@ class SurveyTermsConditions(Orderable):
 
 class SkipLogicMixin(models.Model):
     skip_logic = StreamField(
-        [('choice', blocks.CharBlock()),],
+        [('skiplogic', SkipLogicBlock()),],
         verbose_name='Answer options',
         blank=True,
     )
@@ -355,7 +356,9 @@ class SkipLogicMixin(models.Model):
         abstract = True
 
     def save(self, *args, **kwargs):
-        self.choices = ','.join(choice.value for choice in self.skip_logic)
+        self.choices = ','.join(
+            choice.value['choice'] for choice in self.skip_logic
+        )
         return super(SkipLogicMixin, self).save(*args, **kwargs)
 
 
@@ -363,7 +366,7 @@ class MoloSurveyFormField(SkipLogicMixin, surveys_models.AbstractFormField):
     page = ParentalKey(MoloSurveyPage, related_name='survey_form_fields')
 
 
-surveys_models.AbstractFormField.panels[4] = StreamFieldPanel('skip_logic')
+surveys_models.AbstractFormField.panels[4] = SkipLogicStreamPanel('skip_logic')
 
 
 class MoloSurveySubmission(surveys_models.AbstractFormSubmission):
