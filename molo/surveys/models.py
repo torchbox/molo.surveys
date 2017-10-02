@@ -344,8 +344,26 @@ class SurveyTermsConditions(Orderable):
         'terms_and_conditions', 'core.FooterPage')]
 
 
-class MoloSurveyFormField(surveys_models.AbstractFormField):
+class SkipLogicMixin(models.Model):
+    skip_logic = StreamField(
+        [('choice', blocks.CharBlock()),],
+        verbose_name='Answer options',
+        blank=True,
+    )
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        self.choices = ','.join(choice.value for choice in self.skip_logic)
+        return super(SkipLogicMixin, self).save(*args, **kwargs)
+
+
+class MoloSurveyFormField(SkipLogicMixin, surveys_models.AbstractFormField):
     page = ParentalKey(MoloSurveyPage, related_name='survey_form_fields')
+
+
+surveys_models.AbstractFormField.panels[4] = StreamFieldPanel('skip_logic')
 
 
 class MoloSurveySubmission(surveys_models.AbstractFormSubmission):
@@ -458,7 +476,7 @@ class PersonalisableSurvey(MoloSurveyPage):
             request, *args, **kwargs)
 
 
-class PersonalisableSurveyFormField(AbstractFormField):
+class PersonalisableSurveyFormField(SkipLogicMixin, AbstractFormField):
     """
     Form field that has a segment assigned.
     """
