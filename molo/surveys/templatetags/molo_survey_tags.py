@@ -12,7 +12,8 @@ register = template.Library()
 
 def get_survey_list(context,
                     only_linked_surveys=False,
-                    only_direct_surveys=False):
+                    only_direct_surveys=False,
+                    only_yourwords=False):
     if only_linked_surveys and only_direct_surveys:
         raise ValueError('arguments "only_linked_surveys" and '
                          '"only_direct_surveys" cannot both be True')
@@ -25,13 +26,20 @@ def get_survey_list(context,
         surveys = []
         if only_linked_surveys:
             surveys = (MoloSurveyPage.objects.child_of(page)
-                       .filter(languages__language__is_main_language=True)
-                       .filter(display_survey_directly=False)
+                       .filter(languages__language__is_main_language=True,
+                               display_survey_directly=False,
+                               your_words_competition=False)
                        .specific())
         elif only_direct_surveys:
             surveys = (MoloSurveyPage.objects.child_of(page)
-                       .filter(languages__language__is_main_language=True)
-                       .filter(display_survey_directly=True)
+                       .filter(languages__language__is_main_language=True,
+                               display_survey_directly=True,
+                               your_words_competition=False)
+                       .specific())
+        elif only_yourwords:
+            surveys = (MoloSurveyPage.objects.child_of(page)
+                       .filter(languages__language__is_main_language=True,
+                               your_words_competition=True)
                        .specific())
         else:
             surveys = (MoloSurveyPage.objects.child_of(page)
@@ -73,10 +81,11 @@ def surveys_list_headline(context):
 
 @register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
 def surveys_list(context, pk=None, only_linked_surveys=False,
-                 only_direct_surveys=False):
+                 only_direct_surveys=False, only_yourwords=False):
     context = get_survey_list(context,
                               only_linked_surveys=only_linked_surveys,
-                              only_direct_surveys=only_direct_surveys)
+                              only_direct_surveys=only_direct_surveys,
+                              only_yourwords=only_yourwords)
     return add_form_objects_to_surveys(context)
 
 
