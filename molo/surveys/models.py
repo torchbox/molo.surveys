@@ -37,6 +37,7 @@ from wagtail_personalisation.adapters import get_segment_adapter
 from wagtailsurveys.models import AbstractFormField
 from .blocks import SkipLogicBlock, SkipLogicStreamPanel
 from .rules import SurveySubmissionDataRule, GroupMembershipRule  # noqa
+from .utils import SkipLogicPaginator
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
@@ -222,7 +223,18 @@ class MoloSurveyPage(
     def get_form_class_for_step(self, step):
         return self.form_builder(step.object_list).get_form_class()
 
+    def skip_logic_steps(self):
+        pass
+
+    def serve_skip_logic(self, request):
+        paginator = SkipLogicPaginator(self.get_form_fields())
+        return self.serve_questions(request, paginator)
+
     def serve_multi_step(self, request):
+        paginator = Paginator(self.get_form_fields(), per_page=1)
+        return self.serve_questions(request, paginator)
+
+    def serve_questions(self, request, paginator):
         """
         Implements a simple multi-step form.
 
@@ -234,7 +246,6 @@ class MoloSurveyPage(
         is_last_step = False
         step_number = request.GET.get('p', 1)
 
-        paginator = Paginator(self.get_form_fields(), per_page=1)
         try:
             step = paginator.page(step_number)
         except PageNotAnInteger:
@@ -309,12 +320,18 @@ class MoloSurveyPage(
             context
         )
 
+    @property
+    def has_skip_logic(self):
+        return any(field.has_skipping for field in self.get_form_fields())
+
     def serve(self, request, *args, **kwargs):
         if not self.allow_multiple_submissions_per_user \
                 and self.has_user_submitted_survey(request, self.id):
             return render(request, self.template, self.get_context(request))
 
-        if self.multi_step:
+        if self.has_skip_logic:
+            return self.serve_skip_logic(request)
+        elif self.multi_step:
             return self.serve_multi_step(request)
 
         if request.method == 'POST':
@@ -351,6 +368,10 @@ class SkipLogicMixin(models.Model):
         verbose_name='Answer options',
         blank=True,
     )
+
+    @property
+    def has_skipping(self):
+        return any(logic.value['skip_logic'] != 'next' for logic in self.skip_logic)
 
     class Meta:
         abstract = True

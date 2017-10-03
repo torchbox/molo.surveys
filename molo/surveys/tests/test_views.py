@@ -10,6 +10,9 @@ from molo.surveys.models import (MoloSurveyPage, MoloSurveyFormField,
 
 from bs4 import BeautifulSoup
 
+from .utils import skip_logic_data
+
+
 User = get_user_model()
 
 
@@ -276,6 +279,57 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
 
         # for test_multi_step_multi_submissions_anonymous
         return molo_survey_page.url
+
+    def test_skip_logic_view(self):
+        molo_survey_page, molo_survey_form_field = \
+            self.create_molo_survey_page(
+                parent=self.section_index,
+                allow_anonymous_submissions=True,
+            )
+
+        choices = ['next', 'end']
+        next_molo_survey_form_field = MoloSurveyFormField.objects.create(
+            page=molo_survey_page,
+            sort_order=2,
+            label='Where should we go',
+            field_type='dropdown',
+            skip_logic=skip_logic_data(choices, choices),
+            required=True
+        )
+        last_molo_survey_form_field = MoloSurveyFormField.objects.create(
+            page=molo_survey_page,
+            sort_order=2,
+            label='Your favourite actor',
+            field_type='singleline',
+            required=True
+        )
+
+        response = self.client.get(molo_survey_page.url)
+
+        self.assertContains(response, molo_survey_page.title)
+        self.assertContains(response, molo_survey_page.intro)
+        self.assertContains(response, molo_survey_form_field.label)
+        self.assertContains(response, next_molo_survey_form_field.label)
+        self.assertNotContains(response, last_molo_survey_form_field.label)
+        self.assertContains(response, 'Next Question')
+
+        response = self.client.post(molo_survey_page.url + '?p=2', {
+            molo_survey_form_field.label.lower().replace(' ', '-'): 'python',
+            next_molo_survey_form_field.label.lower().replace(' ', '-'): choices[0],
+        })
+
+        self.assertContains(response, molo_survey_page.title)
+        self.assertContains(response, molo_survey_page.intro)
+        self.assertNotContains(response, molo_survey_form_field.label)
+        self.assertContains(response, last_molo_survey_form_field.label)
+        self.assertContains(response, molo_survey_page.submit_text)
+
+        response = self.client.post(molo_survey_page.url + '?p=3', {
+            last_molo_survey_form_field.label.lower().replace(' ', '-'):
+                'Steven Seagal ;)'
+        }, follow=True)
+
+        self.assertContains(response, molo_survey_page.thank_you_text)
 
     def test_can_submit_after_validation_error(self):
         molo_survey_page, molo_survey_form_field = \
