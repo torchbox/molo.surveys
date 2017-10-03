@@ -28,18 +28,18 @@ def get_survey_list(context,
             surveys = (MoloSurveyPage.objects.child_of(page)
                        .filter(languages__language__is_main_language=True,
                                display_survey_directly=False,
-                               is_yourwords=False)
+                               your_words_competition=False)
                        .specific())
         elif only_direct_surveys:
             surveys = (MoloSurveyPage.objects.child_of(page)
                        .filter(languages__language__is_main_language=True,
                                display_survey_directly=True,
-                               is_yourwords=False)
+                               your_words_competition=False)
                        .specific())
         elif only_yourwords:
             surveys = (MoloSurveyPage.objects.child_of(page)
                        .filter(languages__language__is_main_language=True,
-                               is_yourwords=True)
+                               your_words_competition=True)
                        .specific())
         else:
             surveys = (MoloSurveyPage.objects.child_of(page)

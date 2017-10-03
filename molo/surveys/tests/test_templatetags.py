@@ -98,7 +98,7 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
                 parent=self.surveys_index,
                 title="yourwords survey title",
                 slug="yourwords_survey_title",
-                is_yourwords=True,
+                your_words_competition=True,
             )
         self.client.post(reverse(
             'add_translation', args=[self.linked_molo_survey_page.id, 'fr']))
