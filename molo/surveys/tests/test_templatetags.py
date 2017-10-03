@@ -73,33 +73,33 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
         self.user = self.login()
 
         # create direct questions
-        self.direct_molo_survey_page, direct_molo_survey_form_field = \
+        self.direct_molo_survey_page, direct_molo_survey_form_field = (
             self.create_molo_survey_page(
                 parent=self.surveys_index,
                 title="direct survey title",
                 slug="direct_survey_title",
                 display_survey_directly=True,
-            )
+            ))
         self.client.post(reverse(
             'add_translation', args=[self.direct_molo_survey_page.id, 'fr']))
         self.translated_direct_survey = MoloSurveyPage.objects.get(
             slug='french-translation-of-direct-survey-title')
         self.translated_direct_survey.save_revision().publish()
 
-        self.linked_molo_survey_page, linked_molo_survey_form_field = \
+        self.linked_molo_survey_page, linked_molo_survey_form_field = (
             self.create_molo_survey_page(
                 parent=self.surveys_index,
                 title="linked survey title",
                 slug="linked_survey_title",
                 display_survey_directly=False,
-            )
-        self.yourwords_molo_survey_page, yourwords_molo_survey_form_field = \
+            ))
+        self.yourwords_molo_survey_page, yourwords_molo_survey_form_field = (
             self.create_molo_survey_page(
                 parent=self.surveys_index,
                 title="yourwords survey title",
                 slug="yourwords_survey_title",
                 your_words_competition=True,
-            )
+            ))
         self.client.post(reverse(
             'add_translation', args=[self.linked_molo_survey_page.id, 'fr']))
         self.translated_linked_survey = MoloSurveyPage.objects.get(
