@@ -280,57 +280,6 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
         # for test_multi_step_multi_submissions_anonymous
         return molo_survey_page.url
 
-    def test_skip_logic_view(self):
-        molo_survey_page, molo_survey_form_field = \
-            self.create_molo_survey_page(
-                parent=self.section_index,
-                allow_anonymous_submissions=True,
-            )
-
-        choices = ['next', 'end']
-        next_molo_survey_form_field = MoloSurveyFormField.objects.create(
-            page=molo_survey_page,
-            sort_order=2,
-            label='Where should we go',
-            field_type='dropdown',
-            skip_logic=skip_logic_data(choices, choices),
-            required=True
-        )
-        last_molo_survey_form_field = MoloSurveyFormField.objects.create(
-            page=molo_survey_page,
-            sort_order=2,
-            label='Your favourite actor',
-            field_type='singleline',
-            required=True
-        )
-
-        response = self.client.get(molo_survey_page.url)
-
-        self.assertContains(response, molo_survey_page.title)
-        self.assertContains(response, molo_survey_page.intro)
-        self.assertContains(response, molo_survey_form_field.label)
-        self.assertContains(response, next_molo_survey_form_field.label)
-        self.assertNotContains(response, last_molo_survey_form_field.label)
-        self.assertContains(response, 'Next Question')
-
-        response = self.client.post(molo_survey_page.url + '?p=2', {
-            molo_survey_form_field.label.lower().replace(' ', '-'): 'python',
-            next_molo_survey_form_field.label.lower().replace(' ', '-'): choices[0],
-        })
-
-        self.assertContains(response, molo_survey_page.title)
-        self.assertContains(response, molo_survey_page.intro)
-        self.assertNotContains(response, molo_survey_form_field.label)
-        self.assertContains(response, last_molo_survey_form_field.label)
-        self.assertContains(response, molo_survey_page.submit_text)
-
-        response = self.client.post(molo_survey_page.url + '?p=3', {
-            last_molo_survey_form_field.label.lower().replace(' ', '-'):
-                'Steven Seagal ;)'
-        }, follow=True)
-
-        self.assertContains(response, molo_survey_page.thank_you_text)
-
     def test_can_submit_after_validation_error(self):
         molo_survey_page, molo_survey_form_field = \
             self.create_molo_survey_page(
@@ -660,3 +609,92 @@ class TestDeleteButtonRemoved(TestCase, MoloTestCaseMixin):
                          'class="shortcut">Delete</a></li>'
                          .format(str(surveys_index_page.pk)))
         self.assertNotContains(response, delete_button, html=True)
+
+
+class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
+    def setUp(self):
+        self.mk_main()
+        self.molo_survey_page = MoloSurveyPage(
+            title='Test Survey', slug='test-survey',
+            intro='Introduction to Test Survey ...',
+            thank_you_text='Thank you for taking the Test Survey',
+            submit_text='survey submission text',
+            allow_anonymous_submissions=True,
+        )
+        self.section_index.add_child(instance=self.molo_survey_page)
+        self.molo_survey_page.save_revision().publish()
+
+        self.molo_survey_form_field = MoloSurveyFormField.objects.create(
+            page=self.molo_survey_page,
+            sort_order=1,
+            label='Your favourite animal',
+            field_type='singleline',
+            required=True
+        )
+        self.choices = ['next', 'end']
+        self.next_molo_survey_form_field = MoloSurveyFormField.objects.create(
+            page=self.molo_survey_page,
+            sort_order=2,
+            label='Where should we go',
+            field_type='dropdown',
+            skip_logic=skip_logic_data(self.choices, self.choices),
+            required=True
+        )
+        self.last_molo_survey_form_field = MoloSurveyFormField.objects.create(
+            page=self.molo_survey_page,
+            sort_order=2,
+            label='Your favourite actor',
+            field_type='singleline',
+            required=True
+        )
+
+    def test_skip_logic_view(self):
+        response = self.client.get(self.molo_survey_page.url)
+
+        self.assertContains(response, self.molo_survey_page.title)
+        self.assertContains(response, self.molo_survey_page.intro)
+        self.assertContains(response, self.molo_survey_form_field.label)
+        self.assertContains(response, self.next_molo_survey_form_field.label)
+        self.assertNotContains(response, self.last_molo_survey_form_field.label)
+        self.assertContains(response, 'Next Question')
+
+        response = self.client.post(self.molo_survey_page.url + '?p=2', {
+            self.molo_survey_form_field.label.lower().replace(' ', '-'): 'python',
+            self.next_molo_survey_form_field.label.lower().replace(' ', '-'): self.choices[0],
+        })
+
+        self.assertContains(response, self.molo_survey_page.title)
+        self.assertContains(response, self.molo_survey_page.intro)
+        self.assertNotContains(response, self.molo_survey_form_field.label)
+        self.assertContains(response, self.last_molo_survey_form_field.label)
+        self.assertContains(response, self.molo_survey_page.submit_text)
+
+        response = self.client.post(self.molo_survey_page.url + '?p=3', {
+            self.last_molo_survey_form_field.label.lower().replace(' ', '-'):
+                'Steven Seagal ;)'
+        }, follow=True)
+
+        self.assertContains(response, self.molo_survey_page.thank_you_text)
+
+    def test_skip_logic_to_end(self):
+        response = self.client.get(self.molo_survey_page.url)
+
+        self.assertContains(response, self.molo_survey_page.title)
+        self.assertContains(response, self.molo_survey_page.intro)
+        self.assertContains(response, self.molo_survey_form_field.label)
+        self.assertContains(response, self.next_molo_survey_form_field.label)
+        self.assertNotContains(response, self.last_molo_survey_form_field.label)
+        self.assertContains(response, 'Next Question')
+
+        response = self.client.post(self.molo_survey_page.url + '?p=2', {
+            self.molo_survey_form_field.label.lower().replace(' ', '-'): 'python',
+            self.next_molo_survey_form_field.label.lower().replace(' ', '-'): self.choices[1],
+        }, follow=True)
+
+        # Should end the survey and not complain about required field for the last field
+
+        self.assertContains(response, self.molo_survey_page.title)
+        self.assertNotContains(response, self.molo_survey_form_field.label)
+        self.assertNotContains(response, self.last_molo_survey_form_field.label)
+        self.assertNotContains(response, self.molo_survey_page.submit_text)
+        self.assertContains(response, self.molo_survey_page.thank_you_text)

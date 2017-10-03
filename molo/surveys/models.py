@@ -8,6 +8,7 @@ from django.db.models.fields import TextField, BooleanField
 from django.shortcuts import render, redirect
 from django.dispatch import receiver
 from django.core.urlresolvers import reverse
+from django.utils.functional import cached_property
 
 from modelcluster.fields import ParentalKey
 
@@ -220,14 +221,19 @@ class MoloSurveyPage(
         request.session['completed_surveys'].append(self.id)
         request.session.modified = True
 
+    def get_form(self, *args, **kwargs):
+        prevent_required = kwargs.pop('prevent_required', False)
+        form = super(MoloSurveyPage, self).get_form(*args, **kwargs)
+        if prevent_required:
+            for field in form.fields.values():
+                field.required = False
+        return form
+
     def get_form_class_for_step(self, step):
         return self.form_builder(step.object_list).get_form_class()
 
-    def skip_logic_steps(self):
-        pass
-
     def serve_skip_logic(self, request):
-        paginator = SkipLogicPaginator(self.get_form_fields())
+        paginator = SkipLogicPaginator(self.get_form_fields(), request.POST)
         return self.serve_questions(request, paginator)
 
     def serve_multi_step(self, request):
@@ -282,7 +288,7 @@ class MoloSurveyPage(
                     # If there is no more steps, create form for all fields
                     form = self.get_form(
                         json.loads(request.session[session_key_data]),
-                        page=self, user=request.user
+                        page=self, user=request.user, prevent_required=True,
                     )
 
                     if form.is_valid():
@@ -320,7 +326,7 @@ class MoloSurveyPage(
             context
         )
 
-    @property
+    @cached_property
     def has_skip_logic(self):
         return any(field.has_skipping for field in self.get_form_fields())
 
@@ -372,6 +378,10 @@ class SkipLogicMixin(models.Model):
     @property
     def has_skipping(self):
         return any(logic.value['skip_logic'] != 'next' for logic in self.skip_logic)
+
+    def next_action(self, choice):
+        index = self.choices.split(',').index(choice)
+        return self.skip_logic[index].value['skip_logic']
 
     class Meta:
         abstract = True

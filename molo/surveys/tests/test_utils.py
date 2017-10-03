@@ -53,3 +53,11 @@ class TestSkipLogicPaginator(TestCase, MoloTestCaseMixin):
         last_page = self.paginator.page(2)
         self.assertEqual(last_page.object_list, [self.last_field])
         self.assertFalse(last_page.has_next())
+
+    def test_is_end_if_skip_logic(self):
+        paginator = SkipLogicPaginator(
+            self.survey.get_form_fields(),
+            {self.second_field.clean_name: 'end'}
+        )
+        first_page = paginator.page(1)
+        self.assertFalse(first_page.has_next())
