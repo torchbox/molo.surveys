@@ -4,6 +4,7 @@ from molo.surveys.models import MoloSurveyPage, MoloSurveySubmission, MoloSurvey
 
 from .utils import skip_logic_data
 
+
 class TestSurveyModels(TestCase, MoloTestCaseMixin):
     def test_submission_class(self):
         submission_class = MoloSurveyPage().get_submission_class()
@@ -35,6 +36,13 @@ class TestSkipLogicMixin(TestCase, MoloTestCaseMixin):
             skip_logic=skip_logic_data(self.field_choices),
             required=True
         )
+        self.normal_field = MoloSurveyFormField.objects.create(
+            page=self.survey,
+            sort_order=2,
+            label='Your other favourite animal',
+            field_type='singleline',
+            required=True
+        )
 
     def test_choices_updated_from_streamfield_on_save(self):
         self.assertEqual(
@@ -47,3 +55,14 @@ class TestSkipLogicMixin(TestCase, MoloTestCaseMixin):
         self.choice_field.save()
 
         self.assertEqual(','.join(new_choices), self.choice_field.choices)
+
+    def test_normal_field_is_not_skippable(self):
+        self.assertFalse(self.normal_field.has_skipping)
+
+    def test_only_next_doesnt_skip(self):
+        self.assertFalse(self.choice_field.has_skipping)
+
+    def test_other_logic_does_skip(self):
+        self.choice_field.skip_logic = skip_logic_data(['choice'], ['end'])
+        self.choice_field.save()
+        self.assertTrue(self.choice_field.has_skipping)
