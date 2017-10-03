@@ -112,7 +112,7 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
             'request': self.request,
         })
         context = get_survey_list(context)
-        self.assertEqual(len(context['surveys']), 2)
+        self.assertEqual(len(context['surveys']), 3)
         self.assertTrue(self.direct_molo_survey_page in context['surveys'])
         self.assertTrue(self.linked_molo_survey_page in context['surveys'])
 
@@ -121,9 +121,10 @@ class SurveyListTest(TestCase, MoloTestCaseMixin):
             'request': self.request,
         })
         context = get_survey_list(context)
-        self.assertEqual(len(context['surveys']), 2)
+        self.assertEqual(len(context['surveys']), 3)
         self.assertTrue(self.translated_direct_survey in context['surveys'])
         self.assertTrue(self.translated_linked_survey in context['surveys'])
+        self.assertTrue(self.yourwords_molo_survey_page in context['surveys'])
 
     def test_get_survey_list_only_direct(self):
         context = Context({
