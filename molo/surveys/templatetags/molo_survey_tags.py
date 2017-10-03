@@ -81,10 +81,11 @@ def surveys_list_headline(context):
 
 @register.inclusion_tag('surveys/surveys_list.html', takes_context=True)
 def surveys_list(context, pk=None, only_linked_surveys=False,
-                 only_direct_surveys=False):
+                 only_direct_surveys=False, only_yourwords=False):
     context = get_survey_list(context,
                               only_linked_surveys=only_linked_surveys,
-                              only_direct_surveys=only_direct_surveys)
+                              only_direct_surveys=only_direct_surveys,
+                              only_yourwords=only_yourwords)
     return add_form_objects_to_surveys(context)
 
 
