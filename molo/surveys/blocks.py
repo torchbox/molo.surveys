@@ -1,3 +1,6 @@
+from django import forms
+from django.contrib.staticfiles.templatetags.staticfiles import static
+
 from wagtail.wagtailadmin.edit_handlers import StreamFieldPanel
 from wagtail.wagtailcore import blocks
 
@@ -20,3 +23,11 @@ class SkipLogicBlock(blocks.StructBlock):
         default='next',
         required=True,
     )
+
+    @property
+    def media(self):
+        return forms.Media(js=[static('js/blocks/skiplogic.js')])
+
+    def js_initializer(self):
+        opts = {}
+        return "SkipLogic(%s)" % blocks.utils.js_dict(opts)
