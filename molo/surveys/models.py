@@ -36,7 +36,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail_personalisation.adapters import get_segment_adapter
 from wagtailsurveys.models import AbstractFormField
-from .blocks import SkipLogicBlock, SkipLogicStreamPanel
+from .blocks import SkipLogicBlock, SkipLogicField, SkipLogicStreamPanel
 from .rules import SurveySubmissionDataRule, GroupMembershipRule  # noqa
 from .utils import SkipLogicPaginator
 
@@ -369,11 +369,7 @@ class SurveyTermsConditions(Orderable):
 
 
 class SkipLogicMixin(models.Model):
-    skip_logic = StreamField(
-        [('skiplogic', SkipLogicBlock()),],
-        verbose_name='Answer options',
-        blank=True,
-    )
+    skip_logic = SkipLogicField()
 
     @property
     def has_skipping(self):

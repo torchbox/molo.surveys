@@ -3,6 +3,17 @@ from django.contrib.staticfiles.templatetags.staticfiles import static
 
 from wagtail.wagtailadmin.edit_handlers import StreamFieldPanel
 from wagtail.wagtailcore import blocks
+from wagtail.wagtailcore.fields import StreamField
+
+
+class SkipLogicField(StreamField):
+    def __init__(self, *args, **kwargs):
+        args = [[('skip_logic', SkipLogicBlock())]]
+        kwargs.update({
+            'verbose_name': 'Answer options',
+            'blank': True,
+        })
+        super(SkipLogicField, self).__init__(*args, **kwargs)
 
 
 class SkipLogicStreamPanel(StreamFieldPanel):
