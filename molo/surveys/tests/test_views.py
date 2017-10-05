@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
+from django.utils.text import slugify
 
 from molo.core.models import SiteLanguageRelation, Main, Languages
 from molo.core.tests.base import MoloTestCaseMixin
@@ -614,15 +615,16 @@ class TestDeleteButtonRemoved(TestCase, MoloTestCaseMixin):
 class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
     def setUp(self):
         self.mk_main()
-        self.molo_survey_page = MoloSurveyPage(
-            title='Test Survey', slug='test-survey',
-            intro='Introduction to Test Survey ...',
-            thank_you_text='Thank you for taking the Test Survey',
-            submit_text='survey submission text',
-            allow_anonymous_submissions=True,
-        )
-        self.section_index.add_child(instance=self.molo_survey_page)
-        self.molo_survey_page.save_revision().publish()
+        self.main = Main.objects.all().first()
+        self.language_setting = Languages.objects.create(
+            site_id=self.main.get_site().pk)
+        self.english = SiteLanguageRelation.objects.create(
+            language_setting=self.language_setting,
+            locale='en',
+            is_active=True)
+
+        self.molo_survey_page = self.new_survey('Test Survey')
+        self.another_molo_survey_page = self.new_survey('Another Test Survey')
 
         self.molo_survey_form_field = MoloSurveyFormField.objects.create(
             page=self.molo_survey_page,
@@ -631,13 +633,17 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             field_type='singleline',
             required=True
         )
-        self.choices = ['next', 'end']
+        self.choices = ['next', 'end', 'survey']
         self.next_molo_survey_form_field = MoloSurveyFormField.objects.create(
             page=self.molo_survey_page,
             sort_order=2,
             label='Where should we go',
             field_type='dropdown',
-            skip_logic=skip_logic_data(self.choices, self.choices),
+            skip_logic=skip_logic_data(
+                self.choices,
+                self.choices,
+                survey=self.another_molo_survey_page,
+            ),
             required=True
         )
         self.last_molo_survey_form_field = MoloSurveyFormField.objects.create(
@@ -648,13 +654,41 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             required=True
         )
 
+        self.another_molo_survey_form_field =  MoloSurveyFormField.objects.create(
+            page=self.another_molo_survey_page,
+            sort_order=1,
+            label='Your favourite actress',
+            field_type='singleline',
+            required=True
+        )
+
+    def new_survey(self, name):
+        survey = MoloSurveyPage(
+            title=name, slug=slugify(name),
+            intro='Introduction to {}...'.format(name),
+            thank_you_text='Thank you for taking the {}'.format(name),
+            submit_text='survey submission text for {}'.format(name),
+            allow_anonymous_submissions=True,
+        )
+        self.section_index.add_child(instance=survey)
+        survey.save_revision().publish()
+        return survey
+
+    def assertSurveyAndQuestions(self, response, survey, questions):
+        self.assertContains(response, survey.title)
+        self.assertContains(response, survey.intro)
+        for question in questions:
+            self.assertContains(response, question.label)
+            self.assertContains(response, question.label)
+
     def test_skip_logic_view(self):
         response = self.client.get(self.molo_survey_page.url)
 
-        self.assertContains(response, self.molo_survey_page.title)
-        self.assertContains(response, self.molo_survey_page.intro)
-        self.assertContains(response, self.molo_survey_form_field.label)
-        self.assertContains(response, self.next_molo_survey_form_field.label)
+        self.assertSurveyAndQuestions(
+            response,
+            self.molo_survey_page,
+            [self.molo_survey_form_field, self.next_molo_survey_form_field]
+        )
         self.assertNotContains(response, self.last_molo_survey_form_field.label)
         self.assertContains(response, 'Next Question')
 
@@ -663,10 +697,8 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             self.next_molo_survey_form_field.label.lower().replace(' ', '-'): self.choices[0],
         })
 
-        self.assertContains(response, self.molo_survey_page.title)
-        self.assertContains(response, self.molo_survey_page.intro)
+        self.assertSurveyAndQuestions(response, self.molo_survey_page, [self.last_molo_survey_form_field])
         self.assertNotContains(response, self.molo_survey_form_field.label)
-        self.assertContains(response, self.last_molo_survey_form_field.label)
         self.assertContains(response, self.molo_survey_page.submit_text)
 
         response = self.client.post(self.molo_survey_page.url + '?p=3', {
@@ -679,10 +711,11 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
     def test_skip_logic_to_end(self):
         response = self.client.get(self.molo_survey_page.url)
 
-        self.assertContains(response, self.molo_survey_page.title)
-        self.assertContains(response, self.molo_survey_page.intro)
-        self.assertContains(response, self.molo_survey_form_field.label)
-        self.assertContains(response, self.next_molo_survey_form_field.label)
+        self.assertSurveyAndQuestions(
+            response,
+            self.molo_survey_page,
+            [self.molo_survey_form_field, self.next_molo_survey_form_field]
+        )
         self.assertNotContains(response, self.last_molo_survey_form_field.label)
         self.assertContains(response, 'Next Question')
 
@@ -698,3 +731,26 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
         self.assertNotContains(response, self.last_molo_survey_form_field.label)
         self.assertNotContains(response, self.molo_survey_page.submit_text)
         self.assertContains(response, self.molo_survey_page.thank_you_text)
+
+    def test_skip_logic_to_another_survey(self):
+        response = self.client.get(self.molo_survey_page.url)
+
+        self.assertSurveyAndQuestions(
+            response,
+            self.molo_survey_page,
+            [self.molo_survey_form_field, self.next_molo_survey_form_field]
+        )
+        self.assertNotContains(response, self.last_molo_survey_form_field.label)
+        self.assertContains(response, 'Next Question')
+
+        response = self.client.post(self.molo_survey_page.url + '?p=2', {
+            self.molo_survey_form_field.label.lower().replace(' ', '-'): 'python',
+            self.next_molo_survey_form_field.label.lower().replace(' ', '-'): self.choices[2],
+        }, follow=True)
+
+        # Should end the survey and progress to the new survey
+        self.assertSurveyAndQuestions(
+            response,
+            self.another_molo_survey_page,
+            [self.another_molo_survey_form_field],
+        )

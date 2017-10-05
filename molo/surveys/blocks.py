@@ -6,6 +6,13 @@ from wagtail.wagtailcore import blocks
 from wagtail.wagtailcore.fields import StreamField
 
 
+class SkipState:
+    NEXT = 'next'
+    END = 'end'
+    QUESTION = 'question'
+    SURVEY = 'survey'
+
+
 class SkipLogicField(StreamField):
     def __init__(self, *args, **kwargs):
         args = [[('skip_logic', SkipLogicBlock())]]
@@ -27,13 +34,16 @@ class SkipLogicBlock(blocks.StructBlock):
     choice = blocks.CharBlock()
     skip_logic = blocks.ChoiceBlock(
         choices=[
-            ('next', 'Next default question'),
-            ('end', 'End of survey'),
-            ('another', 'Another survey'),
+            (SkipState.NEXT, 'Next default question'),
+            (SkipState.END, 'End of survey'),
+            (SkipState.QUESTION, 'Another question'),
+            (SkipState.SURVEY, 'Another survey'),
         ],
-        default='next',
+        default=SkipState.NEXT,
         required=True,
     )
+    survey = blocks.PageChooserBlock(target_model='surveys.MoloSurveyPage', required=False)
+
 
     @property
     def media(self):

@@ -232,15 +232,7 @@ class MoloSurveyPage(
     def get_form_class_for_step(self, step):
         return self.form_builder(step.object_list).get_form_class()
 
-    def serve_skip_logic(self, request):
-        paginator = SkipLogicPaginator(self.get_form_fields(), request.POST)
-        return self.serve_questions(request, paginator)
-
-    def serve_multi_step(self, request):
-        paginator = Paginator(self.get_form_fields(), per_page=1)
-        return self.serve_questions(request, paginator)
-
-    def serve_questions(self, request, paginator):
+    def serve_questions(self, request):
         """
         Implements a simple multi-step form.
 
@@ -248,6 +240,8 @@ class MoloSurveyPage(
         When the last step is submitted correctly, the whole form is saved in
         the DB.
         """
+        paginator = SkipLogicPaginator(self.get_form_fields(), request.POST)
+
         session_key_data = 'survey_data-%s' % self.pk
         is_last_step = False
         step_number = request.GET.get('p', 1)
@@ -300,10 +294,7 @@ class MoloSurveyPage(
                         self.process_form_submission(form)
                         del request.session[session_key_data]
 
-                        # Render the landing page
-                        return redirect(
-                            reverse(
-                                'molo.surveys:success', args=(self.slug, )))
+                        return prev_step.success(self.slug)
 
             else:
                 # If data for step is invalid
@@ -335,10 +326,8 @@ class MoloSurveyPage(
                 and self.has_user_submitted_survey(request, self.id):
             return render(request, self.template, self.get_context(request))
 
-        if self.has_skip_logic:
-            return self.serve_skip_logic(request)
-        elif self.multi_step:
-            return self.serve_multi_step(request)
+        if self.has_skip_logic or self.multi_step:
+            return self.serve_questions(request)
 
         if request.method == 'POST':
             form = self.get_form(request.POST, page=self, user=request.user)
@@ -373,11 +362,19 @@ class SkipLogicMixin(models.Model):
 
     @property
     def has_skipping(self):
-        return any(logic.value['skip_logic'] != 'next' for logic in self.skip_logic)
+        return any(
+            logic.value['skip_logic'] != 'next' for logic in self.skip_logic
+        )
+
+    def choice_index(self, choice):
+        return self.choices.split(',').index(choice)
 
     def next_action(self, choice):
-        index = self.choices.split(',').index(choice)
-        return self.skip_logic[index].value['skip_logic']
+        return self.skip_logic[self.choice_index(choice)].value['skip_logic']
+
+    def next_page(self, choice):
+       return self.skip_logic[self.choice_index(choice)].value[self.next_action(choice)]
+
 
     class Meta:
         abstract = True
