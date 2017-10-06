@@ -2,20 +2,22 @@ import json
 from itertools import izip_longest
 
 
-def skip_logic_block_data(choice, logic, survey):
+def skip_logic_block_data(choice, logic, survey=None, question=None):
     return {
         'choice': choice,
         'skip_logic': logic,
         'survey': survey,
+        'question': question,
     }
 
 
-def skip_logic_data(choices=list(), logics=list(), survey=None):
+def skip_logic_data(choices=list(), logics=list(), survey=None, question=None):
     data = [
         {'type': 'skip_logic', 'value': skip_logic_block_data(
             choice,
             logic,
             survey.id if choice == 'survey' else None,
+            question.id if choice == 'question' else None,
         )
         } for choice, logic in izip_longest(choices, logics, fillvalue='next')
     ]

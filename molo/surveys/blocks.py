@@ -80,6 +80,11 @@ class SkipLogicBlock(blocks.StructBlock):
         if cleaned_data['skip_logic'] == SkipState.SURVEY and not cleaned_data['survey']:
             raise ValidationError(
                 'A Survey must be selected to progress to.',
-                params={'survey': ['Please select a survey']}
+                params={'survey': ['Please select a survey.']}
+            )
+        if cleaned_data['skip_logic'] == SkipState.QUESTION and not cleaned_data['question']:
+            raise ValidationError(
+                'A Question must be selected to progress to.',
+                params={'survey': ['Please select a question.']}
             )
         return cleaned_data
