@@ -6,9 +6,10 @@
         var validSelectors = ['radio', 'checkbox', 'dropdown', 'checkboxes'];
         var validSkipSelectors = ['radio', 'checkbox', 'dropdown'];
         return function(prefix) {
-            var selectorID = prefix.slice(0, prefix.indexOf('-', prefix.indexOf('-') + 1));
-            var parentFieldSelector = $('#id_' + selectorID + '-field_type');
-            var choices = $('#' + selectorID + '-skip_logic-list').closest('.skip-logic');
+            var splitPrefix = prefix.split('-');
+            var fieldID = [splitPrefix[0], splitPrefix[3]].join('-');
+            var parentFieldSelector = $('#id_' + fieldID + '-field_type');
+            var choices = $('#' + fieldID + '-skip_logic-list').closest('.skip-logic');
 
             var skipLogicSelect = $('#' + prefix + '-skip_logic');
             var skipLogicSurvey = $('#' + prefix + '-survey').closest('li');
