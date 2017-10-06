@@ -3,7 +3,8 @@
         var self = {};
         self.container = $('#' + opts.id);
 
-        var validSelectors = ['radio', 'checkbox', 'dropdown'];
+        var validSelectors = ['radio', 'checkbox', 'dropdown', 'checkboxes'];
+        var validSkipSelectors = ['radio', 'checkbox', 'dropdown'];
         return function(prefix) {
             var selectorID = prefix.slice(0, prefix.indexOf('-', prefix.indexOf('-') + 1));
             var parentFieldSelector = $('#id_' + selectorID + '-field_type');
@@ -38,6 +39,14 @@
                     hide();
                 } else {
                     show();
+                    var shouldShowSkipLogic = validSkipSelectors.indexOf(parentFieldSelector.val()) >= 0;
+                    if (!shouldShowSkipLogic) {
+                        skipLogicSurvey.hide();
+                        skipLogicSelect.closest('li').hide();
+                    } else {
+                        skipLogicSelect.closest('li').show();
+                        updateBlockState();
+                    }
                 }
             };
 
