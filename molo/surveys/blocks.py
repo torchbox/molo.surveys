@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.contrib.staticfiles.templatetags.staticfiles import static
 
 from wagtail.wagtailadmin.edit_handlers import StreamFieldPanel
@@ -52,3 +53,12 @@ class SkipLogicBlock(blocks.StructBlock):
     def js_initializer(self):
         opts = {}
         return "SkipLogic(%s)" % blocks.utils.js_dict(opts)
+
+    def clean(self, value):
+        cleaned_data = super(SkipLogicBlock, self).clean(value)
+        if cleaned_data['skip_logic'] == SkipState.SURVEY and not cleaned_data['survey']:
+            raise ValidationError(
+                'A Survey must be selected to progress to.',
+                params={'survey': ['Please select a survey']}
+            )
+        return cleaned_data

@@ -1,8 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.test import TestCase
+
 from molo.core.tests.base import MoloTestCaseMixin
+from molo.surveys.blocks import SkipLogicBlock, SkipState
 from molo.surveys.models import MoloSurveyPage, MoloSurveySubmission, MoloSurveyFormField
 
-from .utils import skip_logic_data
+from .utils import skip_logic_data, skip_logic_block_data
 
 
 class TestSurveyModels(TestCase, MoloTestCaseMixin):
@@ -66,3 +69,27 @@ class TestSkipLogicMixin(TestCase, MoloTestCaseMixin):
         self.choice_field.skip_logic = skip_logic_data(['choice'], ['end'])
         self.choice_field.save()
         self.assertTrue(self.choice_field.has_skipping)
+
+
+class TestSkipLogicBlock(TestCase, MoloTestCaseMixin):
+    def setUp(self):
+        self.mk_main()
+        self.survey = MoloSurveyPage(
+            title='Test Survey',
+            slug='test-survey',
+        )
+        self.section_index.add_child(instance=self.survey)
+        self.survey.save_revision().publish()
+
+    def test_survey_raises_error_if_no_object(self):
+        block = SkipLogicBlock()
+        data = skip_logic_block_data('next survey',SkipState.SURVEY,survey=None)
+        with self.assertRaises(ValidationError):
+            block.clean(data)
+
+    def test_survey_passes_with_object(self):
+        block = SkipLogicBlock()
+        data = {'skip_logic': SkipState.SURVEY, 'choice': 'next survey', 'survey': self.survey.id}
+        cleaned_data = block.clean(data)
+        self.assertEqual(cleaned_data['skip_logic'], SkipState.SURVEY)
+        self.assertEqual(cleaned_data['survey'], self.survey)
