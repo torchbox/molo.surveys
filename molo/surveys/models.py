@@ -386,8 +386,11 @@ class SkipLogicMixin(models.Model):
         return super(SkipLogicMixin, self).save(*args, **kwargs)
 
 
-class MoloSurveyFormField(SkipLogicMixin, surveys_models.AbstractFormField):
+class MoloSurveyFormField(SkipLogicMixin, AbstractFormField):
     page = ParentalKey(MoloSurveyPage, related_name='survey_form_fields')
+
+    class Meta(AbstractFormField.Meta):
+        pass
 
 
 surveys_models.AbstractFormField.panels[4] = SkipLogicStreamPanel('skip_logic')
@@ -521,5 +524,5 @@ class PersonalisableSurveyFormField(SkipLogicMixin, AbstractFormField):
     def __str__(self):
         return '%s - %s' % (self.page, self.label)
 
-    class Meta:
+    class Meta(AbstractFormField.Meta):
         verbose_name = _('personalisable form field')
