@@ -372,6 +372,11 @@ class SkipLogicMixin(models.Model):
     def next_action(self, choice):
         return self.skip_logic[self.choice_index(choice)].value['skip_logic']
 
+    def is_next_action(self, choice, *actions):
+        if self.has_skipping:
+            return self.next_action(choice) in actions
+        return False
+
     def next_page(self, choice):
        return self.skip_logic[self.choice_index(choice)].value[self.next_action(choice)]
 

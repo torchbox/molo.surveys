@@ -41,7 +41,7 @@ class SkipLogicPaginator(Paginator):
             last_question_index = max(answered_questions)
             last_question = self.object_list[last_question_index]
             last_answer = self.data[last_question.clean_name]
-            if last_question.next_action(last_answer) == SkipState.QUESTION:
+            if last_question.is_next_action(last_answer, SkipState.QUESTION):
                 next_question_id = last_question.next_page(last_answer)
                 next_question_index = question_ids.index(next_question_id)
                 minimum_skip = next(i-1 for i, v in enumerate(self.skip_indexes) if v > next_question_index)
@@ -76,9 +76,7 @@ class SkipLogicPage(Page):
             question_response = self.last_response
         except KeyError:
             return False
-        if self.last_question.has_skipping:
-            return self.last_question.next_action(question_response) in actions
-        return False
+        return self.last_question.is_next_action(question_response, *actions)
 
     def is_end(self):
         return self.is_next_action(SkipState.END, SkipState.SURVEY)
