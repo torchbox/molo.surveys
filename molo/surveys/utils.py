@@ -31,15 +31,9 @@ class SkipLogicPaginator(Paginator):
     def page_skip_values(self):
         minimum_skip = self.num_pages
         next_question_index = 0
-
-        question_labels = [question.clean_name for question in self.object_list]
         question_ids = [question.id for question in self.object_list]
-        answered_questions = [
-            question_labels.index(question) for question in self.data if question in question_labels
-        ]
-        if answered_questions:
-            last_question_index = max(answered_questions)
-            last_question = self.object_list[last_question_index]
+        if self.last_question_page:
+            last_question = self.object_list[self.last_question_page]
             last_answer = self.data[last_question.clean_name]
             if last_question.is_next_action(last_answer, SkipState.QUESTION):
                 next_question_id = last_question.next_page(last_answer)
@@ -48,15 +42,29 @@ class SkipLogicPaginator(Paginator):
 
         return minimum_skip, next_question_index
 
+    @cached_property
+    def last_question_page(self):
+        question_labels = [question.clean_name for question in self.object_list]
+        answered_questions = [
+            question_labels.index(question) for question in self.data if question in question_labels
+        ]
+        if answered_questions:
+            return max(answered_questions)
+
+        return 0
+
     def page(self, number):
         number = self.validate_number(number)
-        minimum_skip, next_question_index = self.page_skip_values()
+        if self.last_question_page == number:
+            minimum_skip, next_question_index = self.page_skip_values()
+        else:
+            minimum_skip, next_question_index = self.num_pages, 0
 
         bottom_index = min(number - 1, minimum_skip)
         top_index = bottom_index + self.per_page
         bottom = max(self.skip_indexes[bottom_index], next_question_index)
         top = self.skip_indexes[top_index]
-        return self._get_page(self.object_list[bottom:top], number, self)
+        return self._get_page(self.object_list[bottom:top], bottom_index + 1, self)
 
 
 class SkipLogicPage(Page):
