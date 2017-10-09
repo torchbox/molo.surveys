@@ -1,16 +1,11 @@
 (function($) {
     window.SkipLogic = function (opts) {
-        var self = {};
-        self.container = $('#' + opts.id);
-
-        var validSelectors = ['radio', 'checkbox', 'dropdown', 'checkboxes'];
         var validSkipSelectors = ['radio', 'checkbox', 'dropdown'];
         return function(prefix) {
             var splitPrefix = prefix.split('-');
             var fieldPrefix = splitPrefix[0];
             var fieldID = [fieldPrefix, splitPrefix[1]].join('-');
             var parentFieldSelector = $('#id_' + fieldID + '-field_type');
-            var choices = $('#' + fieldID + '-skip_logic-list').closest('.skip-logic');
 
             var skipLogicSelect = $('#' + prefix + '-skip_logic');
             var skipLogicSurvey = $('#' + prefix + '-survey');
@@ -60,42 +55,26 @@
                 element.closest('li').show();
             };
 
-            var shouldHide = function () {
-                return validSelectors.indexOf(parentFieldSelector.val()) < 0;
-            };
-
-            var showChoices = function() {
-                choices.show(250);
-            };
-
-            var hideChoices = function() {
-                choices.hide(250);
-            };
             var toggle = function() {
-                if (shouldHide()) {
-                    hideChoices();
+                var shouldShowSkipLogic = validSkipSelectors.indexOf(parentFieldSelector.val()) >= 0;
+                if (!shouldShowSkipLogic) {
+                    hideElement(skipLogicSurvey);
+                    hideElement(questionSelect);
+                    hideElement(skipLogicSelect);
                 } else {
-                    showChoices();
-                    var shouldShowSkipLogic = validSkipSelectors.indexOf(parentFieldSelector.val()) >= 0;
-                    if (!shouldShowSkipLogic) {
-                        hideElement(skipLogicSurvey);
-                        hideElement(questionSelect);
-                        hideElement(skipLogicSelect);
-                    } else {
-                        showElement(skipLogicSelect);
-                        updateBlockState();
-                    }
+                    showElement(skipLogicSelect);
+                    updateBlockState();
                 }
             };
 
             toggle();
             populateQuestions();
 
-            parentFieldSelector.change( function () {
-                toggle();
-            });
             skipLogicSelect.change( function () {
                 updateBlockState();
+            });
+            parentFieldSelector.change( function () {
+                toggle();
             });
         };
     };
