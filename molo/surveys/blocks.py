@@ -79,8 +79,10 @@ class SkipLogicBlock(blocks.StructBlock):
         required=True,
     )
     survey = blocks.PageChooserBlock(target_model='surveys.MoloSurveyPage', required=False)
-    question = QuestionSelectBlock(required=False)
-
+    question = QuestionSelectBlock(
+        required=False,
+        help_text='Please save the survey as a draft to populate or update the list of questions.',
+    )
 
     @property
     def media(self):
