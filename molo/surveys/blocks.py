@@ -17,10 +17,11 @@ class SkipState:
 
 
 class SkipLogicField(StreamField):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         args = [SkipLogicStreamBlock([('skip_logic', SkipLogicBlock())])]
         kwargs.update({
             'verbose_name': 'Answer options',
+            'blank': True,
         })
         super(SkipLogicField, self).__init__(*args, **kwargs)
 
@@ -30,6 +31,7 @@ class SkipLogicStreamPanel(StreamFieldPanel):
         model_class = super(SkipLogicStreamPanel, self).bind_to_model(model)
         model_class.classname = 'skip-logic'
         return model_class
+
 
 class SelectAndHiddenWidget(forms.MultiWidget):
     def __init__(self, *args, **kwargs):
@@ -85,7 +87,7 @@ class SkipLogicBlock(blocks.StructBlock):
         return forms.Media(js=[static('js/blocks/skiplogic.js')])
 
     def js_initializer(self):
-        opts = {}
+        opts = {'validSkipSelectors': ['radio', 'checkbox', 'dropdown']}
         return "SkipLogic(%s)" % blocks.utils.js_dict(opts)
 
     def clean(self, value):

@@ -1,6 +1,6 @@
 (function($) {
     window.SkipLogic = function (opts) {
-        var validSkipSelectors = ['radio', 'checkbox', 'dropdown'];
+        var validSkipSelectors = opts['validSkipSelectors'];
         return function(prefix) {
             var splitPrefix = prefix.split('-');
             var fieldPrefix = splitPrefix[0];
