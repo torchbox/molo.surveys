@@ -463,7 +463,7 @@ class PersonalisableSurvey(MoloSurveyPage):
         """Get form fields for particular segments."""
         # Get only segmented form fields if serve() has been called
         # (because the page is being seen by user on the front-end)
-        if hasattr(self, 'request'):
+        if hasattr(self, 'request') and not getattr(self.request, 'is_preview', False):
             user_segments_ids = [s.id for s in get_segment_adapter(
                 self.request).get_segments()]
 
@@ -503,9 +503,10 @@ class PersonalisableSurvey(MoloSurveyPage):
         self.request = request
 
         # Check whether it is segmented and raise 404 if segments do not match
-        if self.segment_id and get_segment_adapter(request).get_segment_by_id(
-                self.segment_id) is None:
-            raise Http404("Survey does not match your segments.")
+        if not getattr(request, 'is_preview', False):
+            if self.segment_id and get_segment_adapter(request).get_segment_by_id(
+                    self.segment_id) is None:
+                raise Http404("Survey does not match your segments.")
 
         return super(PersonalisableSurvey, self).serve(
             request, *args, **kwargs)
