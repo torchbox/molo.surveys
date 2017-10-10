@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django import forms
 from django.apps import apps
 from django.core.exceptions import ValidationError
@@ -26,29 +28,31 @@ class SkipLogicField(StreamField):
         })
         super(SkipLogicField, self).__init__(*args, **kwargs)
 
-    def stream_field_error(self, position, field, message):
+    def add_stream_field_error(self, position, field, message):
+        self._errors[position][field].append(message)
+
+    @property
+    def errors(self):
         return ValidationError(
             'Error',
             params={
-                position: ErrorList([ValidationError(
-                    'Error',
-                    params={field: [message]},
-                )])
-            },
+                key : ErrorList([ValidationError('Error', params=value)])
+                for key, value in self._errors.items()
+            }
         )
 
     def clean(self, value, instance):
+        self._errors = defaultdict(lambda: defaultdict(list))
         cleaned_data = super(SkipLogicField, self).clean(value, instance)
-        errors = []
         segment = getattr(instance.page, 'segment')
         for stream_field_pos, logic in enumerate(cleaned_data):
             survey = logic.value['survey']
             if survey and instance.page.id == survey.id:
-                errors.append(self.stream_field_error(
+                self.add_stream_field_error(
                     stream_field_pos,
                     'survey',
                     'Cannot skip to self, please select a different survey.'
-                ))
+                )
             if segment:
                 try:
                     linked_segment = survey.personalisablesurvey.segment
@@ -56,13 +60,13 @@ class SkipLogicField(StreamField):
                     pass
                 else:
                     if linked_segment and linked_segment != segment:
-                        errors.append(self.stream_field_error(
+                        self.add_stream_field_error(
                             stream_field_pos,
                             'survey',
                             'Cannot select a survey with a different segment'
-                        ))
-        if errors:
-            raise ValidationError(errors)
+                        )
+        if self.errors:
+            raise self.errors
 
         return cleaned_data
 
