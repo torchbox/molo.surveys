@@ -280,16 +280,20 @@ class MoloSurveyPage(
                     form = form_class(page=self, user=request.user)
                 else:
                     # If there is no more steps, create form for all fields
-                    form = self.get_form(
-                        json.loads(request.session[session_key_data]),
-                        page=self, user=request.user, prevent_required=True,
-                    )
+                    data = json.loads(request.session[session_key_data])
+                    form = self.get_form(data, page=self, user=request.user, prevent_required=True)
 
                     if form.is_valid():
                         # Perform validation again for whole form.
                         # After successful validation, save data into DB,
                         # and remove from the session.
                         self.set_survey_as_submitted_for_session(request)
+
+                        # We fill in the missing fields which were skipped with
+                        # a default value
+                        for question in self.get_form_fields():
+                            if question.clean_name not in data:
+                                form.cleaned_data[question.clean_name] = 'NA (Skipped)'
 
                         self.process_form_submission(form)
                         del request.session[session_key_data]
