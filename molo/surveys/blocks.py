@@ -33,13 +33,14 @@ class SkipLogicField(StreamField):
 
     @property
     def errors(self):
-        return ValidationError(
-            'Error',
-            params={
-                key : ErrorList([ValidationError('Error', params=value)])
-                for key, value in self._errors.items()
-            }
-        )
+        if self._errors.keys():
+            return ValidationError(
+                'Error',
+                params={
+                    key : ErrorList([ValidationError('Error', params=value)])
+                    for key, value in self._errors.items()
+                }
+            )
 
     def clean(self, value, instance):
         self._errors = defaultdict(lambda: defaultdict(list))
