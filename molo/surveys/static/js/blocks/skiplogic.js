@@ -93,10 +93,9 @@
                 opts.nativeHandler = nativeEvent.click[0].handler;
 
                 questionDelete.unbind('click', opts.nativeHandler);
-
                 questionDelete.click( function(event) {
                     var id = this.question.children('[id$="-id"]').val();
-                    if ( questionSelect.val() != id ) {
+                    if ( questionSelect.is(':hidden') || questionSelect.val() != id ) {
                         this.nativeHandler(event);
                         questionSelect.find(`option[value=${id}]`).remove();
                     } else {
