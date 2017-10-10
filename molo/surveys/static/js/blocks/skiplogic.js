@@ -39,13 +39,12 @@
             var populateQuestions = function () {
                 for (let question of allQuestions) {
                     question = $(question);
-                    var id = question.children('[id$="-id"]').val();
                     var sortOrder = parseInt(question.children('[id$="-ORDER"]').val());
                     var label = question.find('input[id$="-label"]').val();
-                    var selected = id == questionID.val() ? 'selected' : '';
+                    var selected = sortOrder == questionID.val() ? 'selected' : '';
                     if (thisSortOrder < sortOrder) {
                         questionSelect.append(
-                            `<option value="${id}" ${selected}>${label}</option>`
+                            `<option value="${sortOrder}" ${selected}>${label}</option>`
                         );
                     }
                 }
