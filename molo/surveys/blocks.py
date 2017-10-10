@@ -45,7 +45,7 @@ class SkipLogicField(StreamField):
     def clean(self, value, instance):
         self._errors = defaultdict(lambda: defaultdict(list))
         cleaned_data = super(SkipLogicField, self).clean(value, instance)
-        segment = getattr(instance.page, 'segment')
+        segment = getattr(instance.page, 'segment', None)
         for stream_field_pos, logic in enumerate(cleaned_data):
             survey = logic.value['survey']
             if survey and instance.page.id == survey.id:
