@@ -1,6 +1,7 @@
 import json
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
@@ -364,6 +365,9 @@ class SurveyTermsConditions(Orderable):
 class SkipLogicMixin(models.Model):
     skip_logic = SkipLogicField()
 
+    class Meta:
+        abstract = True
+
     @property
     def has_skipping(self):
         return any(
@@ -384,9 +388,11 @@ class SkipLogicMixin(models.Model):
     def next_page(self, choice):
        return self.skip_logic[self.choice_index(choice)].value[self.next_action(choice)]
 
+    def clean(self):
+        super(SkipLogicMixin, self).clean()
+        if not self.required and self.skip_logic:
 
-    class Meta:
-        abstract = True
+            raise ValidationError({'required': 'Questions with skip logic must be required.'})
 
     def save(self, *args, **kwargs):
         self.choices = ','.join(
