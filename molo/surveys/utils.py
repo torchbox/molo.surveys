@@ -31,7 +31,7 @@ class SkipLogicPaginator(Paginator):
     @cached_property
     def next_question_index(self):
         if self.previous_question_page:
-            question_ids = [question.id for question in self.object_list]
+            question_ids = [question.sort_order for question in self.object_list]
             last_question = self.object_list[self.last_question_index]
             last_answer = self.data[last_question.clean_name]
             if last_question.is_next_action(last_answer, SkipState.QUESTION):
