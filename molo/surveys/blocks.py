@@ -2,6 +2,7 @@ from django import forms
 from django.apps import apps
 from django.core.exceptions import ValidationError
 from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.forms.utils import ErrorList
 from django.utils.functional import cached_property
 
 from wagtail.wagtailadmin.edit_handlers import StreamFieldPanel
@@ -24,6 +25,46 @@ class SkipLogicField(StreamField):
             'blank': True,
         })
         super(SkipLogicField, self).__init__(*args, **kwargs)
+
+    def stream_field_error(self, position, field, message):
+        return ValidationError(
+            'Error',
+            params={
+                position: ErrorList([ValidationError(
+                    'Error',
+                    params={field: [message]},
+                )])
+            },
+        )
+
+    def clean(self, value, instance):
+        cleaned_data = super(SkipLogicField, self).clean(value, instance)
+        errors = []
+        segment = getattr(instance.page, 'segment')
+        for stream_field_pos, logic in enumerate(cleaned_data):
+            survey = logic.value['survey']
+            if survey and instance.page.id == survey.id:
+                errors.append(self.stream_field_error(
+                    stream_field_pos,
+                    'survey',
+                    'Cannot skip to self, please select a different survey.'
+                ))
+            if segment:
+                try:
+                    linked_segment = survey.personalisablesurvey.segment
+                except AttributeError:
+                    pass
+                else:
+                    if linked_segment and linked_segment != segment:
+                        errors.append(self.stream_field_error(
+                            stream_field_pos,
+                            'survey',
+                            'Cannot select a survey with a different segment'
+                        ))
+        if errors:
+            raise ValidationError(errors)
+
+        return cleaned_data
 
 
 class SkipLogicStreamPanel(StreamFieldPanel):
@@ -94,14 +135,25 @@ class SkipLogicBlock(blocks.StructBlock):
 
     def clean(self, value):
         cleaned_data = super(SkipLogicBlock, self).clean(value)
-        if cleaned_data['skip_logic'] == SkipState.SURVEY and not cleaned_data['survey']:
-            raise ValidationError(
-                'A Survey must be selected to progress to.',
-                params={'survey': ['Please select a survey.']}
-            )
-        if cleaned_data['skip_logic'] == SkipState.QUESTION and not cleaned_data['question']:
-            raise ValidationError(
-                'A Question must be selected to progress to.',
-                params={'survey': ['Please select a question.']}
-            )
+        logic = cleaned_data['skip_logic']
+        if logic  == SkipState.SURVEY:
+            if not cleaned_data['survey']:
+                raise ValidationError(
+                    'A Survey must be selected to progress to.',
+                    params={'survey': ['Please select a survey.']}
+                )
+            cleaned_data['question'] = None
+
+        if logic == SkipState.QUESTION:
+            if not cleaned_data['question']:
+                raise ValidationError(
+                    'A Question must be selected to progress to.',
+                    params={'question': ['Please select a question.']}
+                )
+            cleaned_data['survey'] = None
+
+        if logic in [SkipState.END, SkipState.NEXT]:
+            cleaned_data['survey'] = None
+            cleaned_data['question'] = None
+
         return cleaned_data
