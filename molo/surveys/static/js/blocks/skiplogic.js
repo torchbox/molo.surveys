@@ -18,7 +18,7 @@
                 return '[id^="inline_child_' + field + '"]';
             };
             var thisQuestion = $(questionSelector(fieldID));
-            var thisSortOrder = thisQuestion.children('[id$="-ORDER"]').val();
+            var thisSortOrder = parseInt(thisQuestion.children('[id$="-ORDER"]').val());
             var allQuestions = $(questionSelector(fieldPrefix));
 
             var updateBlockState = function () {
@@ -40,12 +40,12 @@
                 for (let question of allQuestions) {
                     question = $(question);
                     var id = question.children('[id$="-id"]').val();
-                    var sortOrder = question.children('[id$="-ORDER"]').val();
+                    var sortOrder = parseInt(question.children('[id$="-ORDER"]').val());
                     var label = question.find('input[id$="-label"]').val();
                     var selected = id == questionID.val() ? 'selected' : '';
                     if (thisSortOrder < sortOrder) {
                         questionSelect.append(
-                            `<option data-sortorder="${sortOrder}" value="${id}" ${selected}>${label}</option>`
+                            `<option value="${id}" ${selected}>${label}</option>`
                         );
                     }
                 }
@@ -80,30 +80,6 @@
             parentFieldSelector.change( function () {
                 toggle();
             });
-
-            for (let question of allQuestions) {
-                var $question = $(question);
-                var questionUp = $question.find('[id$="-move-up"]');
-                var questionDown = $question.find('[id$="-move-down"]');
-                var questionDelete = $question.find('[id$="-DELETE-button"]');
-                var nativeEvent = $._data(questionDelete[0], 'events');
-
-                opts = {};
-                opts.question = $question;
-                opts.nativeHandler = nativeEvent.click[0].handler;
-
-                questionDelete.unbind('click', opts.nativeHandler);
-                questionDelete.click( function(event) {
-                    var id = this.question.children('[id$="-id"]').val();
-                    if ( questionSelect.is(':hidden') || questionSelect.val() != id ) {
-                        this.nativeHandler(event);
-                        questionSelect.find(`option[value=${id}]`).remove();
-                    } else {
-                        alert(`Cannot delete, referenced by skip logic in question "${parentFieldLabel.val()}".`);
-                    }
-                }.bind(opts));
-
-            };
         };
     };
 })(jQuery);
