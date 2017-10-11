@@ -101,10 +101,25 @@ class SkipLogicCleanForm(WagtailAdminPageForm):
                         survey = logic.value['survey']
                         self.check_doesnt_loop_to_self(survey, i)
                         self.check_survey_link_valid(survey, i)
+                    if logic.value['skip_logic'] == SkipState.QUESTION:
+                        sort_order = logic.value['question'] - 1
+                        questions = self.instance.personalisable_survey_form_fields.all()
+                        question = questions.get(sort_order=sort_order)
+                        self.check_question_segment_ok(data['segment'], question, i)
                 if self.clean_errors:
                     form._errors = self.clean_errors
 
         return cleaned_data
+
+    def check_question_segment_ok(self, current_segment, linked_question, stream_field_pos):
+        segment = linked_question.segment
+        # Cannot link from None to segment, but can link from segment to None
+        if (segment and not current_segment) or ( segment != current_segment):
+            self.add_stream_field_error(
+                stream_field_pos,
+                'question',
+                'Cannot link to a question with a different segment'
+            )
 
     def check_survey_link_valid(self, survey, stream_field_pos):
         try:
