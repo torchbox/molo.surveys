@@ -112,6 +112,7 @@ class SkipLogicCleanForm(WagtailAdminPageForm):
         except AttributeError:
             pass
         else:
+            # Can only link a survey without segments or the same segment
             if segment and segment != self.instance.segment:
                 self.add_stream_field_error(
                     stream_field_pos,
@@ -137,7 +138,9 @@ class SkipLogicCleanForm(WagtailAdminPageForm):
                 key : ErrorList([ValidationError('Error in form', params=value)])
                 for key, value in self._clean_errors.items()
             }
-            return {'skip_logic': ErrorList([ValidationError(
-                'Skip Logic Error',
-                params=params,
-            )])}
+            return {
+                'skip_logic': ErrorList([ValidationError(
+                    'Skip Logic Error',
+                    params=params,
+                )])
+            }
