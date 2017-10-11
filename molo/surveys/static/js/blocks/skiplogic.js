@@ -14,12 +14,7 @@
             var questionSelect = $(questionWidgetID + '_1');
             var questionID = $(questionWidgetID + '_0');
 
-            var questionSelector = function(field) {
-                return '[id^="inline_child_' + field + '"]';
-            };
-            var thisQuestion = $(questionSelector(fieldID));
-            var thisSortOrder = parseInt(thisQuestion.children('[id$="-ORDER"]').val());
-            var allQuestions = $(questionSelector(fieldPrefix));
+            var thisQuestion = question(fieldID);
 
             var updateBlockState = function () {
                 hideElement(skipLogicSurvey);
@@ -37,12 +32,12 @@
             };
 
             var populateQuestions = function () {
-                for (let question of allQuestions) {
+                for (let question of allQuestions(fieldPrefix)) {
                     question = $(question);
                     var sortOrder = parseInt(question.children('[id$="-ORDER"]').val());
                     var label = question.find('input[id$="-label"]').val();
                     var selected = sortOrder == questionID.val() ? 'selected' : '';
-                    if (thisSortOrder < sortOrder) {
+                    if (thisQuestion.sortOrder() < sortOrder) {
                         questionSelect.append(
                             `<option value="${sortOrder}" ${selected}>${label}</option>`
                         );
@@ -59,7 +54,7 @@
             };
 
             var toggle = function() {
-                var shouldShowSkipLogic = validSkipSelectors.indexOf(parentFieldSelector.val()) >= 0;
+                var shouldShowSkipLogic = validSkipSelectors.indexOf(thisQuestion.fieldSelect().val()) >= 0;
                 if (!shouldShowSkipLogic) {
                     hideElement(skipLogicSurvey);
                     hideElement(questionSelect);
