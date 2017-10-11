@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 
-from django.core.paginator import Paginator, Page
+from django.core.paginator import Page, Paginator
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.utils.functional import cached_property
-from django.utils.text import slugify
 
 from .blocks import SkipState
 
@@ -14,10 +13,12 @@ class SkipLogicPaginator(Paginator):
         self.data = data
         super(SkipLogicPaginator, self).__init__(object_list, per_page=1)
         self.skip_indexes = [
-            i + 1 for i, field in enumerate(self.object_list) if field.has_skipping
+            i + 1 for i, field in enumerate(self.object_list)
+            if field.has_skipping
         ]
         if self.skip_indexes:
-            self.skip_indexes = [0] + self.skip_indexes + [self.object_list.count()]
+            self.skip_indexes.insert(0, 0)
+            self.skip_indexes.append(self.object_list.count())
         else:
             self.skip_indexes = range(self.object_list.count() + 1)
 
@@ -31,7 +32,9 @@ class SkipLogicPaginator(Paginator):
     @cached_property
     def next_question_index(self):
         if self.previous_question_page:
-            question_ids = [question.sort_order for question in self.object_list]
+            question_ids = [
+                question.sort_order for question in self.object_list
+            ]
             last_question = self.object_list[self.last_question_index]
             last_answer = self.data[last_question.clean_name]
             if last_question.is_next_action(last_answer, SkipState.QUESTION):
@@ -42,14 +45,18 @@ class SkipLogicPaginator(Paginator):
     @cached_property
     def next_question_page(self):
         return next(
-            i for i, v in enumerate(self.skip_indexes) if v > self.next_question_index
+            i for i, v in enumerate(self.skip_indexes)
+            if v > self.next_question_index
         )
 
     @cached_property
     def answered_indexes(self):
-        question_labels = [question.clean_name for question in self.object_list]
+        question_labels = [
+            question.clean_name for question in self.object_list
+        ]
         return [
-            question_labels.index(question) for question in self.data if question in question_labels
+            question_labels.index(question) for question in self.data
+            if question in question_labels
         ]
 
     @cached_property
@@ -67,7 +74,8 @@ class SkipLogicPaginator(Paginator):
     @cached_property
     def previous_question_page(self):
         return next(
-            i for i, v in enumerate(self.skip_indexes) if v > self.last_question_index
+            i for i, v in enumerate(self.skip_indexes)
+            if v > self.last_question_index
         )
 
     def page(self, number):

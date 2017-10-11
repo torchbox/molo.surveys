@@ -1,13 +1,12 @@
-from collections import defaultdict
 import csv
+from collections import defaultdict
 
 from django import forms
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorList
 from django.utils.translation import ugettext_lazy as _
-
-from django.contrib.auth.models import Group
 
 from wagtail.wagtailadmin.forms import WagtailAdminPageForm
 
@@ -103,18 +102,25 @@ class SkipLogicCleanForm(WagtailAdminPageForm):
                         self.check_survey_link_valid(survey, i)
                     if logic.value['skip_logic'] == SkipState.QUESTION:
                         sort_order = logic.value['question'] - 1
-                        questions = self.instance.personalisable_survey_form_fields.all()
+                        questions = (
+                            self.instance.personalisable_survey_form_fields
+                        )
                         question = questions.get(sort_order=sort_order)
-                        self.check_question_segment_ok(data['segment'], question, i)
+                        self.check_question_segment_ok(
+                            data['segment'],
+                            question,
+                            i,
+                        )
                 if self.clean_errors:
                     form._errors = self.clean_errors
 
         return cleaned_data
 
-    def check_question_segment_ok(self, current_segment, linked_question, stream_field_pos):
+    def check_question_segment_ok(self, current_segment,
+                                  linked_question, stream_field_pos):
         segment = linked_question.segment
         # Cannot link from None to segment, but can link from segment to None
-        if (segment and not current_segment) or ( segment != current_segment):
+        if (segment and not current_segment) or (segment != current_segment):
             self.add_stream_field_error(
                 stream_field_pos,
                 'question',
@@ -150,7 +156,9 @@ class SkipLogicCleanForm(WagtailAdminPageForm):
     def clean_errors(self):
         if self._clean_errors.keys():
             params = {
-                key : ErrorList([ValidationError('Error in form', params=value)])
+                key: ErrorList(
+                    [ValidationError('Error in form', params=value)]
+                )
                 for key, value in self._clean_errors.items()
             }
             return {

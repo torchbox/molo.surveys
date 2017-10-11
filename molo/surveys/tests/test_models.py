@@ -1,11 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-
 from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.blocks import SkipLogicBlock, SkipState
-from molo.surveys.models import MoloSurveyPage, MoloSurveySubmission, MoloSurveyFormField
+from molo.surveys.models import (
+    MoloSurveyFormField,
+    MoloSurveyPage,
+    MoloSurveySubmission,
+)
 
-from .utils import skip_logic_data, skip_logic_block_data
+from .utils import skip_logic_block_data, skip_logic_data
 
 
 class TestSurveyModels(TestCase, MoloTestCaseMixin):
@@ -83,26 +86,42 @@ class TestSkipLogicBlock(TestCase, MoloTestCaseMixin):
 
     def test_survey_raises_error_if_no_object(self):
         block = SkipLogicBlock()
-        data = skip_logic_block_data('next survey',SkipState.SURVEY,survey=None)
+        data = skip_logic_block_data(
+            'next survey',
+            SkipState.SURVEY,
+            survey=None,
+        )
         with self.assertRaises(ValidationError):
             block.clean(data)
 
     def test_survey_passes_with_object(self):
         block = SkipLogicBlock()
-        data = skip_logic_block_data('next survey', SkipState.SURVEY, survey=self.survey.id)
+        data = skip_logic_block_data(
+            'next survey',
+            SkipState.SURVEY,
+            survey=self.survey.id,
+        )
         cleaned_data = block.clean(data)
         self.assertEqual(cleaned_data['skip_logic'], SkipState.SURVEY)
         self.assertEqual(cleaned_data['survey'], self.survey)
 
     def test_question_raises_error_if_no_object(self):
         block = SkipLogicBlock()
-        data = skip_logic_block_data('a question', SkipState.QUESTION, question=None)
+        data = skip_logic_block_data(
+            'a question',
+            SkipState.QUESTION,
+            question=None,
+        )
         with self.assertRaises(ValidationError):
             block.clean(data)
 
     def test_question_passes_with_object(self):
         block = SkipLogicBlock()
-        data = skip_logic_block_data('a question', SkipState.QUESTION, question=1)
+        data = skip_logic_block_data(
+            'a question',
+            SkipState.QUESTION,
+            question=1,
+        )
         cleaned_data = block.clean(data)
         self.assertEqual(cleaned_data['skip_logic'], SkipState.QUESTION)
         self.assertEqual(cleaned_data['question'], 1)

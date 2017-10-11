@@ -1,8 +1,6 @@
 from django import forms
-from django.apps import apps
-from django.core.exceptions import ValidationError
 from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.utils.functional import cached_property
+from django.core.exceptions import ValidationError
 
 from wagtail.wagtailadmin.edit_handlers import StreamFieldPanel
 from wagtail.wagtailcore import blocks
@@ -36,7 +34,11 @@ class SkipLogicStreamPanel(StreamFieldPanel):
 class SelectAndHiddenWidget(forms.MultiWidget):
     def __init__(self, *args, **kwargs):
         widgets = [forms.HiddenInput, forms.Select]
-        super(SelectAndHiddenWidget, self).__init__(widgets=widgets, *args, **kwargs)
+        super(SelectAndHiddenWidget, self).__init__(
+            widgets=widgets,
+            *args,
+            **kwargs
+        )
 
     def decompress(self, value):
         return [value, None]
@@ -78,10 +80,14 @@ class SkipLogicBlock(blocks.StructBlock):
         default=SkipState.NEXT,
         required=True,
     )
-    survey = blocks.PageChooserBlock(target_model='surveys.MoloSurveyPage', required=False)
+    survey = blocks.PageChooserBlock(
+        target_model='surveys.MoloSurveyPage',
+        required=False,
+    )
     question = QuestionSelectBlock(
         required=False,
-        help_text='Please save the survey as a draft to populate or update the list of questions.',
+        help_text=('Please save the survey as a draft to populate or update '
+                   'the list of questions.'),
     )
 
     @property

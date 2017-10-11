@@ -2,45 +2,53 @@ import json
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.core.paginator import EmptyPage, PageNotAnInteger
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import models
-from django.db.models.fields import TextField, BooleanField
-from django.shortcuts import render, redirect
-from django.dispatch import receiver
 from django.core.urlresolvers import reverse
+from django.db import models
+from django.db.models import Q
+from django.db.models.fields import BooleanField, TextField
+from django.dispatch import receiver
+from django.http import Http404
+from django.shortcuts import redirect, render
 from django.utils.functional import cached_property
-
+from django.utils.translation import ugettext_lazy as _
 from modelcluster.fields import ParentalKey
-
+from molo.core.blocks import MarkDownBlock
 from molo.core.models import (
+    ArticlePage,
+    FooterPage,
+    Main,
+    PreventDeleteMixin,
     SectionPage,
-    ArticlePage, FooterPage,
     TranslatablePageMixinNotRoutable,
-    PreventDeleteMixin, index_pages_after_copy, Main
+    index_pages_after_copy,
 )
 from molo.core.utils import generate_slug
-
-from wagtail.wagtailcore.models import Page, Orderable
-from wagtail.wagtailadmin.edit_handlers import FieldPanel, InlinePanel, \
-    MultiFieldPanel, StreamFieldPanel, PageChooserPanel, FieldRowPanel
-from wagtail.wagtailcore.fields import StreamField
+from wagtail.wagtailadmin.edit_handlers import (
+    FieldPanel,
+    FieldRowPanel,
+    InlinePanel,
+    MultiFieldPanel,
+    PageChooserPanel,
+    StreamFieldPanel,
+)
 from wagtail.wagtailcore import blocks
+from wagtail.wagtailcore.fields import StreamField
+from wagtail.wagtailcore.models import Orderable, Page
 from wagtail.wagtailimages.blocks import ImageChooserBlock
 from wagtail.wagtailimages.edit_handlers import ImageChooserPanel
-
-from molo.core.blocks import MarkDownBlock
-from wagtailsurveys import models as surveys_models
-from django.db.models import Q
-from django.http import Http404
-from django.utils.translation import ugettext_lazy as _
-
 from wagtail_personalisation.adapters import get_segment_adapter
+from wagtailsurveys import models as surveys_models
 from wagtailsurveys.models import AbstractFormField
+
 from .blocks import SkipLogicField, SkipLogicStreamPanel
 from .forms import SkipLogicCleanForm
-from .rules import SurveySubmissionDataRule, GroupMembershipRule  # noqa
+from .rules import GroupMembershipRule, SurveySubmissionDataRule  # noqa
 from .utils import SkipLogicPaginator
+
+
+SKIP = 'NA (Skipped)'
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
@@ -283,7 +291,12 @@ class MoloSurveyPage(
                 else:
                     # If there is no more steps, create form for all fields
                     data = json.loads(request.session[session_key_data])
-                    form = self.get_form(data, page=self, user=request.user, prevent_required=True)
+                    form = self.get_form(
+                        data,
+                        page=self,
+                        user=request.user,
+                        prevent_required=True
+                    )
 
                     if form.is_valid():
                         # Perform validation again for whole form.
@@ -295,7 +308,7 @@ class MoloSurveyPage(
                         # a default value
                         for question in self.get_form_fields():
                             if question.clean_name not in data:
-                                form.cleaned_data[question.clean_name] = 'NA (Skipped)'
+                                form.cleaned_data[question.clean_name] = SKIP
 
                         self.process_form_submission(form)
                         del request.session[session_key_data]
@@ -387,13 +400,16 @@ class SkipLogicMixin(models.Model):
         return False
 
     def next_page(self, choice):
-       return self.skip_logic[self.choice_index(choice)].value[self.next_action(choice)]
+        logic = self.skip_logic[self.choice_index(choice)]
+        return logic.value[self.next_action(choice)]
 
     def clean(self):
         super(SkipLogicMixin, self).clean()
         if not self.required and self.skip_logic:
 
-            raise ValidationError({'required': 'Questions with skip logic must be required.'})
+            raise ValidationError(
+                {'required': 'Questions with skip logic must be required.'}
+            )
 
     def save(self, *args, **kwargs):
         self.choices = ','.join(
@@ -472,13 +488,18 @@ class PersonalisableSurvey(MoloSurveyPage):
     class Meta:
         verbose_name = _('personalisable survey')
 
+    def is_front_end_request(self):
+        return (hasattr(self, 'request') and
+                not getattr(self.request, 'is_preview', False))
+
     def get_form_fields(self):
         """Get form fields for particular segments."""
         # Get only segmented form fields if serve() has been called
         # (because the page is being seen by user on the front-end)
-        if hasattr(self, 'request') and not getattr(self.request, 'is_preview', False):
-            user_segments_ids = [s.id for s in get_segment_adapter(
-                self.request).get_segments()]
+        if self.is_front_end_request():
+            user_segments_ids = [
+                s.id for s in get_segment_adapter(self.request).get_segments()
+            ]
 
             return self.personalisable_survey_form_fields.filter(
                 Q(segment=None) | Q(segment_id__in=user_segments_ids)
@@ -486,8 +507,7 @@ class PersonalisableSurvey(MoloSurveyPage):
 
         # Return all form fields if there's no request passed
         # (used on the admin site so serve() will not be called).
-        return self.personalisable_survey_form_fields \
-                   .select_related('segment')
+        return self.personalisable_survey_form_fields.select_related('segment')
 
     def get_data_fields(self):
         """
@@ -517,8 +537,9 @@ class PersonalisableSurvey(MoloSurveyPage):
 
         # Check whether it is segmented and raise 404 if segments do not match
         if not getattr(request, 'is_preview', False):
-            if self.segment_id and get_segment_adapter(request).get_segment_by_id(
-                    self.segment_id) is None:
+            if (self.segment_id and
+                get_segment_adapter(request).get_segment_by_id(
+                    self.segment_id) is None):
                 raise Http404("Survey does not match your segments.")
 
         return super(PersonalisableSurvey, self).serve(

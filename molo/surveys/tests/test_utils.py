@@ -1,6 +1,9 @@
 from django.test import TestCase
 from molo.core.tests.base import MoloTestCaseMixin
-from molo.surveys.models import MoloSurveyPage, MoloSurveySubmission, MoloSurveyFormField
+from molo.surveys.models import (
+    MoloSurveyFormField,
+    MoloSurveyPage,
+)
 
 from ..utils import SkipLogicPaginator
 from .utils import skip_logic_data
@@ -35,7 +38,11 @@ class TestSkipLogicPaginator(TestCase, MoloTestCaseMixin):
             sort_order=2,
             label='Your favourite animal',
             field_type='dropdown',
-            skip_logic=skip_logic_data(field_choices, field_choices, question=self.fourth_field),
+            skip_logic=skip_logic_data(
+                field_choices,
+                field_choices,
+                question=self.fourth_field,
+            ),
             required=True
         )
         self.third_field = MoloSurveyFormField.objects.create(
@@ -43,7 +50,11 @@ class TestSkipLogicPaginator(TestCase, MoloTestCaseMixin):
             sort_order=3,
             label='Your least favourite animal',
             field_type='dropdown',
-            skip_logic=skip_logic_data(field_choices, field_choices, question=self.fourth_field),
+            skip_logic=skip_logic_data(
+                field_choices,
+                field_choices,
+                question=self.fourth_field,
+            ),
             required=True
         )
         self.paginator = SkipLogicPaginator(self.survey.get_form_fields())
@@ -56,7 +67,10 @@ class TestSkipLogicPaginator(TestCase, MoloTestCaseMixin):
 
     def test_first_page_correct(self):
         page = self.paginator.page(1)
-        self.assertEqual(page.object_list, [self.first_field, self.second_field])
+        self.assertEqual(
+            page.object_list,
+            [self.first_field, self.second_field],
+        )
         self.assertTrue(page.has_next())
 
     def test_second_page_correct(self):
@@ -169,10 +183,16 @@ class SkipLogicPaginatorMulti(TestCase, MoloTestCaseMixin):
         self.assertEqual(self.paginator.skip_indexes, [0, 1, 2, 3])
 
     def test_first_page_correct(self):
-        self.assertEqual(self.paginator.page(1).object_list, [self.first_field])
+        self.assertEqual(
+            self.paginator.page(1).object_list,
+            [self.first_field],
+        )
 
     def test_middle_page_correct(self):
-        self.assertEqual(self.paginator.page(2).object_list, [self.second_field])
+        self.assertEqual(
+            self.paginator.page(2).object_list,
+            [self.second_field],
+        )
 
     def test_last_page_correct(self):
         last_page = self.paginator.page(3)

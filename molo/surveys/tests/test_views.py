@@ -1,18 +1,18 @@
+from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
 from django.utils.text import slugify
-
-from molo.core.models import SiteLanguageRelation, Main, Languages
+from molo.core.models import Languages, Main, SiteLanguageRelation
 from molo.core.tests.base import MoloTestCaseMixin
-from molo.surveys.models import (MoloSurveyPage, MoloSurveyFormField,
-                                 SurveysIndexPage)
-
-from bs4 import BeautifulSoup
+from molo.surveys.models import (
+    MoloSurveyFormField,
+    MoloSurveyPage,
+    SurveysIndexPage,
+)
 
 from .utils import skip_logic_data
-
 
 User = get_user_model()
 
@@ -657,12 +657,14 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             required=True
         )
 
-        self.another_molo_survey_form_field =  MoloSurveyFormField.objects.create(
-            page=self.another_molo_survey_page,
-            sort_order=1,
-            label='Your favourite actress',
-            field_type='singleline',
-            required=True
+        self.another_molo_survey_form_field = (
+            MoloSurveyFormField.objects.create(
+                page=self.another_molo_survey_page,
+                sort_order=1,
+                label='Your favourite actress',
+                field_type='singleline',
+                required=True
+            )
         )
 
     def new_survey(self, name):
@@ -692,7 +694,10 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             self.molo_survey_page,
             [self.skip_logic_form_field]
         )
-        self.assertNotContains(response, self.last_molo_survey_form_field.label)
+        self.assertNotContains(
+            response,
+            self.last_molo_survey_form_field.label
+        )
         self.assertNotContains(response, self.molo_survey_form_field.label)
         self.assertContains(response, 'Next Question')
 
@@ -723,7 +728,10 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             self.molo_survey_page,
             [self.skip_logic_form_field]
         )
-        self.assertNotContains(response, self.last_molo_survey_form_field.label)
+        self.assertNotContains(
+            response,
+            self.last_molo_survey_form_field.label,
+        )
         self.assertNotContains(response, self.molo_survey_form_field.label)
         self.assertContains(response, 'Next Question')
 
@@ -731,11 +739,15 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             self.skip_logic_form_field.clean_name: self.choices[1],
         }, follow=True)
 
-        # Should end the survey and not complain about required field for the last field
+        # Should end the survey and not complain about required
+        # field for the last field
 
         self.assertContains(response, self.molo_survey_page.title)
         self.assertNotContains(response, self.molo_survey_form_field.label)
-        self.assertNotContains(response, self.last_molo_survey_form_field.label)
+        self.assertNotContains(
+            response,
+            self.last_molo_survey_form_field.label
+        )
         self.assertNotContains(response, self.molo_survey_page.submit_text)
         self.assertContains(response, self.molo_survey_page.thank_you_text)
 
@@ -747,7 +759,10 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             self.molo_survey_page,
             [self.skip_logic_form_field]
         )
-        self.assertNotContains(response, self.last_molo_survey_form_field.label)
+        self.assertNotContains(
+            response,
+            self.last_molo_survey_form_field.label
+        )
         self.assertNotContains(response, self.molo_survey_form_field.label)
         self.assertContains(response, 'Next Question')
 
@@ -770,7 +785,10 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             self.molo_survey_page,
             [self.skip_logic_form_field]
         )
-        self.assertNotContains(response, self.last_molo_survey_form_field.label)
+        self.assertNotContains(
+            response,
+            self.last_molo_survey_form_field.label,
+        )
         self.assertNotContains(response, self.molo_survey_form_field.label)
         self.assertContains(response, 'Next Question')
 
