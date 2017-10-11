@@ -1,10 +1,7 @@
-from collections import defaultdict
-
 from django import forms
 from django.apps import apps
 from django.core.exceptions import ValidationError
 from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.forms.utils import ErrorList
 from django.utils.functional import cached_property
 
 from wagtail.wagtailadmin.edit_handlers import StreamFieldPanel
@@ -27,49 +24,6 @@ class SkipLogicField(StreamField):
             'blank': True,
         })
         super(SkipLogicField, self).__init__(*args, **kwargs)
-
-    def add_stream_field_error(self, position, field, message):
-        self._errors[position][field].append(message)
-
-    @property
-    def errors(self):
-        if self._errors.keys():
-            return ValidationError(
-                'Error',
-                params={
-                    key : ErrorList([ValidationError('Error', params=value)])
-                    for key, value in self._errors.items()
-                }
-            )
-
-    def clean(self, value, instance):
-        self._errors = defaultdict(lambda: defaultdict(list))
-        cleaned_data = super(SkipLogicField, self).clean(value, instance)
-        segment = getattr(instance.page, 'segment', None)
-        for stream_field_pos, logic in enumerate(cleaned_data):
-            survey = logic.value['survey']
-            if survey and instance.page.id == survey.id:
-                self.add_stream_field_error(
-                    stream_field_pos,
-                    'survey',
-                    'Cannot skip to self, please select a different survey.'
-                )
-            if segment:
-                try:
-                    linked_segment = survey.personalisablesurvey.segment
-                except AttributeError:
-                    pass
-                else:
-                    if linked_segment and linked_segment != segment:
-                        self.add_stream_field_error(
-                            stream_field_pos,
-                            'survey',
-                            'Cannot select a survey with a different segment'
-                        )
-        if self.errors:
-            raise self.errors
-
-        return cleaned_data
 
 
 class SkipLogicStreamPanel(StreamFieldPanel):
@@ -141,7 +95,7 @@ class SkipLogicBlock(blocks.StructBlock):
     def clean(self, value):
         cleaned_data = super(SkipLogicBlock, self).clean(value)
         logic = cleaned_data['skip_logic']
-        if logic  == SkipState.SURVEY:
+        if logic == SkipState.SURVEY:
             if not cleaned_data['survey']:
                 raise ValidationError(
                     'A Survey must be selected to progress to.',

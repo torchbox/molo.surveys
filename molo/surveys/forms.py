@@ -1,10 +1,17 @@
+from collections import defaultdict
 import csv
 
 from django import forms
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.forms.utils import ErrorList
 from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth.models import Group
+
+from wagtail.wagtailadmin.forms import WagtailAdminPageForm
+
+from .blocks import SkipState
 
 
 class CSVGroupCreationForm(forms.ModelForm):
@@ -80,3 +87,56 @@ class CSVGroupCreationForm(forms.ModelForm):
 
         # Add users to the group
         group.user_set.add(*self.__initial_users)
+
+
+class SkipLogicCleanForm(WagtailAdminPageForm):
+    def clean(self):
+        cleaned_data = super(SkipLogicCleanForm, self).clean()
+        for form in self.formsets['personalisable_survey_form_fields']:
+            self._clean_errors = defaultdict(lambda: defaultdict(list))
+            if form.is_valid():
+                data = form.cleaned_data
+                for i, logic in enumerate(data['skip_logic']):
+                    if logic.value['skip_logic'] == SkipState.SURVEY:
+                        survey = logic.value['survey']
+                        self.check_doesnt_loop_to_self(survey, i)
+                        self.check_survey_link_valid(survey, i)
+                if self.clean_errors:
+                    form._errors = self.clean_errors
+
+        return cleaned_data
+
+    def check_survey_link_valid(self, survey, stream_field_pos):
+        try:
+            segment = survey.personalisablesurvey.segment
+        except AttributeError:
+            pass
+        else:
+            if segment and segment != self.instance.segment:
+                self.add_stream_field_error(
+                    stream_field_pos,
+                    'survey',
+                    'Cannot select a survey with a different segment'
+                )
+
+    def check_doesnt_loop_to_self(self, survey, stream_field_pos):
+        if survey and self == survey:
+            self.add_stream_field_error(
+                stream_field_pos,
+                'survey',
+                'Cannot skip to self, please select a different survey.'
+            )
+
+    def add_stream_field_error(self, position, field, message):
+        self._clean_errors[position][field].append(message)
+
+    @property
+    def clean_errors(self):
+        if self._clean_errors.keys():
+            return {'skip_logic': ErrorList([ValidationError(
+                'Error',
+                params={
+                    key : ErrorList([ValidationError('Error', params=value)])
+                    for key, value in self._errors.items()
+                }
+            )])}

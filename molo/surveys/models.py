@@ -37,7 +37,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail_personalisation.adapters import get_segment_adapter
 from wagtailsurveys.models import AbstractFormField
-from .blocks import SkipLogicBlock, SkipLogicField, SkipLogicStreamPanel
+from .blocks import SkipLogicField, SkipLogicStreamPanel
+from .forms import SkipLogicCleanForm
 from .rules import SurveySubmissionDataRule, GroupMembershipRule  # noqa
 from .utils import SkipLogicPaginator
 
@@ -465,6 +466,8 @@ class PersonalisableSurvey(MoloSurveyPage):
                                     'to every user.'))
     content_panels = get_personalisable_survey_content_panels()
     template = MoloSurveyPage.template
+
+    base_form_class = SkipLogicCleanForm
 
     class Meta:
         verbose_name = _('personalisable survey')
