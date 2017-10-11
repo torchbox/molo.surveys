@@ -133,10 +133,11 @@ class SkipLogicCleanForm(WagtailAdminPageForm):
     @property
     def clean_errors(self):
         if self._clean_errors.keys():
+            params = {
+                key : ErrorList([ValidationError('Error in form', params=value)])
+                for key, value in self._clean_errors.items()
+            }
             return {'skip_logic': ErrorList([ValidationError(
-                'Error',
-                params={
-                    key : ErrorList([ValidationError('Error', params=value)])
-                    for key, value in self._errors.items()
-                }
+                'Skip Logic Error',
+                params=params,
             )])}
