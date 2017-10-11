@@ -5,8 +5,6 @@
             var splitPrefix = prefix.split('-');
             var fieldPrefix = splitPrefix[0];
             var fieldID = [fieldPrefix, splitPrefix[1]].join('-');
-            var parentFieldSelector = $('#id_' + fieldID + '-field_type');
-            var parentFieldLabel = $('#id_' + fieldID + '-label');
 
             var skipLogicSelect = $('#' + prefix + '-skip_logic');
             var skipLogicSurvey = $('#' + prefix + '-survey');
@@ -33,9 +31,8 @@
 
             var populateQuestions = function () {
                 for (let question of allQuestions(fieldPrefix)) {
-                    question = $(question);
-                    var sortOrder = parseInt(question.children('[id$="-ORDER"]').val());
-                    var label = question.find('input[id$="-label"]').val();
+                    var sortOrder = question.sortOrder();
+                    var label = question.label().val();
                     var selected = sortOrder == questionID.val() ? 'selected' : '';
                     if (thisQuestion.sortOrder() < sortOrder) {
                         questionSelect.append(
@@ -71,7 +68,7 @@
             skipLogicSelect.change( function () {
                 updateBlockState();
             });
-            parentFieldSelector.change( function () {
+            thisQuestion.fieldSelect().change( function () {
                 toggle();
             });
         };

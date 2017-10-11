@@ -4,24 +4,31 @@
     };
 
     var addHelperMethods = function (question) {
+        question = $(question);
         question.choices = () => question.find('[id$="-skip_logic-list"]').closest('.skip-logic');
         question.fieldSelect = () => question.find('[id$="-field_type"]');
         question.sortOrder = () => parseInt(question.children('[id$="-ORDER"]').val());
         question.quesiontID = () => question.children('[id$="-id"]').val();
         question.label = () => question.find('input[id$="-label"]');
         question.questionSelectors = () => question.find('[id$="-question_1"]');
+        question.questionSelectors = () => question.find('[id$="-question_1"]');
+        question.filterSelectors = sortOrder => question.questionSelectors().find(`option[value=${sortOrder}]`);
+        question.hasSelected = sortOrder => {
+            return question.questionSelectors().filter(':visible').is( function(index, element) {
+                return $(element).val() == sortOrder;
+            } );
+        };
         return question;
     };
 
     window.question = function(id) {
         this.fieldID = id;
-        var thisQuestion = $(questionSelector(this.fieldID));
-        return addHelperMethods(thisQuestion);
+        return addHelperMethods(questionSelector(this.fieldID));
     };
 
     window.allQuestions = function(id) {
         var allQuestions = $(questionSelector(id));
-        allQuestions = allQuestions.map(addHelperMethods);
+        allQuestions = $.map(allQuestions, addHelperMethods);
         return allQuestions;
     };
 
@@ -64,16 +71,14 @@
 
             var wrapAction = function (element, cb) {
                 var nativeEvent = $._data(element[0], 'events');
-
                 var opts = {};
-                opts.question = thisQuestion;
                 opts.nativeHandler = nativeEvent.click[0].handler;
                 element.unbind('click', opts.nativeHandler);
                 element.click(function(event) {
                     var shouldEnd = false;
                     for (let question of allQuestions(splitPrefix[0])) {
-                        if (!shouldEnd && $(question) !== thisQuestion) {
-                            shouldEnd = cb.bind(opts)(event, $(question));
+                        if (!shouldEnd && question.sortOrder() !== thisQuestion.sortOrder()) {
+                            shouldEnd = cb.bind(opts)(event, question);
                         }
                     }
                 });
@@ -85,8 +90,8 @@
             });
 
             var swapSortOrder = function (from, to) {
-                var fromSelectors = allQuestionSelectors().find(`option[value=${from}]`);
-                var toSelectors = allQuestionSelectors().find(`option[value=${to}]`);
+                var fromSelectors = allQuestionSelectors().filterSelectors(from);
+                var toSelectors = allQuestionSelectors().filterSelectors(to);
                 fromSelectors.val(to);
                 toSelectors.val(from);
             };
@@ -99,31 +104,25 @@
 
                 wrapAction(questionDelete, function(event, question) {
                     var sortOrder = thisQuestion.sortOrder();
-                    var questionSelectors = question.find('[id$="-question_1"]');
-                    var questionLabel = question.find('[id$="-label"]').val();
-                    if ( questionSelectors.filter(':visible').is( function(index, element) {
-                        return $(element).val() == sortOrder;
-                    } )) {
+                    if ( question.hasSelected(sortOrder) ) {
+                        var questionLabel = question.label().val();
                         alert(`Cannot delete, referenced by skip logic in question "${questionLabel}".`);
                         return true;
                     } else {
                         this.nativeHandler(event);
-                        questionSelectors.find(`option[value=${sortOrder}]`).remove();
+                        question.filterSelectors(sortOrder).remove();
                     }
                 });
                 wrapAction(questionUp, function(event, question) {
                     var sortOrder = thisQuestion.sortOrder();
-                    var targetSortOrder = parseInt(question.children('[id$="-ORDER"]').val());
-                    var questionSelectors = question.find('[id$="-question_1"]');
-                    var questionLabel = question.find('[id$="-label"]').val();
+                    var targetSortOrder = question.sortOrder();
                     if ( targetSortOrder + 1 == sortOrder) {
-                        if ( questionSelectors.filter(':visible').is( function(index, element) {
-                            return $(element).val() == sortOrder;
-                        } )) {
+                        if ( question.hasSelected(sortOrder) ) {
+                            var questionLabel = question.label().val();
                             alert(`Cannot move above "${questionLabel}", please change the logic.`);
                             return true;
                         } else {
-                            questionSelectors.find(`option[value=${sortOrder}]`).remove();
+                            question.filterSelectors(sortOrder).remove();
                             this.nativeHandler(event);
                             swapSortOrder(sortOrder, targetSortOrder);
                             return true;
@@ -131,24 +130,20 @@
                     }
                 });
                 wrapAction(questionDown, function(event, question) {
-                    var thisQuestionSelectors = thisQuestion.questionSelectors();
                     var sortOrder = thisQuestion.sortOrder();
-                    var targetSortOrder = parseInt(question.children('[id$="-ORDER"]').val());
-                    var targetID = question.children('[id$="-id"]').val();
-                    var questionSelectors = question.find('[id$="-question_1"]');
-                    var questionLabel = question.find('[id$="-label"]').val();
+                    var targetSortOrder = question.sortOrder();
                     if ( targetSortOrder - 1 == sortOrder) {
-                        if ( thisQuestionSelectors.filter(':visible').is( function(index, element) {
-                            return $(element).val() == targetSortOrder;
-                        } )) {
+                        if ( thisQuestion.hasSelected(targetSortOrder) ) {
+                            var questionLabel = question.label().val();
                             alert(`Cannot move below "${questionLabel}", please change the logic.`);
                             return true;
                         } else {
-                            thisQuestionSelectors.find(`option[value=${targetSortOrder}]`).remove();
+                            thisQuestion.filterSelectors(targetSortOrder).remove();
                             this.nativeHandler(event);
                             swapSortOrder(sortOrder, targetSortOrder);
+
                             var label = thisQuestion.label().val();
-                            questionSelectors.prepend(
+                            question.questionSelectors().prepend(
                                 `<option value="${sortOrder}">${label}</option>`
                             );
                             return true;
