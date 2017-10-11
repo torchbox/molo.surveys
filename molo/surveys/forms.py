@@ -121,7 +121,7 @@ class SkipLogicCleanForm(WagtailAdminPageForm):
                 )
 
     def check_doesnt_loop_to_self(self, survey, stream_field_pos):
-        if survey and self == survey:
+        if survey and self.instance == survey:
             self.add_stream_field_error(
                 stream_field_pos,
                 'survey',
