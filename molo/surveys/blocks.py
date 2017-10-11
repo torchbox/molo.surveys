@@ -17,7 +17,7 @@ class SkipState:
 
 
 class SkipLogicField(StreamField):
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         args = [SkipLogicStreamBlock([('skip_logic', SkipLogicBlock())])]
         kwargs.update({
             'verbose_name': 'Answer options',
