@@ -318,3 +318,11 @@ class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
         )
         with self.assertRaises(ValidationError):
             rule.clean()
+
+    def test_count_more_than_article_error(self):
+        rule = ArticleTagRule(
+            tag=self.tag,
+            count=2,
+        )
+        with self.assertRaises(ValidationError):
+            rule.clean()

@@ -294,6 +294,14 @@ class ArticleTagRule(AbstractBaseRule):
                     }
                 )
 
+        if self.count > self.tag.core_articlepagetag_items.count():
+                raise ValidationError(
+                    {
+                        'count': ['Count can not exceed the number of articles.'],
+                    }
+                )
+
+
     def test_user(self, request):
         operator = self.OPERATORS[self.operator]
         adapter = get_segment_adapter(request)
