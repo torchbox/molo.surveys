@@ -7,6 +7,10 @@ class BaseFieldQueryPanel(BaseFieldPanel):
         target_model = self.bound_field.field.queryset.model
         self.bound_field.field.queryset = target_model.objects.filter(self.query)
 
+        self.bound_field.field.label_from_instance = (
+            lambda obj: str(obj) + ' ({})'.format(obj.core_articlepagetag_items.count())
+        )
+
 
 class FieldQueryPanel(FieldPanel):
     def __init__(self, field, query, **kwargs):
