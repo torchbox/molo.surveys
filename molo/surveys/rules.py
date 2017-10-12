@@ -2,6 +2,7 @@ from django import forms
 from django.apps import apps
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils import six
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
@@ -10,6 +11,8 @@ from wagtail.wagtailadmin.edit_handlers import FieldPanel, FieldRowPanel, PageCh
 
 from wagtail_personalisation.adapters import get_segment_adapter
 from wagtail_personalisation.rules import AbstractBaseRule
+
+from .edit_handlers import FieldQueryPanel
 
 
 class SurveySubmissionDataRule(AbstractBaseRule):
@@ -267,7 +270,7 @@ class ArticleTagRule(AbstractBaseRule):
     )
 
     panels = [
-        FieldPanel('tag'),
+        FieldQueryPanel('tag', ~Q(core_articlepagetag_items__isnull=True)),
         FieldRowPanel(
             [
                 FieldPanel('operator'),
