@@ -1,15 +1,21 @@
+import datetime
 import pytest
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser, Group
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory
+from taggit.models import Tag
+from wagtail_personalisation.adapters import get_segment_adapter
 
+from molo.core.models import ArticlePage, ArticlePageTag, SectionPage
 from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.models import SurveysIndexPage
 
 
 from ..models import PersonalisableSurveyFormField, PersonalisableSurvey
-from ..rules import SurveySubmissionDataRule, GroupMembershipRule
+from ..rules import ArticleTagRule, SurveySubmissionDataRule, GroupMembershipRule
 
 
 @pytest.mark.django_db
@@ -195,3 +201,120 @@ class TestGroupMembershipRuleSegmentation(TestCase, MoloTestCaseMixin):
         rule = GroupMembershipRule(group=self.group)
 
         self.assertFalse(rule.test_user(self.request))
+
+
+class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
+    def setUp(self):
+        # Fabricate a request with a logged-in user
+        # so we can use it to test the segment rule
+        self.mk_main()
+        self.request_factory = RequestFactory()
+        self.request = self.request_factory.get('/')
+        middleware = SessionMiddleware()
+        middleware.process_request(self.request)
+        self.request.session.save()
+
+        self.section = SectionPage(title='test section')
+        self.section_index.add_child(instance=self.section)
+
+        self.tag = Tag.objects.create(name='test')
+
+        self.article = self.add_article(title='test article', tags=[self.tag])
+
+        self.adapter = get_segment_adapter(self.request)
+
+    def add_article(self, title, tags):
+        new_article = ArticlePage(title=title)
+        self.section.add_child(instance=new_article)
+        new_article.save_revision()
+        for tag in tags:
+            ArticlePageTag.objects.create(
+                tag=tag,
+                content_object=new_article,
+            )
+        return new_article
+
+    def test_user_visits_page_with_tag(self):
+        rule = ArticleTagRule(tag=self.tag, count=1)
+
+        self.adapter.add_page_visit(self.article)
+
+        self.assertTrue(rule.test_user(self.request))
+
+    def test_user_visits_page_twice_tag_not_duplicated(self):
+        rule = ArticleTagRule(tag=self.tag, count=1)
+
+        self.adapter.add_page_visit(self.article)
+        self.adapter.add_page_visit(self.article)
+
+        self.assertTrue(rule.test_user(self.request))
+
+    def test_user_visits_page_after_cutoff(self):
+        rule = ArticleTagRule(
+            tag=self.tag,
+            count=1,
+            date_to=datetime.datetime.now() - datetime.timedelta(days=1),
+        )
+
+        self.adapter.add_page_visit(self.article)
+        self.adapter.add_page_visit(self.article)
+
+        self.assertFalse(rule.test_user(self.request))
+
+    def test_user_visits_two_different_pages_same_tag(self):
+        rule = ArticleTagRule(
+            tag=self.tag,
+            count=2,
+        )
+        new_article = self.add_article(title='new article', tags=[self.tag])
+
+        self.adapter.add_page_visit(self.article)
+        self.adapter.add_page_visit(new_article)
+
+        self.assertTrue(rule.test_user(self.request))
+
+    def test_user_passes_less_than(self):
+        rule = ArticleTagRule(
+            tag=self.tag,
+            count=2,
+            operator=ArticleTagRule.LESS_THAN,
+        )
+        self.adapter.add_page_visit(self.article)
+        self.assertTrue(rule.test_user(self.request))
+
+    def test_user_fails_less_than(self):
+        rule = ArticleTagRule(
+            tag=self.tag,
+            count=1,
+            operator=ArticleTagRule.LESS_THAN,
+        )
+        self.adapter.add_page_visit(self.article)
+        self.assertFalse(rule.test_user(self.request))
+
+    def test_user_fails_greater_than(self):
+        rule = ArticleTagRule(
+            tag=self.tag,
+            count=1,
+            operator=ArticleTagRule.GREATER_THAN,
+        )
+        self.adapter.add_page_visit(self.article)
+        self.assertFalse(rule.test_user(self.request))
+
+    def test_user_passes_greater_than(self):
+        rule = ArticleTagRule(
+            tag=self.tag,
+            count=0,
+            operator=ArticleTagRule.GREATER_THAN,
+        )
+        self.adapter.add_page_visit(self.article)
+        self.assertTrue(rule.test_user(self.request))
+
+    def test_dates_are_in_order(self):
+        rule = ArticleTagRule(
+            tag=self.tag,
+            count=1,
+            date_from=datetime.datetime.now(),
+            date_to=datetime.datetime.now() - datetime.timedelta(days=1)
+        )
+        with self.assertRaises(ValidationError):
+            rule.clean()

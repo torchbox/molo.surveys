@@ -6,8 +6,9 @@ from django.utils import six
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-from wagtail.wagtailadmin.edit_handlers import FieldPanel, PageChooserPanel
+from wagtail.wagtailadmin.edit_handlers import FieldPanel, FieldRowPanel, PageChooserPanel
 
+from wagtail_personalisation.adapters import get_segment_adapter
 from wagtail_personalisation.rules import AbstractBaseRule
 
 
@@ -231,3 +232,83 @@ class GroupMembershipRule(AbstractBaseRule):
 
         # Check whether user is part of a group
         return request.user.groups.filter(id=self.group_id).exists()
+
+
+class ArticleTagRule(AbstractBaseRule):
+    EQUALS = 'eq'
+    GREATER_THAN = 'gt'
+    LESS_THAN = 'lt'
+
+    OPERATORS = {
+        EQUALS: lambda a, b: a == b,
+        GREATER_THAN: lambda a, b: a > b,
+        LESS_THAN: lambda a, b: a < b,
+    }
+
+    OPERATOR_CHOICES = (
+        (EQUALS, _('equals')),
+        (GREATER_THAN, _('greater than')),
+        (LESS_THAN, _('less than')),
+    )
+
+    tag = models.ForeignKey('taggit.Tag',
+                            on_delete=models.CASCADE)
+
+    operator = models.CharField(
+        _('operator'), max_length=3,
+        choices=OPERATOR_CHOICES, default=EQUALS,
+    )
+    count = models.IntegerField()
+
+    date_from = models.DateTimeField(blank=True)
+    date_to = models.DateTimeField(
+        blank=True,
+        help_text='Leave both fields blank to search for all time.',
+    )
+
+    panels = [
+        FieldPanel('tag'),
+        FieldRowPanel(
+            [
+                FieldPanel('operator'),
+                FieldPanel('count'),
+            ]
+        ),
+        FieldPanel('date_from'),
+        FieldPanel('date_to'),
+    ]
+
+    class Meta:
+        verbose_name = _('Article tag rule')
+
+    def clean(self):
+        if self.date_from and self.date_to:
+            if self.date_from > self.date_to:
+                raise ValidationError(
+                    {
+                        'date_from': ['Date from must be before date to.'],
+                        'date_to': ['Date from must be before date to.'],
+                    }
+                )
+
+    def test_user(self, request):
+        operator = self.OPERATORS[self.operator]
+        adapter = get_segment_adapter(request)
+        visit_count = adapter.get_tag_count(
+            self.tag,
+            self.date_from,
+            self.date_to,
+        )
+
+        return operator(visit_count, self.count)
+
+    def description(self):
+        return {
+            'title': _('These users visited {}').format(
+                self.tag
+            ),
+            'value': _('{} {} times').format(
+                self.get_operator_display(),
+                self.count
+            ),
+        }

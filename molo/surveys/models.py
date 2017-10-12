@@ -35,7 +35,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail_personalisation.adapters import get_segment_adapter
 from wagtailsurveys.models import AbstractFormField
-from .rules import SurveySubmissionDataRule, GroupMembershipRule  # noqa
+from .rules import ArticleTagRule, GroupMembershipRule, SurveySubmissionDataRule  # noqa
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
