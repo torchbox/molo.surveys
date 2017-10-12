@@ -263,9 +263,10 @@ class ArticleTagRule(AbstractBaseRule):
     )
     count = models.IntegerField()
 
-    date_from = models.DateTimeField(blank=True)
+    date_from = models.DateTimeField(blank=True, null=True)
     date_to = models.DateTimeField(
         blank=True,
+        null=True,
         help_text='Leave both fields blank to search for all time.',
     )
 
