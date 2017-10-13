@@ -241,6 +241,11 @@ class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
 
         self.assertTrue(rule.test_user(self.request))
 
+    def test_user_tag_with_no_visits(self):
+        rule = ArticleTagRule(tag=self.tag, count=1)
+
+        self.assertFalse(rule.test_user(self.request))
+
     def test_user_visits_page_twice_tag_not_duplicated(self):
         rule = ArticleTagRule(tag=self.tag, count=1)
 

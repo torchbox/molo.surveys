@@ -2,6 +2,7 @@ from collections import defaultdict
 import datetime
 
 from wagtail_personalisation.adapters import SessionSegmentsAdapter
+from django.utils.dateparse import parse_datetime
 
 from molo.core.models import ArticlePage
 
@@ -14,9 +15,10 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
             defaultdict(dict),
         )
         if isinstance(page, ArticlePage):
-            visit_time = datetime.datetime.utcnow()
+            visit_time = datetime.datetime.utcnow().isoformat()
             for tag in page.tags.all():
-                tag_visits[tag.id][page.path] = visit_time
+                tag_visits.setdefault(str(tag.id), dict())
+                tag_visits[str(tag.id)][page.path] = visit_time
 
     def get_tag_count(self, tag, date_from=None, date_to=None):
         """Return the number of visits on the current request or given page"""
@@ -27,10 +29,10 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
 
         tag_visits = self.request.session.setdefault(
             'tag_count',
-            defaultdict(list),
+            defaultdict(dict),
         )
 
-        visits = tag_visits[tag.id]
+        visits = tag_visits.get(str(tag.id), dict())
         valid_visits = [visit for visit in visits.values()
-                        if date_from <= visit <= date_to]
+                        if date_from <= parse_datetime(visit) <= date_to]
         return len(valid_visits)
