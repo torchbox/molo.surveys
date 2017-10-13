@@ -16,11 +16,13 @@ class SkipLogicPaginator(Paginator):
             i + 1 for i, field in enumerate(self.object_list)
             if field.has_skipping
         ]
+        num_questions = self.object_list.count()
         if self.skip_indexes:
+            if num_questions != self.skip_indexes[-1]:
+                self.skip_indexes.append(num_questions)
             self.skip_indexes.insert(0, 0)
-            self.skip_indexes.append(self.object_list.count())
         else:
-            self.skip_indexes = range(self.object_list.count() + 1)
+            self.skip_indexes = range(num_questions + 1)
 
     def _get_page(self, *args, **kwargs):
         return SkipLogicPage(*args, **kwargs)

@@ -141,6 +141,13 @@ class TestSkipLogicPaginator(TestCase, MoloTestCaseMixin):
         self.assertEqual(paginator.next_question_page, 1)
         self.assertEqual(paginator.next_question_index, 0)
 
+    def test_single_question_quiz_with_skip_logic_pages_correctly(self):
+        self.first_field.delete()
+        self.third_field.delete()
+        self.fourth_field.delete()
+        paginator = SkipLogicPaginator(self.survey.get_form_fields())
+        self.assertEqual(paginator.num_pages, 1)
+
 
 class SkipLogicPaginatorMulti(TestCase, MoloTestCaseMixin):
     def setUp(self):
