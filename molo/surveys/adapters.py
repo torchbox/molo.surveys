@@ -3,6 +3,8 @@ import datetime
 
 from wagtail_personalisation.adapters import SessionSegmentsAdapter
 
+from molo.core.models import ArticlePage
+
 
 class SurveysSegmentsAdapter(SessionSegmentsAdapter):
     def add_page_visit(self, page):
@@ -11,9 +13,10 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
             'tag_count',
             defaultdict(dict),
         )
-        visit_time = datetime.datetime.utcnow()
-        for tag in page.tags.all():
-            tag_visits[tag.id][page.path] = visit_time
+        if isinstance(page, ArticlePage):
+            visit_time = datetime.datetime.utcnow()
+            for tag in page.tags.all():
+                tag_visits[tag.id][page.path] = visit_time
 
     def get_tag_count(self, tag, date_from=None, date_to=None):
         """Return the number of visits on the current request or given page"""

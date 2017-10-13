@@ -326,3 +326,7 @@ class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
         )
         with self.assertRaises(ValidationError):
             rule.clean()
+
+    def test_visting_non_tagged_page_isnt_error(self):
+        self.adapter.add_page_visit(self.main)
+        self.assertFalse(self.request.session['tag_count'])
