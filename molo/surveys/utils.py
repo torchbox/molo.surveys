@@ -18,9 +18,9 @@ class SkipLogicPaginator(Paginator):
         ]
         num_questions = self.object_list.count()
         if self.skip_indexes:
-            if num_questions != self.skip_indexes[-1]:
-                self.skip_indexes.append(num_questions)
             self.skip_indexes.insert(0, 0)
+            if self.skip_indexes[-1] != num_questions:
+                self.skip_indexes.append(num_questions)
         else:
             self.skip_indexes = range(num_questions + 1)
 
@@ -83,20 +83,20 @@ class SkipLogicPaginator(Paginator):
 
     def page(self, number):
         number = self.validate_number(number)
-        page = number - 1
+        index = number - 1
         if not self.data:
-            top_index = page + self.per_page
-            bottom = self.skip_indexes[page]
+            top_index = index + self.per_page
+            bottom = self.skip_indexes[index]
             top = self.skip_indexes[top_index]
         elif self.previous_question_page == number:
             bottom = self.first_last_question_index
             top = self.last_question_index + 1
         else:
-            page = min(page, self.next_question_page)
-            top_index = page + self.per_page
-            bottom = max(self.skip_indexes[page], self.next_question_index)
+            index = self.next_question_page - 1
+            bottom = self.next_question_index
+            top_index = index + self.per_page
             top = self.skip_indexes[top_index]
-        return self._get_page(self.object_list[bottom:top], page + 1, self)
+        return self._get_page(self.object_list[bottom:top], index + 1, self)
 
 
 class SkipLogicPage(Page):
