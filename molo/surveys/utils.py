@@ -43,6 +43,8 @@ class SkipLogicPaginator(Paginator):
                 # Sorted or is 0 based in the backend and 1 on the front
                 next_question_id = last_question.next_page(last_answer) - 1
                 return question_ids.index(next_question_id)
+            else:
+                return self.last_question_index + 1
         return 0
 
     @cached_property

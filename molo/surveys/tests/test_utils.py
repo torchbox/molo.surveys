@@ -102,6 +102,17 @@ class TestSkipLogicPaginator(TestCase, MoloTestCaseMixin):
         second_page = paginator.page(next_page_number)
         self.assertEqual(second_page.object_list, [self.fourth_field])
 
+    def test_first_question_skip_to_next(self):
+        paginator = SkipLogicPaginator(
+            self.survey.get_form_fields(),
+            {self.second_field.clean_name: 'next'},
+        )
+        self.assertEqual(paginator.previous_question_page, 1)
+        self.assertEqual(paginator.next_question_page, 2)
+        page = paginator.page(paginator.next_question_page)
+        self.assertEqual(page.object_list, [self.third_field])
+        self.assertEqual(page.number, 2)
+
     def test_previous_page_if_skip_a_page(self):
         paginator = SkipLogicPaginator(
             self.survey.get_form_fields(),
@@ -156,8 +167,14 @@ class TestSkipLogicEveryPage(TestCase, MoloTestCaseMixin):
             title='Test Survey',
             slug='test-survey',
         )
+        self.another_survey = MoloSurveyPage(
+            title='Another Test Survey',
+            slug='another-test-survey',
+        )
         self.section_index.add_child(instance=self.survey)
         self.survey.save_revision().publish()
+        self.section_index.add_child(instance=self.another_survey)
+        self.another_survey.save_revision().publish()
         field_choices = ['next', 'end']
         self.fourth_field = MoloSurveyFormField.objects.create(
             page=self.survey,
@@ -176,9 +193,10 @@ class TestSkipLogicEveryPage(TestCase, MoloTestCaseMixin):
             label='Your other favourite animal',
             field_type='dropdown',
             skip_logic=skip_logic_data(
-                field_choices + ['question'],
-                field_choices + ['question'],
+                field_choices + ['question', 'survey'],
+                field_choices + ['question', 'survey'],
                 question=self.fourth_field,
+                survey=self.another_survey,
             ),
             required=True
         )
@@ -220,6 +238,26 @@ class TestSkipLogicEveryPage(TestCase, MoloTestCaseMixin):
         page = paginator.page(paginator.next_question_page)
         self.assertEqual(page.object_list, [self.fourth_field])
         self.assertEqual(page.number, 4)
+
+    def test_first_question_skip_to_next(self):
+        paginator = SkipLogicPaginator(
+            self.survey.get_form_fields(),
+            {self.first_field.clean_name: 'next'},
+        )
+        self.assertEqual(paginator.previous_question_page, 1)
+        self.assertEqual(paginator.next_question_page, 2)
+        page = paginator.page(paginator.next_question_page)
+        self.assertEqual(page.object_list, [self.second_field])
+        self.assertEqual(page.number, 2)
+
+    def test_first_question_skip_to_survey(self):
+        paginator = SkipLogicPaginator(
+            self.survey.get_form_fields(),
+            {self.first_field.clean_name: 'survey'},
+        )
+        self.assertEqual(paginator.previous_question_page, 1)
+        page = paginator.page(1)
+        self.assertFalse(page.has_next())
 
 
 class SkipLogicPaginatorMulti(TestCase, MoloTestCaseMixin):
