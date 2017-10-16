@@ -10,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail.wagtailadmin.forms import WagtailAdminPageForm
 
-from .blocks import SkipState
+from .blocks import SkipState, VALID_SKIP_SELECTORS
 
 
 class CSVGroupCreationForm(forms.ModelForm):
@@ -110,6 +110,22 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
                     form._errors = self.clean_errors
 
         return cleaned_data
+
+    def save(self, commit):
+        # Tidy up the skip logic when field cant have skip logic
+        for form in self.formsets[self.form_field_name]:
+            field_type = form.instance.field_type
+            if field_type not in VALID_SKIP_SELECTORS:
+                if field_type != 'checkboxes':
+                    form.instance.skip_logic = []
+                else:
+                    for skip_logic in form.instance.skip_logic:
+                        skip_logic.value['skip_logic'] = SkipState.NEXT
+                        skip_logic.value['question'] = None
+                        skip_logic.value['survey'] = None
+
+        return super(BaseMoloSurveyForm, self).save(commit)
+
 
     def clean_question(self, position, *args):
         self.clean_formset_field('question', position, *args)

@@ -15,6 +15,9 @@ class SkipState:
     SURVEY = 'survey'
 
 
+VALID_SKIP_SELECTORS = ['radio', 'checkbox', 'dropdown']
+
+
 class SkipLogicField(StreamField):
     def __init__(self, *args, **kwargs):
         args = [SkipLogicStreamBlock([('skip_logic', SkipLogicBlock())])]
@@ -101,7 +104,7 @@ class SkipLogicBlock(blocks.StructBlock):
         return forms.Media(js=[static('js/blocks/skiplogic.js')])
 
     def js_initializer(self):
-        opts = {'validSkipSelectors': ['radio', 'checkbox', 'dropdown']}
+        opts = {'validSkipSelectors': VALID_SKIP_SELECTORS}
         return "SkipLogic(%s)" % blocks.utils.js_dict(opts)
 
     def clean(self, value):
