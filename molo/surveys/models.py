@@ -44,7 +44,7 @@ from wagtailsurveys.models import AbstractFormField
 
 from .blocks import SkipLogicField, SkipLogicStreamPanel
 from .forms import SkipLogicCleanForm
-from .rules import GroupMembershipRule, SurveySubmissionDataRule  # noqa
+from .rules import ArticleTagRule, GroupMembershipRule, SurveySubmissionDataRule  # noqa
 from .utils import SkipLogicPaginator
 
 

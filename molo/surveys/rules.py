@@ -2,13 +2,17 @@ from django import forms
 from django.apps import apps
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils import six
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-from wagtail.wagtailadmin.edit_handlers import FieldPanel, PageChooserPanel
+from wagtail.wagtailadmin.edit_handlers import FieldPanel, FieldRowPanel, PageChooserPanel
 
+from wagtail_personalisation.adapters import get_segment_adapter
 from wagtail_personalisation.rules import AbstractBaseRule
+
+from .edit_handlers import FieldQueryPanel
 
 
 class SurveySubmissionDataRule(AbstractBaseRule):
@@ -231,3 +235,98 @@ class GroupMembershipRule(AbstractBaseRule):
 
         # Check whether user is part of a group
         return request.user.groups.filter(id=self.group_id).exists()
+
+
+class ArticleTagRule(AbstractBaseRule):
+    EQUALS = 'eq'
+    GREATER_THAN = 'gt'
+    LESS_THAN = 'lt'
+
+    OPERATORS = {
+        EQUALS: lambda a, b: a == b,
+        GREATER_THAN: lambda a, b: a > b,
+        LESS_THAN: lambda a, b: a < b,
+    }
+
+    OPERATOR_CHOICES = (
+        (EQUALS, _('equals')),
+        (GREATER_THAN, _('greater than')),
+        (LESS_THAN, _('less than')),
+    )
+
+    tag = models.ForeignKey('taggit.Tag',
+                            on_delete=models.CASCADE)
+
+    operator = models.CharField(
+        _('operator'),
+        max_length=3,
+        choices=OPERATOR_CHOICES,
+        default=EQUALS,
+    )
+    count = models.IntegerField()
+
+    # Naive datetimes as we are not storing the datetime based on the users
+    # timezone.
+    date_from = models.DateTimeField(blank=True, null=True)
+    date_to = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text=_(
+            'All times are UTC. Leave both fields blank to search for all time.'
+        ),
+    )
+
+    panels = [
+        FieldQueryPanel('tag', ~Q(core_articlepagetag_items__isnull=True)),
+        FieldRowPanel(
+            [
+                FieldPanel('operator'),
+                FieldPanel('count'),
+            ]
+        ),
+        FieldPanel('date_from'),
+        FieldPanel('date_to'),
+    ]
+
+    class Meta:
+        verbose_name = _('Article tag rule')
+
+    def clean(self):
+        if self.date_from and self.date_to:
+            if self.date_from > self.date_to:
+                raise ValidationError(
+                    {
+                        'date_from': [_('Date from must be before date to.')],
+                        'date_to': [_('Date from must be before date to.')],
+                    }
+                )
+
+        if self.count > self.tag.core_articlepagetag_items.count():
+                raise ValidationError(
+                    {
+                        'count': [_('Count can not exceed the number of articles.')],
+                    }
+                )
+
+
+    def test_user(self, request):
+        operator = self.OPERATORS[self.operator]
+        adapter = get_segment_adapter(request)
+        visit_count = adapter.get_tag_count(
+            self.tag,
+            self.date_from,
+            self.date_to,
+        )
+
+        return operator(visit_count, self.count)
+
+    def description(self):
+        return {
+            'title': _('These users visited {}').format(
+                self.tag
+            ),
+            'value': _('{} {} times').format(
+                self.get_operator_display(),
+                self.count
+            ),
+        }
