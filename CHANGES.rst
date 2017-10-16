@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+Upcoming
+--------
+
+- Added ability to skip questions and surveys based on user's response
+
 5.6.2
 -----
 - Bug Fix: remove PreventDeleteMixin from Ts&Cs index page
