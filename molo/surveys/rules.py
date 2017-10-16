@@ -258,8 +258,10 @@ class ArticleTagRule(AbstractBaseRule):
                             on_delete=models.CASCADE)
 
     operator = models.CharField(
-        _('operator'), max_length=3,
-        choices=OPERATOR_CHOICES, default=EQUALS,
+        _('operator'),
+        max_length=3,
+        choices=OPERATOR_CHOICES,
+        default=EQUALS,
     )
     count = models.IntegerField()
 
@@ -267,7 +269,7 @@ class ArticleTagRule(AbstractBaseRule):
     date_to = models.DateTimeField(
         blank=True,
         null=True,
-        help_text='Leave both fields blank to search for all time.',
+        help_text=_('Leave both fields blank to search for all time.'),
     )
 
     panels = [
@@ -290,15 +292,15 @@ class ArticleTagRule(AbstractBaseRule):
             if self.date_from > self.date_to:
                 raise ValidationError(
                     {
-                        'date_from': ['Date from must be before date to.'],
-                        'date_to': ['Date from must be before date to.'],
+                        'date_from': [_('Date from must be before date to.')],
+                        'date_to': [_('Date from must be before date to.')],
                     }
                 )
 
         if self.count > self.tag.core_articlepagetag_items.count():
                 raise ValidationError(
                     {
-                        'count': ['Count can not exceed the number of articles.'],
+                        'count': [_('Count can not exceed the number of articles.')],
                     }
                 )
 
