@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+Upcoming
+--------
+
+- Added Article Tag Rule to allow segmenting on article visits
+
 5.6.2
 -----
 - Bug Fix: remove PreventDeleteMixin from Ts&Cs index page
