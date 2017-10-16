@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 from django import forms
 from django.apps import apps
 from django.core.exceptions import ValidationError
@@ -8,7 +10,21 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, PageChooserPanel
 
-from wagtail_personalisation.rules import AbstractBaseRule
+from wagtail_personalisation.rules import AbstractBaseRule, VisitCountRule
+
+VisitCountRule.order = 1
+
+AbstractBaseRule.__old_subclasses__ = AbstractBaseRule.__subclasses__
+
+def __ordered_subclasses__(cls):
+    subclasses = cls.__old_subclasses__()
+    for i, item in enumerate(subclasses):
+        if not hasattr(item, 'order'):
+            item.order = (i + 1)*100
+
+    return sorted(subclasses, key=attrgetter('order'))
+
+AbstractBaseRule.__subclasses__ = classmethod(__ordered_subclasses__)
 
 
 class SurveySubmissionDataRule(AbstractBaseRule):
