@@ -42,8 +42,8 @@ from wagtail_personalisation.adapters import get_segment_adapter
 from wagtailsurveys import models as surveys_models
 from wagtailsurveys.models import AbstractFormField
 
-from .blocks import SkipLogicField, SkipLogicStreamPanel
-from .forms import SkipLogicCleanForm
+from .blocks import SkipLogicField, SkipState, SkipLogicStreamPanel
+from .forms import MoloSurveyForm, PersonalisableMoloSurveyForm
 from .rules import ArticleTagRule, GroupMembershipRule, SurveySubmissionDataRule  # noqa
 from .utils import SkipLogicPaginator
 
@@ -90,6 +90,8 @@ class MoloSurveyPage(
     parent_page_types = [
         'surveys.SurveysIndexPage', 'core.SectionPage', 'core.ArticlePage']
     subpage_types = []
+
+    base_form_class = MoloSurveyForm
 
     intro = TextField(blank=True)
     image = models.ForeignKey(
@@ -385,7 +387,7 @@ class SkipLogicMixin(models.Model):
     @property
     def has_skipping(self):
         return any(
-            logic.value['skip_logic'] != 'next' for logic in self.skip_logic
+            logic.value['skip_logic'] != SkipState.NEXT for logic in self.skip_logic
         )
 
     def choice_index(self, choice):
@@ -408,7 +410,7 @@ class SkipLogicMixin(models.Model):
         if not self.required and self.skip_logic:
 
             raise ValidationError(
-                {'required': 'Questions with skip logic must be required.'}
+                {'required': _('Questions with skip logic must be required.')}
             )
 
     def save(self, *args, **kwargs):
@@ -483,7 +485,7 @@ class PersonalisableSurvey(MoloSurveyPage):
     content_panels = get_personalisable_survey_content_panels()
     template = MoloSurveyPage.template
 
-    base_form_class = SkipLogicCleanForm
+    base_form_class = PersonalisableMoloSurveyForm
 
     class Meta:
         verbose_name = _('personalisable survey')
