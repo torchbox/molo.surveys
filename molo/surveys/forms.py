@@ -149,7 +149,20 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
 
 class MoloSurveyForm(BaseMoloSurveyForm):
     form_field_name = 'survey_form_fields'
-    survey_clean_methods = ['check_doesnt_loop_to_self']
+    survey_clean_methods = [
+        'check_doesnt_loop_to_self',
+        'check_doesnt_link_personalised_survey',
+    ]
+
+    def check_doesnt_link_to_peronsalised_survey(self, survey):
+        try:
+            segment = survey.personalisablesurvey.segment
+        except AttributeError:
+            pass
+        else:
+            # Can only link a survey without a segments
+            if segment:
+                return 'Cannot select a survey with a segment'
 
 
 class PersonalisableMoloSurveyForm(BaseMoloSurveyForm):
