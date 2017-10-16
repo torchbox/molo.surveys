@@ -43,7 +43,7 @@ from wagtailsurveys import models as surveys_models
 from wagtailsurveys.models import AbstractFormField
 
 from .blocks import SkipLogicField, SkipLogicStreamPanel
-from .forms import SkipLogicCleanForm
+from .forms import MoloSurveyForm, PersonalisableMoloSurveyForm
 from .rules import GroupMembershipRule, SurveySubmissionDataRule  # noqa
 from .utils import SkipLogicPaginator
 
@@ -90,6 +90,8 @@ class MoloSurveyPage(
     parent_page_types = [
         'surveys.SurveysIndexPage', 'core.SectionPage', 'core.ArticlePage']
     subpage_types = []
+
+    base_form_class = MoloSurveyForm
 
     intro = TextField(blank=True)
     image = models.ForeignKey(
@@ -483,7 +485,7 @@ class PersonalisableSurvey(MoloSurveyPage):
     content_panels = get_personalisable_survey_content_panels()
     template = MoloSurveyPage.template
 
-    base_form_class = SkipLogicCleanForm
+    base_form_class = PersonalisableMoloSurveyForm
 
     class Meta:
         verbose_name = _('personalisable survey')

@@ -88,66 +88,44 @@ class CSVGroupCreationForm(forms.ModelForm):
         group.user_set.add(*self.__initial_users)
 
 
-class SkipLogicCleanForm(WagtailAdminPageForm):
+class BaseMoloSurveyForm(WagtailAdminPageForm):
     def clean(self):
-        cleaned_data = super(SkipLogicCleanForm, self).clean()
-        for form in self.formsets['personalisable_survey_form_fields']:
+        cleaned_data = super(BaseMoloSurveyForm, self).clean()
+        for form in self.formsets[self.form_field_name]:
             self._clean_errors = defaultdict(lambda: defaultdict(list))
             if form.is_valid():
                 data = form.cleaned_data
                 for i, logic in enumerate(data['skip_logic']):
                     if logic.value['skip_logic'] == SkipState.SURVEY:
                         survey = logic.value['survey']
-                        self.check_doesnt_loop_to_self(survey, i)
-                        self.check_survey_link_valid(survey, i)
+                        self.clean_survey(i, survey)
                     if logic.value['skip_logic'] == SkipState.QUESTION:
                         sort_order = logic.value['question'] - 1
                         questions = (
-                            self.instance.personalisable_survey_form_fields
+                            getattr(self.instance, self.form_field_name)
                         )
                         question = questions.get(sort_order=sort_order)
-                        self.check_question_segment_ok(
-                            data['segment'],
-                            question,
-                            i,
-                        )
+                        self.clean_question(i, data['segment'], question)
                 if self.clean_errors:
                     form._errors = self.clean_errors
 
         return cleaned_data
 
-    def check_question_segment_ok(self, current_segment,
-                                  linked_question, stream_field_pos):
-        segment = linked_question.segment
-        # Cannot link from None to segment, but can link from segment to None
-        if (segment and not current_segment) or (segment != current_segment):
-            self.add_stream_field_error(
-                stream_field_pos,
-                'question',
-                'Cannot link to a question with a different segment'
-            )
+    def clean_question(self, position, *args):
+        self.clean_formset_field('question', position, *args)
 
-    def check_survey_link_valid(self, survey, stream_field_pos):
-        try:
-            segment = survey.personalisablesurvey.segment
-        except AttributeError:
-            pass
-        else:
-            # Can only link a survey without segments or the same segment
-            if segment and segment != self.instance.segment:
-                self.add_stream_field_error(
-                    stream_field_pos,
-                    'survey',
-                    'Cannot select a survey with a different segment'
-                )
+    def clean_survey(self, position, *args):
+        self.clean_formset_field('survey', position, *args)
 
-    def check_doesnt_loop_to_self(self, survey, stream_field_pos):
+    def clean_formset_field(self, field, position, *args):
+        for method in getattr(self, field + '_clean_methods', []):
+            error = getattr(self, method)(*args)
+            if error:
+                self.add_stream_field_error(position, field, error)
+
+    def check_doesnt_loop_to_self(self, survey):
         if survey and self.instance == survey:
-            self.add_stream_field_error(
-                stream_field_pos,
-                'survey',
-                'Cannot skip to self, please select a different survey.'
-            )
+            return 'Cannot skip to self, please select a different survey.'
 
     def add_stream_field_error(self, position, field, message):
         self._clean_errors[position][field].append(message)
@@ -167,3 +145,36 @@ class SkipLogicCleanForm(WagtailAdminPageForm):
                     params=params,
                 )])
             }
+
+
+class MoloSurveyForm(BaseMoloSurveyForm):
+    form_field_name = 'survey_form_fields'
+    survey_clean_methods = ['check_doesnt_loop_to_self']
+
+
+class PersonalisableMoloSurveyForm(BaseMoloSurveyForm):
+    form_field_name = 'personalisable_survey_form_fields'
+    survey_clean_methods = [
+        'check_doesnt_loop_to_self',
+        'check_survey_link_valid',
+    ]
+
+    question_clean_methods = [
+        'check_question_segment_ok',
+    ]
+
+    def check_question_segment_ok(self, current_segment, linked_question):
+        segment = linked_question.segment
+        # Cannot link from None to segment, but can link from segment to None
+        if (segment and not current_segment) or (segment != current_segment):
+            return 'Cannot link to a question with a different segment'
+
+    def check_survey_link_valid(self, survey):
+        try:
+            segment = survey.personalisablesurvey.segment
+        except AttributeError:
+            pass
+        else:
+            # Can only link a survey without segments or the same segment
+            if segment and segment != self.instance.segment:
+                return 'Cannot select a survey with a different segment'
