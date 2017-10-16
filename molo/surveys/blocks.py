@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
 
 from wagtail.wagtailadmin.edit_handlers import StreamFieldPanel
 from wagtail.wagtailcore import blocks
@@ -18,7 +19,7 @@ class SkipLogicField(StreamField):
     def __init__(self, *args, **kwargs):
         args = [SkipLogicStreamBlock([('skip_logic', SkipLogicBlock())])]
         kwargs.update({
-            'verbose_name': 'Answer options',
+            'verbose_name': _('Answer options'),
             'blank': True,
         })
         super(SkipLogicField, self).__init__(*args, **kwargs)
@@ -75,10 +76,10 @@ class SkipLogicBlock(blocks.StructBlock):
     choice = blocks.CharBlock()
     skip_logic = blocks.ChoiceBlock(
         choices=[
-            (SkipState.NEXT, 'Next default question'),
-            (SkipState.END, 'End of survey'),
-            (SkipState.QUESTION, 'Another question'),
-            (SkipState.SURVEY, 'Another survey'),
+            (SkipState.NEXT, _('Next default question')),
+            (SkipState.END, _('End of survey')),
+            (SkipState.QUESTION, _('Another question')),
+            (SkipState.SURVEY, _('Another survey')),
         ],
         default=SkipState.NEXT,
         required=True,
@@ -89,8 +90,10 @@ class SkipLogicBlock(blocks.StructBlock):
     )
     question = QuestionSelectBlock(
         required=False,
-        help_text=('Please save the survey as a draft to populate or update '
-                   'the list of questions.'),
+        help_text=_(
+            ('Please save the survey as a draft to populate or update '
+             'the list of questions.')
+        ),
     )
 
     @property
@@ -108,7 +111,7 @@ class SkipLogicBlock(blocks.StructBlock):
             if not cleaned_data['survey']:
                 raise ValidationError(
                     'A Survey must be selected to progress to.',
-                    params={'survey': ['Please select a survey.']}
+                    params={'survey': [_('Please select a survey.')]}
                 )
             cleaned_data['question'] = None
 
@@ -116,7 +119,7 @@ class SkipLogicBlock(blocks.StructBlock):
             if not cleaned_data['question']:
                 raise ValidationError(
                     'A Question must be selected to progress to.',
-                    params={'question': ['Please select a question.']}
+                    params={'question': [_('Please select a question.')]}
                 )
             cleaned_data['survey'] = None
 

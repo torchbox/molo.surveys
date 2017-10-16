@@ -125,7 +125,7 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
 
     def check_doesnt_loop_to_self(self, survey):
         if survey and self.instance == survey:
-            return 'Cannot skip to self, please select a different survey.'
+            return _('Cannot skip to self, please select a different survey.')
 
     def add_stream_field_error(self, position, field, message):
         self._clean_errors[position][field].append(message)
@@ -162,7 +162,7 @@ class MoloSurveyForm(BaseMoloSurveyForm):
         else:
             # Can only link a survey without a segments
             if segment:
-                return 'Cannot select a survey with a segment'
+                return _('Cannot select a survey with a segment.')
 
 
 class PersonalisableMoloSurveyForm(BaseMoloSurveyForm):
@@ -180,7 +180,7 @@ class PersonalisableMoloSurveyForm(BaseMoloSurveyForm):
         segment = linked_question.segment
         # Cannot link from None to segment, but can link from segment to None
         if (segment and not current_segment) or (segment != current_segment):
-            return 'Cannot link to a question with a different segment'
+            return _('Cannot link to a question with a different segment.')
 
     def check_survey_link_valid(self, survey):
         try:
@@ -190,4 +190,4 @@ class PersonalisableMoloSurveyForm(BaseMoloSurveyForm):
         else:
             # Can only link a survey without segments or the same segment
             if segment and segment != self.instance.segment:
-                return 'Cannot select a survey with a different segment'
+                return _('Cannot select a survey with a different segment.')

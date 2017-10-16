@@ -42,7 +42,7 @@ from wagtail_personalisation.adapters import get_segment_adapter
 from wagtailsurveys import models as surveys_models
 from wagtailsurveys.models import AbstractFormField
 
-from .blocks import SkipLogicField, SkipLogicStreamPanel
+from .blocks import SkipLogicField, SkipState, SkipLogicStreamPanel
 from .forms import MoloSurveyForm, PersonalisableMoloSurveyForm
 from .rules import GroupMembershipRule, SurveySubmissionDataRule  # noqa
 from .utils import SkipLogicPaginator
@@ -387,7 +387,7 @@ class SkipLogicMixin(models.Model):
     @property
     def has_skipping(self):
         return any(
-            logic.value['skip_logic'] != 'next' for logic in self.skip_logic
+            logic.value['skip_logic'] != SkipState.NEXT for logic in self.skip_logic
         )
 
     def choice_index(self, choice):
@@ -410,7 +410,7 @@ class SkipLogicMixin(models.Model):
         if not self.required and self.skip_logic:
 
             raise ValidationError(
-                {'required': 'Questions with skip logic must be required.'}
+                {'required': _('Questions with skip logic must be required.')}
             )
 
     def save(self, *args, **kwargs):
