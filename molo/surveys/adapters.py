@@ -21,7 +21,7 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
                 tag_visits[str(tag.id)][page.path] = visit_time
 
     def get_tag_count(self, tag, date_from=None, date_to=None):
-        """Return the number of visits on the current request or given page"""
+        """Return the number of visits on the given page"""
         if not date_from:
             date_from = datetime.datetime.min
         if not date_to:
