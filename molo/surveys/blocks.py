@@ -55,6 +55,9 @@ class SkipLogicStreamBlock(blocks.StreamBlock):
         media.add_js(
             [static('js/blocks/skiplogic_stream.js')]
         )
+        media.add_css(
+            {'all': [static('css/blocks/skiplogic.css')]}
+        )
         return media
 
     def js_initializer(self):
