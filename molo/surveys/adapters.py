@@ -15,6 +15,7 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
             defaultdict(dict),
         )
         if isinstance(page.specific, ArticlePage):
+            # Set the datetime based on UTC
             visit_time = datetime.datetime.utcnow().isoformat()
             for tag in page.tags.all():
                 tag_visits.setdefault(str(tag.id), dict())

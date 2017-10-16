@@ -265,11 +265,15 @@ class ArticleTagRule(AbstractBaseRule):
     )
     count = models.IntegerField()
 
+    # Naive datetimes as we are not storing the datetime based on the users
+    # timezone.
     date_from = models.DateTimeField(blank=True, null=True)
     date_to = models.DateTimeField(
         blank=True,
         null=True,
-        help_text=_('Leave both fields blank to search for all time.'),
+        help_text=_(
+            'All times are UTC. Leave both fields blank to search for all time.'
+        ),
     )
 
     panels = [
