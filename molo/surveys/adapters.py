@@ -14,7 +14,7 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
             'tag_count',
             defaultdict(dict),
         )
-        if isinstance(page, ArticlePage):
+        if isinstance(page.specific, ArticlePage):
             visit_time = datetime.datetime.utcnow().isoformat()
             for tag in page.tags.all():
                 tag_visits.setdefault(str(tag.id), dict())
