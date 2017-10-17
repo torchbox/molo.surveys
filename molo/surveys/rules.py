@@ -22,6 +22,7 @@ VisitCountRule.panels[0] = PageChooserPanel('counted_page', 'core.ArticlePage')
 # Add ordering to the base class
 AbstractBaseRule.__old_subclasses__ = AbstractBaseRule.__subclasses__
 
+
 def __ordered_subclasses__(cls):
     subclasses = cls.__old_subclasses__()
     for i, item in enumerate(subclasses):
@@ -29,6 +30,7 @@ def __ordered_subclasses__(cls):
             item.order = (i + 1)*100
 
     return sorted(subclasses, key=attrgetter('order'))
+
 
 AbstractBaseRule.__subclasses__ = classmethod(__ordered_subclasses__)
 
