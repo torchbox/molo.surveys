@@ -17,9 +17,9 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
         if isinstance(page.specific, ArticlePage):
             # Set the datetime based on UTC
             visit_time = datetime.datetime.utcnow().isoformat()
-            for tag in page.tags.all():
-                tag_visits.setdefault(str(tag.id), dict())
-                tag_visits[str(tag.id)][page.path] = visit_time
+            for nav_tag in page.nav_tags.all():
+                tag_visits.setdefault(str(nav_tag.tag.id), dict())
+                tag_visits[str(nav_tag.tag.id)][page.path] = visit_time
 
     def get_tag_count(self, tag, date_from=None, date_to=None):
         """Return the number of visits on the given page"""

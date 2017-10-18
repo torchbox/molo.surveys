@@ -12,7 +12,9 @@ from wagtail.wagtailadmin.edit_handlers import FieldPanel, FieldRowPanel, PageCh
 from wagtail_personalisation.adapters import get_segment_adapter
 from wagtail_personalisation.rules import AbstractBaseRule
 
-from .edit_handlers import FieldQueryPanel
+from molo.core.models import ArticlePageTags
+
+from .edit_handlers import TagPanel
 
 
 class SurveySubmissionDataRule(AbstractBaseRule):
@@ -254,7 +256,7 @@ class ArticleTagRule(AbstractBaseRule):
         (LESS_THAN, _('less than')),
     )
 
-    tag = models.ForeignKey('taggit.Tag',
+    tag = models.ForeignKey('core.Tag',
                             on_delete=models.CASCADE)
 
     operator = models.CharField(
@@ -277,7 +279,7 @@ class ArticleTagRule(AbstractBaseRule):
     )
 
     panels = [
-        FieldQueryPanel('tag', ~Q(core_articlepagetag_items__isnull=True)),
+        TagPanel('tag'),
         FieldRowPanel(
             [
                 FieldPanel('operator'),
@@ -301,13 +303,17 @@ class ArticleTagRule(AbstractBaseRule):
                     }
                 )
 
-        if self.count > self.tag.core_articlepagetag_items.count():
+        if hasattr(self, 'tag'):
+            if self.count > ArticlePageTags.objects.filter(
+                    tag=self.tag
+            ).count():
                 raise ValidationError(
                     {
-                        'count': [_('Count can not exceed the number of articles.')],
+                        'count': [_(
+                            'Count can not exceed the number of articles.'
+                        )],
                     }
                 )
-
 
     def test_user(self, request):
         operator = self.OPERATORS[self.operator]

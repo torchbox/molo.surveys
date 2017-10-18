@@ -6,10 +6,9 @@ from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory
-from taggit.models import Tag
 from wagtail_personalisation.adapters import get_segment_adapter
 
-from molo.core.models import ArticlePage, ArticlePageTag, SectionPage
+from molo.core.models import ArticlePage, ArticlePageTags, SectionPage, Tag
 from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.models import SurveysIndexPage
 
@@ -218,7 +217,9 @@ class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
         self.section = SectionPage(title='test section')
         self.section_index.add_child(instance=self.section)
 
-        self.tag = Tag.objects.create(name='test')
+        self.tag = Tag(title='test')
+        self.tag_index.add_child(instance=self.tag)
+        self.tag.save_revision()
 
         self.article = self.add_article(title='test article', tags=[self.tag])
 
@@ -229,9 +230,9 @@ class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
         self.section.add_child(instance=new_article)
         new_article.save_revision()
         for tag in tags:
-            ArticlePageTag.objects.create(
+            ArticlePageTags.objects.create(
                 tag=tag,
-                content_object=new_article,
+                page=new_article,
             )
         return new_article
 
