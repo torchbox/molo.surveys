@@ -14,7 +14,6 @@ Upcoming
 -----
 - Bug Fix: removed yourwords surveys from template tag lists
 
-
 5.6.2
 -----
 - Bug Fix: remove PreventDeleteMixin from Ts&Cs index page
