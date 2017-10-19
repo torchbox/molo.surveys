@@ -3,6 +3,7 @@ import datetime
 
 from wagtail_personalisation.adapters import SessionSegmentsAdapter
 from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 
 from molo.core.models import ArticlePage
 
@@ -16,7 +17,7 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
         )
         if isinstance(page.specific, ArticlePage):
             # Set the datetime based on UTC
-            visit_time = datetime.datetime.utcnow().isoformat()
+            visit_time = datetime.datetime.now(timezone.utc).isoformat()
             for nav_tag in page.nav_tags.all():
                 tag_visits.setdefault(str(nav_tag.tag.id), dict())
                 tag_visits[str(nav_tag.tag.id)][page.path] = visit_time
@@ -24,9 +25,9 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
     def get_tag_count(self, tag, date_from=None, date_to=None):
         """Return the number of visits on the given page"""
         if not date_from:
-            date_from = datetime.datetime.min
+            date_from = timezone.make_aware(datetime.datetime.min, timezone.utc)
         if not date_to:
-            date_to = datetime.datetime.max
+            date_to = timezone.make_aware(datetime.datetime.max, timezone.utc)
 
         tag_visits = self.request.session.setdefault(
             'tag_count',
