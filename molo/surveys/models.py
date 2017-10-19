@@ -224,7 +224,7 @@ class MoloSurveyPage(
                 page=self, user__pk=request.user.pk
             ).exists() \
                 or survey_page_id in request.session['completed_surveys']:
-                    return True
+            return True
         return False
 
     def set_survey_as_submitted_for_session(self, request):
