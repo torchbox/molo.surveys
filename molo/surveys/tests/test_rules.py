@@ -8,6 +8,7 @@ from molo.core.tests.base import MoloTestCaseMixin
 from molo.surveys.models import SurveysIndexPage
 
 
+from .utils import skip_logic_data
 from ..models import PersonalisableSurveyFormField, PersonalisableSurvey
 from ..rules import SurveySubmissionDataRule, GroupMembershipRule
 
@@ -32,7 +33,7 @@ class TestSurveyDataRuleSegmentation(TestCase, MoloTestCaseMixin):
             field_type='singleline', label='Singleline Text', page=self.survey)
         self.checkboxes = PersonalisableSurveyFormField.objects.create(
             field_type='checkboxes', label='Checboxes Field', page=self.survey,
-            choices='choice 1, choice 2, choice 3')
+            skip_logic=skip_logic_data(['choice 1', 'choice 2', 'choice 3']))
         self.checkbox = PersonalisableSurveyFormField.objects.create(
             field_type='checkbox', label='Checbox Field', page=self.survey)
         self.number = PersonalisableSurveyFormField.objects.create(

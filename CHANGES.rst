@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+Upcoming
+--------
+
+- Added ability to skip questions and surveys based on user's response
+
 5.6.4
 -----
 - Bug Fix: add yourwords check to surveys list
