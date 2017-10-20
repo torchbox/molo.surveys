@@ -126,7 +126,6 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
 
         return super(BaseMoloSurveyForm, self).save(commit)
 
-
     def clean_question(self, position, *args):
         self.clean_formset_field('question', position, *args)
 

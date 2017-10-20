@@ -387,7 +387,8 @@ class SkipLogicMixin(models.Model):
     @property
     def has_skipping(self):
         return any(
-            logic.value['skip_logic'] != SkipState.NEXT for logic in self.skip_logic
+            logic.value['skip_logic'] != SkipState.NEXT
+            for logic in self.skip_logic
         )
 
     def choice_index(self, choice):
