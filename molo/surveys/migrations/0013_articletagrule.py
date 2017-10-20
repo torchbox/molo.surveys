@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             name='ArticleTagRule',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('operator', models.CharField(choices=[(b'eq', 'equal to'), (b'gt', 'more than'), (b'lt', 'less than')], default=b'gt', max_length=3, verbose_name='operator')),
+                ('operator', models.CharField(choices=[(b'gt', 'more than'), (b'lt', 'less than'), (b'eq', 'equal to')], default=b'gt', max_length=3, verbose_name='operator')),
                 ('count', models.IntegerField()),
                 ('date_from', models.DateTimeField(null=True, blank=True)),
                 ('date_to', models.DateTimeField(null=True, blank=True, help_text=b'All times are UTC. Leave both fields blank to search for all time.')),
