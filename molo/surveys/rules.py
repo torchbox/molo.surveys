@@ -250,9 +250,9 @@ class ArticleTagRule(AbstractBaseRule):
     }
 
     OPERATOR_CHOICES = (
-        (EQUALS, _('equal to')),
         (GREATER_THAN, _('more than')),
         (LESS_THAN, _('less than')),
+        (EQUALS, _('equal to')),
     )
 
     tag = models.ForeignKey('core.Tag',
