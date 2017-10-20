@@ -251,8 +251,8 @@ class ArticleTagRule(AbstractBaseRule):
     }
 
     OPERATOR_CHOICES = (
-        (EQUALS, _('equals')),
-        (GREATER_THAN, _('greater than')),
+        (EQUALS, _('equal to')),
+        (GREATER_THAN, _('more than')),
         (LESS_THAN, _('less than')),
     )
 
@@ -263,7 +263,7 @@ class ArticleTagRule(AbstractBaseRule):
         _('operator'),
         max_length=3,
         choices=OPERATOR_CHOICES,
-        default=EQUALS,
+        default=GREATER_THAN,
     )
     count = models.IntegerField()
 
