@@ -14,9 +14,7 @@ from wagtail_personalisation.rules import AbstractBaseRule, VisitCountRule
 
 
 # Filer the Visit Count Page only by articles
-VisitCountRule._meta.verbose_name = 'Article Visit Count Rule'
-
-VisitCountRule.panels[0] = PageChooserPanel('counted_page', 'core.ArticlePage')
+VisitCountRule._meta.verbose_name = 'Page Visit Count Rule'
 
 
 # Add ordering to the base class
