@@ -239,6 +239,7 @@ class GroupMembershipRule(AbstractBaseRule):
 
 
 class ArticleTagRule(AbstractBaseRule):
+    order = 410
     EQUALS = 'eq'
     GREATER_THAN = 'gt'
     LESS_THAN = 'lt'
