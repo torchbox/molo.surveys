@@ -392,6 +392,8 @@ class SkipLogicMixin(models.Model):
         )
 
     def choice_index(self, choice):
+        if self.field_type == 'checkbox':
+            return ['on', 'off'].index(choice)
         return self.choices.split(',').index(choice)
 
     def next_action(self, choice):
