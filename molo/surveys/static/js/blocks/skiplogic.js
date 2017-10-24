@@ -8,6 +8,7 @@
 
             var skipLogicSelect = $('#' + prefix + '-skip_logic');
             var skipLogicSurvey = $('#' + prefix + '-survey');
+            var skipLogicChoice = $('#' + prefix + '-choice');
             var questionWidgetID = '#' + prefix + '-question';
             var questionSelect = $(questionWidgetID + '_1');
             var questionID = $(questionWidgetID + '_0');
@@ -56,7 +57,13 @@
                     hideElement(skipLogicSurvey);
                     hideElement(questionSelect);
                     hideElement(skipLogicSelect);
+                    showElement(skipLogicChoice);
+                } else if (thisQuestion.fieldSelect().val() == 'checkbox') {
+                    showElement(questionSelect);
+                    hideElement(skipLogicChoice);
+                    updateBlockState();
                 } else {
+                    showElement(skipLogicChoice);
                     showElement(skipLogicSelect);
                     updateBlockState();
                 }

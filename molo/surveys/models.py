@@ -224,7 +224,7 @@ class MoloSurveyPage(
                 page=self, user__pk=request.user.pk
             ).exists() \
                 or survey_page_id in request.session['completed_surveys']:
-                    return True
+            return True
         return False
 
     def set_survey_as_submitted_for_session(self, request):
@@ -387,10 +387,13 @@ class SkipLogicMixin(models.Model):
     @property
     def has_skipping(self):
         return any(
-            logic.value['skip_logic'] != SkipState.NEXT for logic in self.skip_logic
+            logic.value['skip_logic'] != SkipState.NEXT
+            for logic in self.skip_logic
         )
 
     def choice_index(self, choice):
+        if self.field_type == 'checkbox':
+            return ['on', 'off'].index(choice)
         return self.choices.split(',').index(choice)
 
     def next_action(self, choice):
@@ -415,7 +418,8 @@ class SkipLogicMixin(models.Model):
 
     def save(self, *args, **kwargs):
         self.choices = ','.join(
-            choice.value['choice'] for choice in self.skip_logic
+            choice.value['choice'].replace(',', u'\u201A')
+            for choice in self.skip_logic
         )
         return super(SkipLogicMixin, self).save(*args, **kwargs)
 

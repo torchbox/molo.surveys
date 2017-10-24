@@ -7,6 +7,14 @@ Upcoming
 - Added Article Tag Rule to allow segmenting on article visits
 - Added ability to skip questions and surveys based on user's response
 
+5.6.4
+-----
+- Bug Fix: add yourwords check to surveys list
+
+5.6.3
+-----
+- Bug Fix: removed yourwords surveys from template tag lists
+
 5.6.2
 -----
 - Bug Fix: remove PreventDeleteMixin from Ts&Cs index page
