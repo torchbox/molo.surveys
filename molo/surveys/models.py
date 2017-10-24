@@ -416,7 +416,8 @@ class SkipLogicMixin(models.Model):
 
     def save(self, *args, **kwargs):
         self.choices = ','.join(
-            choice.value['choice'] for choice in self.skip_logic
+            choice.value['choice'].replace(',', u'\u201A')
+            for choice in self.skip_logic
         )
         return super(SkipLogicMixin, self).save(*args, **kwargs)
 
