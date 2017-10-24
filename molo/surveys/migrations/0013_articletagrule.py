@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('date_from', models.DateTimeField(null=True, blank=True)),
                 ('date_to', models.DateTimeField(null=True, blank=True, help_text=b'All times are UTC. Leave both fields blank to search for all time.')),
                 ('segment', modelcluster.fields.ParentalKey(on_delete=django.db.models.deletion.CASCADE, related_name='surveys_articletagrule_related', related_query_name='%(app_label)s_%(class)ss', to='wagtail_personalisation.Segment')),
-                ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Tag')),
+                ('tag', models.ForeignKey(help_text='The number in the bracket indicates the number of articles that have the tag.', on_delete=django.db.models.deletion.CASCADE, to='core.Tag')),
             ],
             options={
                 'verbose_name': 'Article tag rule',

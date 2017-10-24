@@ -256,8 +256,14 @@ class ArticleTagRule(AbstractBaseRule):
         (EQUALS, _('equal to')),
     )
 
-    tag = models.ForeignKey('core.Tag',
-                            on_delete=models.CASCADE)
+    tag = models.ForeignKey(
+        'core.Tag',
+        on_delete=models.CASCADE,
+        help_text=_(
+            'The number in the bracket indicates the number of articles '
+            'that have the tag.'
+        )
+    )
 
     operator = models.CharField(
         _('operator'),
