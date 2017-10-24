@@ -265,7 +265,7 @@ class ArticleTagRule(AbstractBaseRule):
         choices=OPERATOR_CHOICES,
         default=GREATER_THAN,
     )
-    count = models.IntegerField()
+    count = models.PositiveIntegerField()
 
     # Naive datetimes as we are not storing the datetime based on the users
     # timezone.
