@@ -275,7 +275,7 @@ class MoloSurveyPage(
 
             # Create a form only for submitted step
             prev_form_class = self.get_form_class_for_step(prev_step)
-            prev_form = prev_form_class(request.POST, page=self,
+            prev_form = prev_form_class(paginator.data, page=self,
                                         user=request.user)
             if prev_form.is_valid():
                 # If data for step is valid, update the session
