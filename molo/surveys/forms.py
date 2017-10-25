@@ -166,11 +166,6 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
         if survey and self.instance == survey:
             return _('Cannot skip to self, please select a different survey.')
 
-    def check_question_segment_ok(self, current_segment, question):
-        pass
-        # if self.
-        #     return _('Cannot skip to self, please select a different survey.')
-
     def add_form_field_error(self, field, message):
         if field not in self._clean_errors:
             self._clean_errors[field] = list()
