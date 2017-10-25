@@ -11,7 +11,7 @@ from django.utils import six
 
 from wagtail.wagtailadmin.forms import WagtailAdminPageForm
 
-from .blocks import SkipState, VALID_SKIP_SELECTORS
+from .blocks import SkipState, VALID_SKIP_LOGIC, VALID_SKIP_SELECTORS
 
 
 class CSVGroupCreationForm(forms.ModelForm):
@@ -96,11 +96,17 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
             self._clean_errors = {}
             if form.is_valid():
                 data = form.cleaned_data
-                if data['field_type'] == 'checkbox' and len(data['skip_logic']) != 2:
-                    self.add_form_field_error(
-                        'field_type',
-                        _('Checkbox type questions must have 2 Answer Options: a True and False'),
-                    )
+                if data['field_type'] == 'checkbox':
+                    if len(data['skip_logic']) != 2:
+                        self.add_form_field_error(
+                            'field_type',
+                            _('Checkbox type questions must have 2 Answer Options: a True and False'),
+                        )
+                elif data['field_type'] in VALID_SKIP_LOGIC:
+                    for i, logic in enumerate(data['skip_logic']):
+                        if not logic.value['choice']:
+                            self.add_stream_field_error(i, 'choice', _('This field is required.'))
+
                 for i, logic in enumerate(data['skip_logic']):
                     if logic.value['skip_logic'] == SkipState.SURVEY:
                         survey = logic.value['survey']
@@ -114,6 +120,9 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
                         self.clean_question(i, data['segment'], question)
                 if self.clean_errors:
                     form._errors = self.clean_errors
+
+            elif not self.form_can_have_skip_errors(form):
+                del form._errors['skip_logic']
 
         return cleaned_data
 
@@ -146,6 +155,12 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
             error = getattr(self, method)(*args)
             if error:
                 self.add_stream_field_error(position, field, error)
+
+    def form_can_have_skip_errors(self, form):
+        return (
+            form.has_error('skip_logic') and
+            form.cleaned_data['field_type'] not in VALID_SKIP_LOGIC
+        )
 
     def check_doesnt_loop_to_self(self, survey):
         if survey and self.instance == survey:
