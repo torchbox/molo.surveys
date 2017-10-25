@@ -15,7 +15,7 @@
 
             var thisQuestion = question(fieldID);
 
-            var updateBlockState = function () {
+            var updateQuestionSurveyDisplay = function () {
                 hideElement(skipLogicSurvey);
                 hideElement(questionSelect);
                 switch (skipLogicSelect.val()) {
@@ -51,32 +51,29 @@
                 element.closest('li').show();
             };
 
-            var toggle = function() {
+            var updateChoiceLogicDisplay = function() {
                 var shouldShowSkipLogic = validSkipSelectors.indexOf(thisQuestion.fieldSelect().val()) >= 0;
                 if (!shouldShowSkipLogic) {
-                    hideElement(skipLogicSurvey);
-                    hideElement(questionSelect);
                     hideElement(skipLogicSelect);
                     showElement(skipLogicChoice);
                 } else if (thisQuestion.fieldSelect().val() == 'checkbox') {
-                    showElement(questionSelect);
+                    showElement(skipLogicSelect);
                     hideElement(skipLogicChoice);
-                    updateBlockState();
                 } else {
                     showElement(skipLogicChoice);
                     showElement(skipLogicSelect);
-                    updateBlockState();
                 }
+                updateQuestionSurveyDisplay();
             };
 
-            toggle();
+            updateChoiceLogicDisplay();
             populateQuestions();
 
             skipLogicSelect.change( function () {
-                updateBlockState();
+                updateQuestionSurveyDisplay();
             });
             thisQuestion.fieldSelect().change( function () {
-                toggle();
+                updateChoiceLogicDisplay();
             });
         };
     };

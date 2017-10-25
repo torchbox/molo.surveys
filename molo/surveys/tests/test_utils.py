@@ -152,6 +152,19 @@ class TestSkipLogicPaginator(TestCase, MoloTestCaseMixin):
         self.assertEqual(paginator.next_question_page, 1)
         self.assertEqual(paginator.next_question_index, 0)
 
+    def test_no_data_index_with_checkbox(self):
+        self.first_field.field_type = 'checkbox'
+        self.first_field.skip_logic = skip_logic_data(
+                ['', ''],
+                ['next', 'end'],
+            )
+        self.first_field.save()
+        paginator = SkipLogicPaginator(self.survey.get_form_fields(), data={'csrf': 'dummy'})
+        self.assertEqual(paginator.previous_question_page, 1)
+        self.assertEqual(paginator.last_question_index, 0)
+        self.assertEqual(paginator.next_question_page, 2)
+        self.assertEqual(paginator.next_question_index, 1)
+
     def test_single_question_quiz_with_skip_logic_pages_correctly(self):
         self.first_field.delete()
         self.third_field.delete()

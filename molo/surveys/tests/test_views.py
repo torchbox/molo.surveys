@@ -803,42 +803,7 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             [self.last_molo_survey_form_field],
         )
 
-    def test_skip_logic_to_end_checkbox(self):
-        self.skip_logic_form_field.field_type = 'checkbox'
-        self.skip_logic_form_field.skip_logic = skip_logic_data(
-            ['', ''],
-            self.choices[:2],
-        )
-        self.skip_logic_form_field.save()
-
-        response = self.client.get(self.molo_survey_page.url)
-
-        self.assertSurveyAndQuestions(
-            response,
-            self.molo_survey_page,
-            [self.skip_logic_form_field]
-        )
-        self.assertNotContains(
-            response,
-            self.last_molo_survey_form_field.label,
-        )
-        self.assertNotContains(response, self.molo_survey_form_field.label)
-        self.assertContains(response, 'Next Question')
-
-        response = self.client.post(self.molo_survey_page.url + '?p=2', {
-            self.skip_logic_form_field.clean_name: 'off',
-        }, follow=True)
-
-        self.assertContains(response, self.molo_survey_page.title)
-        self.assertNotContains(response, self.molo_survey_form_field.label)
-        self.assertNotContains(
-            response,
-            self.last_molo_survey_form_field.label
-        )
-        self.assertNotContains(response, self.molo_survey_page.submit_text)
-        self.assertContains(response, self.molo_survey_page.thank_you_text)
-
-    def test_skip_logic_to_next_checkbox(self):
+    def test_skip_logic_checkbox_with_data(self):
         self.skip_logic_form_field.field_type = 'checkbox'
         self.skip_logic_form_field.skip_logic = skip_logic_data(
             ['', ''],
@@ -877,4 +842,39 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
             self.last_molo_survey_form_field.clean_name: 'Steven Seagal ;)',
         }, follow=True)
 
+        self.assertContains(response, self.molo_survey_page.thank_you_text)
+
+    def test_skip_logic_checkbox_no_data(self):
+        self.skip_logic_form_field.field_type = 'checkbox'
+        self.skip_logic_form_field.skip_logic = skip_logic_data(
+            ['', ''],
+            self.choices[:2],
+        )
+        self.skip_logic_form_field.save()
+
+        response = self.client.get(self.molo_survey_page.url)
+
+        self.assertSurveyAndQuestions(
+            response,
+            self.molo_survey_page,
+            [self.skip_logic_form_field]
+        )
+        self.assertNotContains(
+            response,
+            self.last_molo_survey_form_field.label,
+        )
+        self.assertNotContains(response, self.molo_survey_form_field.label)
+        self.assertContains(response, 'Next Question')
+
+        # Unchecked textboxes have no data sent to the backend
+        # Data cannot be empty as we will be submitting the csrf token
+        response = self.client.post(self.molo_survey_page.url + '?p=2', {'csrf': 'dummy'}, follow=True)
+
+        self.assertContains(response, self.molo_survey_page.title)
+        self.assertNotContains(response, self.molo_survey_form_field.label)
+        self.assertNotContains(
+            response,
+            self.last_molo_survey_form_field.label
+        )
+        self.assertNotContains(response, self.molo_survey_page.submit_text)
         self.assertContains(response, self.molo_survey_page.thank_you_text)
