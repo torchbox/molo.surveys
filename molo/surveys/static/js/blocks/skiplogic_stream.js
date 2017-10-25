@@ -12,6 +12,7 @@
         question.label = () => question.find('input[id$="-label"]');
         question.questionSelectors = () => question.find('[id$="-question_1"]');
         question.questionSelectors = () => question.find('[id$="-question_1"]');
+        question.answerHelpText = () => question.choices().find('.help');
         question.filterSelectors = sortOrder => question.questionSelectors().find(`option[value=${sortOrder}]`);
         question.hasSelected = sortOrder => {
             return question.questionSelectors().filter(':visible').is( function(index, element) {
@@ -43,12 +44,17 @@
 
             var allQuestionSelectors = () => $('[id$="-question_1"]');
 
-            var toggle = function(duration) {
+            var updateAnswerDisplay = function(duration) {
                 if (shouldHide()) {
                     hideChoices(duration);
                 } else {
                     showChoices(duration);
                 };
+                if (thisQuestion.fieldSelect().val() == 'checkbox') {
+                    thisQuestion.answerHelpText().show();
+                } else {
+                    thisQuestion.answerHelpText().hide();
+                }
             };
 
             var shouldHide = function () {
@@ -63,10 +69,10 @@
                 thisQuestion.choices().hide(duration);
             };
 
-            toggle(0);
+            updateAnswerDisplay(0);
 
             thisQuestion.fieldSelect().change( function () {
-                toggle(250);
+                updateAnswerDisplay(250);
             });
 
             var wrapAction = function (element, cb) {
