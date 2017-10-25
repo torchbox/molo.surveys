@@ -18,6 +18,9 @@ class SkipState:
 VALID_SKIP_SELECTORS = ['radio', 'checkbox', 'dropdown']
 
 
+VALID_SKIP_LOGIC = VALID_SKIP_SELECTORS + ['checkboxes']
+
+
 class SkipLogicField(StreamField):
     def __init__(self, *args, **kwargs):
         args = [SkipLogicStreamBlock([('skip_logic', SkipLogicBlock())])]
@@ -76,7 +79,7 @@ class QuestionSelectBlock(blocks.IntegerBlock):
 
 
 class SkipLogicBlock(blocks.StructBlock):
-    choice = blocks.CharBlock()
+    choice = blocks.CharBlock(required=False)
     skip_logic = blocks.ChoiceBlock(
         choices=[
             (SkipState.NEXT, _('Next default question')),
