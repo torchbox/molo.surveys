@@ -121,7 +121,7 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
                 if self.clean_errors:
                     form._errors = self.clean_errors
 
-            elif not self.form_can_have_skip_errors(form):
+            elif self.form_cant_have_skip_errors(form):
                 del form._errors['skip_logic']
 
         return cleaned_data
@@ -156,7 +156,7 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
             if error:
                 self.add_stream_field_error(position, field, error)
 
-    def form_can_have_skip_errors(self, form):
+    def form_cant_have_skip_errors(self, form):
         return (
             form.has_error('skip_logic') and
             form.cleaned_data['field_type'] not in VALID_SKIP_LOGIC
@@ -165,11 +165,6 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
     def check_doesnt_loop_to_self(self, survey):
         if survey and self.instance == survey:
             return _('Cannot skip to self, please select a different survey.')
-
-    def check_question_segment_ok(self, current_segment, question):
-        pass
-        # if self.
-        #     return _('Cannot skip to self, please select a different survey.')
 
     def add_form_field_error(self, field, message):
         if field not in self._clean_errors:
