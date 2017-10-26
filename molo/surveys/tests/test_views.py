@@ -868,7 +868,11 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
 
         # Unchecked textboxes have no data sent to the backend
         # Data cannot be empty as we will be submitting the csrf token
-        response = self.client.post(self.molo_survey_page.url + '?p=2', {'csrf': 'dummy'}, follow=True)
+        response = self.client.post(
+            self.molo_survey_page.url + '?p=2',
+            {'csrf': 'dummy'},
+            follow=True,
+        )
 
         self.assertContains(response, self.molo_survey_page.title)
         self.assertNotContains(response, self.molo_survey_form_field.label)

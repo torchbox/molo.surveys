@@ -100,12 +100,17 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
                     if len(data['skip_logic']) != 2:
                         self.add_form_field_error(
                             'field_type',
-                            _('Checkbox type questions must have 2 Answer Options: a True and False'),
+                            _('Checkbox type questions must have 2 Answer '
+                              'Options: a True and False'),
                         )
                 elif data['field_type'] in VALID_SKIP_LOGIC:
                     for i, logic in enumerate(data['skip_logic']):
                         if not logic.value['choice']:
-                            self.add_stream_field_error(i, 'choice', _('This field is required.'))
+                            self.add_stream_field_error(
+                                i,
+                                'choice',
+                                _('This field is required.'),
+                            )
 
                 for i, logic in enumerate(data['skip_logic']):
                     if logic.value['skip_logic'] == SkipState.SURVEY:
