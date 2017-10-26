@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('taggit', '0002_auto_20150616_2121'),
         ('wagtail_personalisation', '0012_remove_personalisablepagemetadata_is_segmented'),
-        ('surveys', '0012_add_terms_and_conditions_page'),
+        ('surveys', '0015_add_choices_to_skip_logic'),
     ]
 
     operations = [
