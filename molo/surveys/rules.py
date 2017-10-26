@@ -25,7 +25,7 @@ def __ordered_subclasses__(cls):
     subclasses = cls.__old_subclasses__()
     for i, item in enumerate(subclasses):
         if not hasattr(item, 'order'):
-            item.order = (i + 1)*100
+            item.order = (i + 1) * 100
 
     return sorted(subclasses, key=attrgetter('order'))
 
