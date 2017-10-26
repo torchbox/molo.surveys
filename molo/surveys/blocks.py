@@ -19,7 +19,9 @@ class SkipState:
 VALID_SKIP_SELECTORS = ['radio', 'checkbox', 'dropdown']
 
 
+
 VALID_SKIP_LOGIC = VALID_SKIP_SELECTORS + ['checkboxes']
+
 
 
 class SkipLogicField(StreamField):
@@ -28,6 +30,7 @@ class SkipLogicField(StreamField):
         kwargs.update({
             'verbose_name': _('Answer options'),
             'blank': True,
+
             # Help text is used to display a message for a specific field type.
             # If different help text is required each type might need to be
             # wrapped in a <div id="<field-type>-helptext"> for the frontend

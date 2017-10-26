@@ -12,6 +12,7 @@ class SkipLogicPaginator(Paginator):
     def __init__(self, object_list, data=dict()):
         # Create a mutatable version of the query data
         self.data = data.copy()
+
         super(SkipLogicPaginator, self).__init__(object_list, per_page=1)
         self.skip_indexes = [
             i + 1 for i, field in enumerate(self.object_list)
