@@ -14,7 +14,11 @@ from molo.surveys.models import SurveysIndexPage
 
 
 from ..models import PersonalisableSurveyFormField, PersonalisableSurvey
-from ..rules import ArticleTagRule, SurveySubmissionDataRule, GroupMembershipRule
+from ..rules import (
+    ArticleTagRule,
+    GroupMembershipRule,
+    SurveySubmissionDataRule,
+)
 
 
 @pytest.mark.django_db
