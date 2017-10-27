@@ -29,11 +29,12 @@ class SkipLogicField(StreamField):
             'verbose_name': _('Answer options'),
             'blank': True,
             # Help text is used to display a message for a specific field type.
-            # If different help text is required each type might need to be wrapped
-            # in a <div id="<field-type>-helptext"> for the frontend
+            # If different help text is required each type might need to be
+            # wrapped in a <div id="<field-type>-helptext"> for the frontend
             'help_text': mark_safe(
                 '<strong>{}</strong>'.format(
-                    _('Checkbox must include only 2 Answer Options. True and False in that order.')
+                    _('Checkbox must include only 2 Answer Options. '
+                      'True and False in that order.')
                 )
             )
         })

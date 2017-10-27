@@ -72,9 +72,15 @@ class SkipLogicPaginator(Paginator):
             if question.field_type == 'checkbox' and
             question.clean_name not in self.data
         ]
-        answered.extend(question_labels.index(checkbox.clean_name) for checkbox in answered_check_boxes)
+        answered.extend(
+            question_labels.index(checkbox.clean_name)
+            for checkbox in answered_check_boxes
+        )
         # add the missing data
-        self.data.update({checkbox.clean_name: 'off' for checkbox in answered_check_boxes})
+        self.data.update({
+            checkbox.clean_name: 'off'
+            for checkbox in answered_check_boxes
+        })
         return answered
 
     @cached_property
