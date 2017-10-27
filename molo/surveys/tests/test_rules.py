@@ -6,6 +6,7 @@ from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory
+from django.utils import timezone
 from wagtail_personalisation.adapters import get_segment_adapter
 
 from molo.core.models import ArticlePage, ArticlePageTags, SectionPage, Tag
@@ -241,7 +242,11 @@ class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
         return new_article
 
     def test_user_visits_page_with_tag(self):
-        rule = ArticleTagRule(tag=self.tag, count=1)
+        rule = ArticleTagRule(
+            operator=ArticleTagRule.EQUALS,
+            tag=self.tag,
+            count=1,
+        )
 
         self.adapter.add_page_visit(self.article)
 
@@ -253,7 +258,11 @@ class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
         self.assertFalse(rule.test_user(self.request))
 
     def test_user_visits_page_twice_tag_not_duplicated(self):
-        rule = ArticleTagRule(tag=self.tag, count=1)
+        rule = ArticleTagRule(
+            operator=ArticleTagRule.EQUALS,
+            tag=self.tag,
+            count=1,
+        )
 
         self.adapter.add_page_visit(self.article)
         self.adapter.add_page_visit(self.article)
@@ -264,7 +273,9 @@ class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
         rule = ArticleTagRule(
             tag=self.tag,
             count=1,
-            date_to=datetime.datetime.now() - datetime.timedelta(days=1),
+            date_to=timezone.make_aware(
+                datetime.datetime.now() - datetime.timedelta(days=1)
+            ),
         )
 
         self.adapter.add_page_visit(self.article)
@@ -274,6 +285,7 @@ class TestArticleTagRuleSegmentation(TestCase, MoloTestCaseMixin):
 
     def test_user_visits_two_different_pages_same_tag(self):
         rule = ArticleTagRule(
+            operator=ArticleTagRule.EQUALS,
             tag=self.tag,
             count=2,
         )
