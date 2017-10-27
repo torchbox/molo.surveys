@@ -28,7 +28,7 @@
     };
 
     window.allQuestions = function(id) {
-        var allQuestions = $(questionSelector(id));
+        var allQuestions = $(questionSelector(id)).not('.deleted');
         allQuestions = $.map(allQuestions, addHelperMethods);
         return allQuestions;
     };
@@ -80,6 +80,8 @@
                 var opts = {};
                 if (typeof nativeEvent == "undefined") {
                     opts.nativeHandler = function(event){
+                        // Event was bound after we bind our click
+                        // so defer accessing it until it exists
                         var nativeEvent = $._data(element[0], 'events');
                         nativeEvent.click[1].handler(event);
                     };
@@ -90,7 +92,9 @@
                 element.click(function(event) {
                     event.stopImmediatePropagation();
                     var shouldEnd = false;
-                    for (let question of allQuestions(splitPrefix[0])) {
+                    var questions = allQuestions(splitPrefix[0]);
+                    opts.questionOrder = questions.map(question => question.sortOrder());
+                    for (let question of questions) {
                         if (!shouldEnd && question.sortOrder() !== thisQuestion.sortOrder()) {
                             shouldEnd = cb.bind(opts)(event, question);
                         }
@@ -147,13 +151,16 @@
             wrapAction(questionUp, function(event, question) {
                 var sortOrder = thisQuestion.sortOrder();
                 var targetSortOrder = question.sortOrder();
-                if ( targetSortOrder + 1 == sortOrder) {
+                var questionIndex = this.questionOrder.indexOf(sortOrder);
+                if ( this.questionOrder[questionIndex - 1]  == targetSortOrder ) {
                     if ( question.hasSelected(sortOrder) ) {
                         var questionLabel = question.label().val();
                         alert(`Cannot move above "${questionLabel}", please change the logic.`);
                         return true;
                     } else {
                         question.filterSelectors(sortOrder).remove();
+                        // There is a bug in wagtail preventing ordering past deleted elements
+                        // fixed in 1.13
                         this.nativeHandler(event);
                         swapSortOrder(sortOrder, targetSortOrder);
                         return true;
@@ -163,7 +170,8 @@
             wrapAction(questionDown, function(event, question) {
                 var sortOrder = thisQuestion.sortOrder();
                 var targetSortOrder = question.sortOrder();
-                if ( targetSortOrder - 1 == sortOrder) {
+                var questionIndex = this.questionOrder.indexOf(sortOrder);
+                if ( this.questionOrder[questionIndex + 1]  == targetSortOrder) {
                     if ( thisQuestion.hasSelected(targetSortOrder) ) {
                         var questionLabel = question.label().val();
                         alert(`Cannot move below "${questionLabel}", please change the logic.`);
