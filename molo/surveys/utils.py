@@ -10,7 +10,8 @@ from .blocks import SkipState
 
 class SkipLogicPaginator(Paginator):
     def __init__(self, object_list, data=dict()):
-        self.data = data
+        # Create a mutatable version of the query data
+        self.data = data.copy()
         super(SkipLogicPaginator, self).__init__(object_list, per_page=1)
         self.skip_indexes = [
             i + 1 for i, field in enumerate(self.object_list)
@@ -59,10 +60,28 @@ class SkipLogicPaginator(Paginator):
         question_labels = [
             question.clean_name for question in self.object_list
         ]
-        return [
+        answered = [
             question_labels.index(question) for question in self.data
             if question in question_labels
         ]
+        # Add in any checkboxes that we missed
+        max_answered = max(answered or [self.skip_indexes[1]])
+        answered_check_boxes = [
+            question
+            for question in self.object_list[:max_answered]
+            if question.field_type == 'checkbox' and
+            question.clean_name not in self.data
+        ]
+        answered.extend(
+            question_labels.index(checkbox.clean_name)
+            for checkbox in answered_check_boxes
+        )
+        # add the missing data
+        self.data.update({
+            checkbox.clean_name: 'off'
+            for checkbox in answered_check_boxes
+        })
+        return answered
 
     @cached_property
     def first_last_question_index(self):

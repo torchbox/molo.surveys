@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from django.utils.safestring import mark_safe
 
 from wagtail.wagtailadmin.edit_handlers import StreamFieldPanel
 from wagtail.wagtailcore import blocks
@@ -18,12 +19,24 @@ class SkipState:
 VALID_SKIP_SELECTORS = ['radio', 'checkbox', 'dropdown']
 
 
+VALID_SKIP_LOGIC = VALID_SKIP_SELECTORS + ['checkboxes']
+
+
 class SkipLogicField(StreamField):
     def __init__(self, *args, **kwargs):
         args = [SkipLogicStreamBlock([('skip_logic', SkipLogicBlock())])]
         kwargs.update({
             'verbose_name': _('Answer options'),
             'blank': True,
+            # Help text is used to display a message for a specific field type.
+            # If different help text is required each type might need to be
+            # wrapped in a <div id="<field-type>-helptext"> for the frontend
+            'help_text': mark_safe(
+                '<strong>{}</strong>'.format(
+                    _('Checkbox must include only 2 Answer Options. '
+                      'True and False in that order.')
+                )
+            )
         })
         super(SkipLogicField, self).__init__(*args, **kwargs)
 
@@ -76,7 +89,7 @@ class QuestionSelectBlock(blocks.IntegerBlock):
 
 
 class SkipLogicBlock(blocks.StructBlock):
-    choice = blocks.CharBlock()
+    choice = blocks.CharBlock(required=False)
     skip_logic = blocks.ChoiceBlock(
         choices=[
             (SkipState.NEXT, _('Next default question')),
