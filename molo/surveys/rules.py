@@ -229,9 +229,7 @@ class SurveySubmissionDataRule(AbstractBaseRule):
 
 class GroupMembershipRule(AbstractBaseRule):
     """wagtail-personalisation rule based on user's group membership."""
-    group = models.ForeignKey('auth.Group', on_delete=models.PROTECT,
-                              help_text=_('User must be part of this group to '
-                                          'activate the rule.'))
+    group = models.ForeignKey('surveys.segmentusergroup')
 
     panels = [
         FieldPanel('group')
@@ -252,4 +250,4 @@ class GroupMembershipRule(AbstractBaseRule):
             return False
 
         # Check whether user is part of a group
-        return request.user.groups.filter(id=self.group_id).exists()
+        return request.user.segment_groups.filter(id=self.group_id).exists()
