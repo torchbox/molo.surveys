@@ -92,7 +92,13 @@ class CSVGroupCreationForm(forms.ModelForm):
 class BaseMoloSurveyForm(WagtailAdminPageForm):
     def clean(self):
         cleaned_data = super(BaseMoloSurveyForm, self).clean()
+
+        question_data = {}
         for form in self.formsets[self.form_field_name]:
+            form.is_valid()
+            question_data[form.cleaned_data['ORDER']] = form
+
+        for form in question_data.values():
             self._clean_errors = {}
             if form.is_valid():
                 data = form.cleaned_data
@@ -121,8 +127,9 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
                         questions = (
                             getattr(self.instance, self.form_field_name)
                         )
-                        question = questions.get(sort_order=sort_order)
-                        self.clean_question(i, data['segment'], question)
+                        question = question_data[form.cleaned_data['ORDER']].cleaned_data
+                        if 'segment' in data and 'segment' in question:
+                            self.clean_question(i, data['segment'], question['segment'])
                 if self.clean_errors:
                     form._errors = self.clean_errors
 
@@ -234,10 +241,9 @@ class PersonalisableMoloSurveyForm(BaseMoloSurveyForm):
         'check_question_segment_ok',
     ]
 
-    def check_question_segment_ok(self, current_segment, linked_question):
-        segment = linked_question.segment
+    def check_question_segment_ok(self, current_segment, linked_segment):
         # Cannot link from None to segment, but can link from segment to None
-        if (segment and not current_segment) or (segment != current_segment):
+        if (linked_segment and not current_segment) or (linked_segment != current_segment):
             return _('Cannot link to a question with a different segment.')
 
     def check_survey_link_valid(self, survey):
