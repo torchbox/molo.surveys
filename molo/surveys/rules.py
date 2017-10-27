@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 from django import forms
 from django.apps import apps
 from django.core.exceptions import ValidationError
@@ -11,13 +13,32 @@ from wagtail.wagtailadmin.edit_handlers import (
     FieldRowPanel,
     PageChooserPanel,
 )
-
 from wagtail_personalisation.adapters import get_segment_adapter
-from wagtail_personalisation.rules import AbstractBaseRule
+from wagtail_personalisation.rules import AbstractBaseRule, VisitCountRule
 
 from molo.core.models import ArticlePageTags
 
 from .edit_handlers import TagPanel
+
+
+# Filer the Visit Count Page only by articles
+VisitCountRule._meta.verbose_name = 'Page Visit Count Rule'
+
+
+# Add ordering to the base class
+AbstractBaseRule.__old_subclasses__ = AbstractBaseRule.__subclasses__
+
+
+def __ordered_subclasses__(cls):
+    subclasses = cls.__old_subclasses__()
+    for i, item in enumerate(subclasses):
+        if not hasattr(item, 'order'):
+            item.order = (i + 1) * 100
+
+    return sorted(subclasses, key=attrgetter('order'))
+
+
+AbstractBaseRule.__subclasses__ = classmethod(__ordered_subclasses__)
 
 
 class SurveySubmissionDataRule(AbstractBaseRule):
