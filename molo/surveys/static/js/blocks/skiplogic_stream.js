@@ -78,9 +78,17 @@
             var wrapAction = function (element, cb) {
                 var nativeEvent = $._data(element[0], 'events');
                 var opts = {};
-                opts.nativeHandler = nativeEvent.click[0].handler;
+                if (typeof nativeEvent == "undefined") {
+                    opts.nativeHandler = function(event){
+                        var nativeEvent = $._data(element[0], 'events');
+                        nativeEvent.click[1].handler(event);
+                    };
+                } else {
+                    opts.nativeHandler = nativeEvent.click[0].handler;
+                }
                 element.unbind('click', opts.nativeHandler);
                 element.click(function(event) {
+                    event.stopImmediatePropagation();
                     var shouldEnd = false;
                     for (let question of allQuestions(splitPrefix[0])) {
                         if (!shouldEnd && question.sortOrder() !== thisQuestion.sortOrder()) {
@@ -95,68 +103,84 @@
                 allQuestionSelectors().find(`option[value=${sortOrder}]`).text(event.target.value);
             });
 
+            var wrapAddQuestion = function() {
+                var addQuestion = $('[id$="' + splitPrefix[0] + '-ADD"]');
+                var nativeEvent = $._data(addQuestion[0], 'events');
+                var nativeHandler = nativeEvent.click[0].handler;
+                addQuestion.unbind('click', nativeHandler);
+
+                addQuestion.click(function (event) {
+                    nativeHandler(event);
+                    var latestQuestion = allQuestions(splitPrefix[0]).pop();
+                    var sortOrder = latestQuestion.sortOrder();
+                    var label = `[ Please update question ${sortOrder}]`;
+                    thisQuestion.questionSelectors().append(
+                        `<option value="${sortOrder}">${label}</option>`
+                    );
+                });
+            };
+
+            wrapAddQuestion();
+
             var swapSortOrder = function (from, to) {
-                var fromSelectors = allQuestionSelectors().filterSelectors(from);
-                var toSelectors = allQuestionSelectors().filterSelectors(to);
+                var fromSelectors = allQuestionSelectors().find(`option[value=${from}]`);
+                var toSelectors = allQuestionSelectors().find(`option[value=${to}]`);
                 fromSelectors.val(to);
                 toSelectors.val(from);
             };
 
-            // If this is a new element it wont have any questions to link to so dont need to handle logic
-            if (thisQuestion.sortOrder()) {
-                var questionUp = thisQuestion.find('[id$="-move-up"]');
-                var questionDown = thisQuestion.find('[id$="-move-down"]');
-                var questionDelete = thisQuestion.find('[id$="-DELETE-button"]');
+            var questionUp = thisQuestion.find('[id$="-move-up"]');
+            var questionDown = thisQuestion.find('[id$="-move-down"]');
+            var questionDelete = thisQuestion.find('[id$="-DELETE-button"]');
 
-                wrapAction(questionDelete, function(event, question) {
-                    var sortOrder = thisQuestion.sortOrder();
+            wrapAction(questionDelete, function(event, question) {
+                var sortOrder = thisQuestion.sortOrder();
+                if ( question.hasSelected(sortOrder) ) {
+                    var questionLabel = question.label().val();
+                    alert(`Cannot delete, referenced by skip logic in question "${questionLabel}".`);
+                    return true;
+                } else {
+                    this.nativeHandler(event);
+                    question.filterSelectors(sortOrder).remove();
+                }
+            });
+            wrapAction(questionUp, function(event, question) {
+                var sortOrder = thisQuestion.sortOrder();
+                var targetSortOrder = question.sortOrder();
+                if ( targetSortOrder + 1 == sortOrder) {
                     if ( question.hasSelected(sortOrder) ) {
                         var questionLabel = question.label().val();
-                        alert(`Cannot delete, referenced by skip logic in question "${questionLabel}".`);
+                        alert(`Cannot move above "${questionLabel}", please change the logic.`);
                         return true;
                     } else {
-                        this.nativeHandler(event);
                         question.filterSelectors(sortOrder).remove();
+                        this.nativeHandler(event);
+                        swapSortOrder(sortOrder, targetSortOrder);
+                        return true;
                     }
-                });
-                wrapAction(questionUp, function(event, question) {
-                    var sortOrder = thisQuestion.sortOrder();
-                    var targetSortOrder = question.sortOrder();
-                    if ( targetSortOrder + 1 == sortOrder) {
-                        if ( question.hasSelected(sortOrder) ) {
-                            var questionLabel = question.label().val();
-                            alert(`Cannot move above "${questionLabel}", please change the logic.`);
-                            return true;
-                        } else {
-                            question.filterSelectors(sortOrder).remove();
-                            this.nativeHandler(event);
-                            swapSortOrder(sortOrder, targetSortOrder);
-                            return true;
-                        }
-                    }
-                });
-                wrapAction(questionDown, function(event, question) {
-                    var sortOrder = thisQuestion.sortOrder();
-                    var targetSortOrder = question.sortOrder();
-                    if ( targetSortOrder - 1 == sortOrder) {
-                        if ( thisQuestion.hasSelected(targetSortOrder) ) {
-                            var questionLabel = question.label().val();
-                            alert(`Cannot move below "${questionLabel}", please change the logic.`);
-                            return true;
-                        } else {
-                            thisQuestion.filterSelectors(targetSortOrder).remove();
-                            this.nativeHandler(event);
-                            swapSortOrder(sortOrder, targetSortOrder);
+                }
+            });
+            wrapAction(questionDown, function(event, question) {
+                var sortOrder = thisQuestion.sortOrder();
+                var targetSortOrder = question.sortOrder();
+                if ( targetSortOrder - 1 == sortOrder) {
+                    if ( thisQuestion.hasSelected(targetSortOrder) ) {
+                        var questionLabel = question.label().val();
+                        alert(`Cannot move below "${questionLabel}", please change the logic.`);
+                        return true;
+                    } else {
+                        thisQuestion.filterSelectors(targetSortOrder).remove();
+                        this.nativeHandler(event);
+                        swapSortOrder(sortOrder, targetSortOrder);
 
-                            var label = thisQuestion.label().val();
-                            question.questionSelectors().prepend(
-                                `<option value="${sortOrder}">${label}</option>`
-                            );
-                            return true;
-                        }
+                        var label = thisQuestion.label().val();
+                        question.questionSelectors().prepend(
+                            `<option value="${sortOrder}">${label}</option>`
+                        );
+                        return true;
                     }
-                });
-            }
+                }
+            });
         };
     };
 })(jQuery);
