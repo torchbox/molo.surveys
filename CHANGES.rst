@@ -4,6 +4,7 @@ CHANGE LOG
 Upcoming
 --------
 
+- Added Article Tag Rule to allow segmenting on article visits
 - Added ability to skip questions and surveys based on user's response
 
 5.6.4

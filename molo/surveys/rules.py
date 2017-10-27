@@ -8,10 +8,13 @@ from django.utils import six
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-from wagtail.wagtailadmin.edit_handlers import FieldPanel, PageChooserPanel
-
+from wagtail.wagtailadmin.edit_handlers import (
+    FieldPanel,
+    FieldRowPanel,
+    PageChooserPanel,
+)
+from wagtail_personalisation.adapters import get_segment_adapter
 from wagtail_personalisation.rules import AbstractBaseRule, VisitCountRule
-
 
 # Filer the Visit Count Page only by articles
 VisitCountRule._meta.verbose_name = 'Page Visit Count Rule'
@@ -31,6 +34,11 @@ def __ordered_subclasses__(cls):
 
 
 AbstractBaseRule.__subclasses__ = classmethod(__ordered_subclasses__)
+
+
+from molo.core.models import ArticlePageTags
+
+from .edit_handlers import TagPanel
 
 
 class SurveySubmissionDataRule(AbstractBaseRule):
@@ -253,3 +261,110 @@ class GroupMembershipRule(AbstractBaseRule):
 
         # Check whether user is part of a group
         return request.user.groups.filter(id=self.group_id).exists()
+
+
+class ArticleTagRule(AbstractBaseRule):
+    order = 410
+    EQUALS = 'eq'
+    GREATER_THAN = 'gt'
+    LESS_THAN = 'lt'
+
+    OPERATORS = {
+        EQUALS: lambda a, b: a == b,
+        GREATER_THAN: lambda a, b: a > b,
+        LESS_THAN: lambda a, b: a < b,
+    }
+
+    OPERATOR_CHOICES = (
+        (GREATER_THAN, _('more than')),
+        (LESS_THAN, _('less than')),
+        (EQUALS, _('equal to')),
+    )
+
+    tag = models.ForeignKey(
+        'core.Tag',
+        on_delete=models.CASCADE,
+        help_text=_(
+            'The number in the bracket indicates the number of articles '
+            'that have the tag.'
+        )
+    )
+
+    operator = models.CharField(
+        _('operator'),
+        max_length=3,
+        choices=OPERATOR_CHOICES,
+        default=GREATER_THAN,
+    )
+    count = models.PositiveIntegerField()
+
+    # Naive datetimes as we are not storing the datetime based on the users
+    # timezone.
+    date_from = models.DateTimeField(blank=True, null=True)
+    date_to = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text=_(
+            'All times are UTC. Leave both fields blank to search all time.'
+        ),
+    )
+
+    panels = [
+        TagPanel('tag'),
+        FieldRowPanel(
+            [
+                FieldPanel('operator'),
+                FieldPanel('count'),
+            ]
+        ),
+        FieldPanel('date_from'),
+        FieldPanel('date_to'),
+    ]
+
+    class Meta:
+        verbose_name = _('Article tag rule')
+
+    def clean(self):
+        super(ArticleTagRule, self).clean()
+        if self.date_from and self.date_to:
+            if self.date_from > self.date_to:
+                raise ValidationError(
+                    {
+                        'date_from': [_('Date from must be before date to.')],
+                        'date_to': [_('Date from must be before date to.')],
+                    }
+                )
+
+        if hasattr(self, 'tag'):
+            if self.count > ArticlePageTags.objects.filter(
+                    tag=self.tag
+            ).count():
+                raise ValidationError(
+                    {
+                        'count': [_(
+                            'Count can not exceed the number of articles.'
+                        )],
+                    }
+                )
+
+    def test_user(self, request):
+        operator = self.OPERATORS[self.operator]
+        adapter = get_segment_adapter(request)
+        visit_count = adapter.get_tag_count(
+            self.tag,
+            self.date_from,
+            self.date_to,
+        )
+
+        return operator(visit_count, self.count)
+
+    def description(self):
+        return {
+            'title': _('These users visited {}').format(
+                self.tag
+            ),
+            'value': _('{} {} times').format(
+                self.get_operator_display(),
+                self.count
+            ),
+        }

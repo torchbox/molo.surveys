@@ -44,11 +44,12 @@ from wagtailsurveys.models import AbstractFormField
 
 from .blocks import SkipLogicField, SkipState, SkipLogicStreamPanel
 from .forms import MoloSurveyForm, PersonalisableMoloSurveyForm
-from .rules import GroupMembershipRule, SurveySubmissionDataRule  # noqa
+from .rules import ArticleTagRule, GroupMembershipRule, SurveySubmissionDataRule  # noqa
 from .utils import SkipLogicPaginator
 
 
 SKIP = 'NA (Skipped)'
+
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
@@ -275,7 +276,7 @@ class MoloSurveyPage(
 
             # Create a form only for submitted step
             prev_form_class = self.get_form_class_for_step(prev_step)
-            prev_form = prev_form_class(request.POST, page=self,
+            prev_form = prev_form_class(paginator.data, page=self,
                                         user=request.user)
             if prev_form.is_valid():
                 # If data for step is valid, update the session
@@ -392,6 +393,8 @@ class SkipLogicMixin(models.Model):
         )
 
     def choice_index(self, choice):
+        if self.field_type == 'checkbox':
+            return ['on', 'off'].index(choice)
         return self.choices.split(',').index(choice)
 
     def next_action(self, choice):
@@ -416,7 +419,8 @@ class SkipLogicMixin(models.Model):
 
     def save(self, *args, **kwargs):
         self.choices = ','.join(
-            choice.value['choice'] for choice in self.skip_logic
+            choice.value['choice'].replace(',', u'\u201A')
+            for choice in self.skip_logic
         )
         return super(SkipLogicMixin, self).save(*args, **kwargs)
 
