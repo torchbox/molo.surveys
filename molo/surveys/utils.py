@@ -81,6 +81,7 @@ class SkipLogicPaginator(Paginator):
             checkbox.clean_name: 'off'
             for checkbox in answered_check_boxes
         })
+
         return answered
 
     @cached_property
