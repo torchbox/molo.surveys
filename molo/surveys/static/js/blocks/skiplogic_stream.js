@@ -160,7 +160,7 @@
                     } else {
                         question.filterSelectors(sortOrder).remove();
                         // There is a bug in wagtail preventing ordering past deleted elements
-                        // fixed in 1.13
+                        // fixed in 1.10 & 1.13
                         this.nativeHandler(event);
                         swapSortOrder(sortOrder, targetSortOrder);
                         return true;
