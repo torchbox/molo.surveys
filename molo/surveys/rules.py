@@ -16,6 +16,11 @@ from wagtail.wagtailadmin.edit_handlers import (
 from wagtail_personalisation.adapters import get_segment_adapter
 from wagtail_personalisation.rules import AbstractBaseRule, VisitCountRule
 
+from molo.core.models import ArticlePageTags
+
+from .edit_handlers import TagPanel
+
+
 # Filer the Visit Count Page only by articles
 VisitCountRule._meta.verbose_name = 'Page Visit Count Rule'
 
@@ -34,11 +39,6 @@ def __ordered_subclasses__(cls):
 
 
 AbstractBaseRule.__subclasses__ = classmethod(__ordered_subclasses__)
-
-
-from molo.core.models import ArticlePageTags
-
-from .edit_handlers import TagPanel
 
 
 class SurveySubmissionDataRule(AbstractBaseRule):
