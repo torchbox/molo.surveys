@@ -7,6 +7,10 @@ Upcoming
 - Added Article Tag Rule to allow segmenting on article visits
 - Added ability to skip questions and surveys based on user's response
 
+5.6.5
+-----
+- Bug Fix: get the correct index page for the correct site when converting YWC to an article
+
 5.6.4
 -----
 - Bug Fix: add yourwords check to surveys list
