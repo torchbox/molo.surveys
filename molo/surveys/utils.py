@@ -13,24 +13,24 @@ class SkipLogicPaginator(Paginator):
         # Create a mutatable version of the query data
         self.data = data.copy()
         super(SkipLogicPaginator, self).__init__(object_list, per_page=1)
-        self.skip_indexes = [
+        self.page_breaks = [
             i + 1 for i, field in enumerate(self.object_list)
             if field.has_skipping
         ]
         num_questions = self.object_list.count()
-        if self.skip_indexes:
-            self.skip_indexes.insert(0, 0)
-            if self.skip_indexes[-1] != num_questions:
-                self.skip_indexes.append(num_questions)
+        if self.page_breaks:
+            self.page_breaks.insert(0, 0)
+            if self.page_breaks[-1] != num_questions:
+                self.page_breaks.append(num_questions)
         else:
-            self.skip_indexes = range(num_questions + 1)
+            self.page_breaks = range(num_questions + 1)
 
     def _get_page(self, *args, **kwargs):
         return SkipLogicPage(*args, **kwargs)
 
     @cached_property
     def num_pages(self):
-        return len(self.skip_indexes) - 1
+        return len(self.page_breaks) - 1
 
     @cached_property
     def next_question_index(self):
@@ -51,7 +51,7 @@ class SkipLogicPaginator(Paginator):
     @cached_property
     def next_question_page(self):
         return next(
-            i for i, v in enumerate(self.skip_indexes)
+            i for i, v in enumerate(self.page_breaks)
             if v > self.next_question_index
         )
 
@@ -65,7 +65,7 @@ class SkipLogicPaginator(Paginator):
             if question in question_labels
         ]
         # Add in any checkboxes that we missed
-        max_answered = max(answered or [self.skip_indexes[1]])
+        max_answered = max(answered or [self.page_breaks[1]])
         answered_check_boxes = [
             question
             for question in self.object_list[:max_answered]
@@ -98,7 +98,7 @@ class SkipLogicPaginator(Paginator):
     @cached_property
     def previous_question_page(self):
         return next(
-            i for i, v in enumerate(self.skip_indexes)
+            i for i, v in enumerate(self.page_breaks)
             if v > self.last_question_index
         )
 
@@ -107,8 +107,8 @@ class SkipLogicPaginator(Paginator):
         index = number - 1
         if not self.data:
             top_index = index + self.per_page
-            bottom = self.skip_indexes[index]
-            top = self.skip_indexes[top_index]
+            bottom = self.page_breaks[index]
+            top = self.page_breaks[top_index]
         elif self.previous_question_page == number:
             bottom = self.first_last_question_index
             top = self.last_question_index + 1
@@ -116,7 +116,7 @@ class SkipLogicPaginator(Paginator):
             index = self.next_question_page - 1
             bottom = self.next_question_index
             top_index = index + self.per_page
-            top = self.skip_indexes[top_index]
+            top = self.page_breaks[top_index]
         return self._get_page(self.object_list[bottom:top], index + 1, self)
 
 
