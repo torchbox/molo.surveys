@@ -882,3 +882,49 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
         )
         self.assertNotContains(response, self.molo_survey_page.submit_text)
         self.assertContains(response, self.molo_survey_page.thank_you_text)
+
+
+    def test_skip_logic_missed_required_with_checkbox(self):
+        self.skip_logic_form_field.field_type = 'checkbox'
+        self.skip_logic_form_field.skip_logic = skip_logic_data(
+            ['', ''],
+            [self.choices[3], self.choices[2]], # question, survey
+            survey=self.another_molo_survey_page,
+            question=self.last_molo_survey_form_field,
+        )
+        self.skip_logic_form_field.save()
+
+        # Skip a required question
+        response = self.client.post(
+            self.molo_survey_page.url + '?p=2',
+            {self.skip_logic_form_field.clean_name: 'on'},
+            follow=True,
+        )
+
+        self.assertSurveyAndQuestions(
+            response,
+            self.molo_survey_page,
+            [self.last_molo_survey_form_field]
+        )
+        self.assertNotContains(response, self.skip_logic_form_field.label)
+        self.assertNotContains(response, self.molo_survey_form_field.label)
+        self.assertContains(response, self.molo_survey_page.submit_text)
+
+        # Dont answer last required question: tigger error messages
+        response = self.client.post(
+            self.molo_survey_page.url + '?p=3',
+            {self.last_molo_survey_form_field.clean_name: ''},
+            follow=True,
+        )
+
+        # Go back to the same page with validation errors showing
+        self.assertSurveyAndQuestions(
+            response,
+            self.molo_survey_page,
+            [self.last_molo_survey_form_field]
+        )
+        self.assertContains(response, 'required')
+        self.assertNotContains(response, self.skip_logic_form_field.label)
+        self.assertNotContains(response, self.molo_survey_form_field.label)
+        self.assertContains(response, self.molo_survey_page.submit_text)
+
