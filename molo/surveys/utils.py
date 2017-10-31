@@ -65,6 +65,13 @@ class SkipLogicPaginator(Paginator):
             if break_index > self.next_question_index
         )
 
+    @cached_property
+    def previous_page(self):
+        return next(
+            page for page, break_index in enumerate(self.page_breaks)
+            if break_index > self.last_question_index
+        )
+
     def answer_indexed(self, data):
         return [
             self.question_labels.index(question) for question in data
@@ -105,23 +112,16 @@ class SkipLogicPaginator(Paginator):
         return answered
 
     @cached_property
-    def first_last_question_index(self):
+    def first_question_index(self):
         if self.answered_indexes:
             return min(self.answered_indexes)
-        return 0
+        return self.page_breaks[0]
 
     @cached_property
     def last_question_index(self):
         if self.answered_indexes:
             return max(self.answered_indexes)
-        return 0
-
-    @cached_property
-    def previous_page(self):
-        return next(
-            page for page, break_index in enumerate(self.page_breaks)
-            if break_index > self.last_question_index
-        )
+        return self.page_breaks[0]
 
     def page(self, number):
         number = self.validate_number(number)
@@ -131,7 +131,7 @@ class SkipLogicPaginator(Paginator):
             bottom = self.page_breaks[index]
             top = self.page_breaks[top_index]
         elif self.previous_page == number:
-            bottom = self.first_last_question_index
+            bottom = self.first_question_index
             top = self.last_question_index + 1
         else:
             index = self.next_page - 1
