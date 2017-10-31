@@ -11,7 +11,7 @@ from .blocks import SkipState
 class SkipLogicPaginator(Paginator):
     def __init__(self, object_list, data=dict(), answered=dict()):
         # Create a mutatable version of the query data
-        self.data = data.copy()
+        self.new_answers = data.copy()
         self.answered = answered
         super(SkipLogicPaginator, self).__init__(object_list, per_page=1)
         self.question_labels = [
@@ -51,8 +51,8 @@ class SkipLogicPaginator(Paginator):
 
     @cached_property
     def next_question_index(self):
-        if self.data:
-            return self.next_question_from_previous_index(self.last_question_index, self.data)
+        if self.new_answers:
+            return self.next_question_from_previous_index(self.last_question_index, self.new_answers)
         return 0
 
     @cached_property
@@ -70,7 +70,7 @@ class SkipLogicPaginator(Paginator):
 
     @cached_property
     def answered_indexes(self):
-        answered = self.answer_indexed(self.data)
+        answered = self.answer_indexed(self.new_answers)
         # Add in any checkboxes that we missed
         max_answered = max(answered or [self.page_breaks[1]])
 
@@ -85,14 +85,14 @@ class SkipLogicPaginator(Paginator):
             question
             for question in self.object_list[min_answered:max_answered]
             if question.field_type == 'checkbox' and
-            question.clean_name not in self.data
+            question.clean_name not in self.new_answers
         ]
         answered.extend(
             self.question_labels.index(checkbox.clean_name)
             for checkbox in answered_check_boxes
         )
         # add the missing data
-        self.data.update({
+        self.new_answers.update({
             checkbox.clean_name: 'off'
             for checkbox in answered_check_boxes
         })
@@ -120,7 +120,7 @@ class SkipLogicPaginator(Paginator):
     def page(self, number):
         number = self.validate_number(number)
         index = number - 1
-        if not self.data:
+        if not self.new_answers:
             top_index = index + self.per_page
             bottom = self.page_breaks[index]
             top = self.page_breaks[top_index]
