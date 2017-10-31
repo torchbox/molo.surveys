@@ -9,10 +9,14 @@ from .blocks import SkipState
 
 
 class SkipLogicPaginator(Paginator):
-    def __init__(self, object_list, data=dict()):
+    def __init__(self, object_list, data=dict(), answered=dict()):
         # Create a mutatable version of the query data
         self.data = data.copy()
+        self.answered = answered
         super(SkipLogicPaginator, self).__init__(object_list, per_page=1)
+        self.question_labels = [
+            question.clean_name for question in self.object_list
+        ]
         self.page_breaks = [
             i + 1 for i, field in enumerate(self.object_list)
             if field.has_skipping
@@ -32,20 +36,23 @@ class SkipLogicPaginator(Paginator):
     def num_pages(self):
         return len(self.page_breaks) - 1
 
+    def next_question_from_previous_index(self, index, data):
+        question_ids = [
+            question.sort_order for question in self.object_list
+        ]
+        last_question = self.object_list[index]
+        last_answer = data[last_question.clean_name]
+        if last_question.is_next_action(last_answer, SkipState.QUESTION):
+            # Sorted or is 0 based in the backend and 1 on the front
+            next_question_id = last_question.next_page(last_answer) - 1
+            return question_ids.index(next_question_id)
+
+        return index + 1
+
     @cached_property
     def next_question_index(self):
         if self.data:
-            question_ids = [
-                question.sort_order for question in self.object_list
-            ]
-            last_question = self.object_list[self.last_question_index]
-            last_answer = self.data[last_question.clean_name]
-            if last_question.is_next_action(last_answer, SkipState.QUESTION):
-                # Sorted or is 0 based in the backend and 1 on the front
-                next_question_id = last_question.next_page(last_answer) - 1
-                return question_ids.index(next_question_id)
-            else:
-                return self.last_question_index + 1
+            return self.next_question_from_previous_index(self.last_question_index, self.data)
         return 0
 
     @cached_property
@@ -55,25 +62,33 @@ class SkipLogicPaginator(Paginator):
             if v > self.next_question_index
         )
 
+    def answer_indexed(self, data):
+        return [
+            self.question_labels.index(question) for question in data
+            if question in self.question_labels
+        ]
+
     @cached_property
     def answered_indexes(self):
-        question_labels = [
-            question.clean_name for question in self.object_list
-        ]
-        answered = [
-            question_labels.index(question) for question in self.data
-            if question in question_labels
-        ]
+        answered = self.answer_indexed(self.data)
         # Add in any checkboxes that we missed
         max_answered = max(answered or [self.page_breaks[1]])
+
+        if self.answered:
+            previous_answers = self.answer_indexed(self.answered)
+            max_previous_answered = max(previous_answers or [self.page_breaks[0]])
+            min_answered = self.next_question_from_previous_index(max_previous_answered, self.answered)
+        else:
+            min_answered = 0
+
         answered_check_boxes = [
             question
-            for question in self.object_list[:max_answered]
+            for question in self.object_list[min_answered:max_answered]
             if question.field_type == 'checkbox' and
             question.clean_name not in self.data
         ]
         answered.extend(
-            question_labels.index(checkbox.clean_name)
+            self.question_labels.index(checkbox.clean_name)
             for checkbox in answered_check_boxes
         )
         # add the missing data
