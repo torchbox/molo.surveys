@@ -19,7 +19,7 @@ class SkipLogicPaginator(Paginator):
         ]
         self.page_breaks = [
             i + 1 for i, field in enumerate(self.object_list)
-            if field.has_skipping
+            if field.has_skipping or field.page_break
         ]
         num_questions = self.object_list.count()
         if self.page_breaks:
