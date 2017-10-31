@@ -252,9 +252,15 @@ class MoloSurveyPage(
         When the last step is submitted correctly, the whole form is saved in
         the DB.
         """
-        paginator = SkipLogicPaginator(self.get_form_fields(), request.POST)
-
         session_key_data = 'survey_data-%s' % self.pk
+        survey_data = json.loads(request.session.get(session_key_data, '{}'))
+
+        paginator = SkipLogicPaginator(
+            self.get_form_fields(),
+            request.POST,
+            survey_data,
+        )
+
         is_last_step = False
         step_number = request.GET.get('p', 1)
 
@@ -275,12 +281,10 @@ class MoloSurveyPage(
 
             # Create a form only for submitted step
             prev_form_class = self.get_form_class_for_step(prev_step)
-            prev_form = prev_form_class(paginator.data, page=self,
+            prev_form = prev_form_class(paginator.new_answers, page=self,
                                         user=request.user)
             if prev_form.is_valid():
                 # If data for step is valid, update the session
-                survey_data = json.loads(
-                    request.session.get(session_key_data, '{}'))
                 survey_data.update(prev_form.cleaned_data)
                 request.session[session_key_data] = json.dumps(
                     survey_data, cls=DjangoJSONEncoder)
@@ -393,7 +397,11 @@ class SkipLogicMixin(models.Model):
 
     def choice_index(self, choice):
         if self.field_type == 'checkbox':
-            return ['on', 'off'].index(choice)
+            # clean checkboxes have True/False
+            try:
+                return ['on', 'off'].index(choice)
+            except ValueError:
+                return [True, False].index(choice)
         return self.choices.split(',').index(choice)
 
     def next_action(self, choice):

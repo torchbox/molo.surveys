@@ -123,13 +123,9 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
                         survey = logic.value['survey']
                         self.clean_survey(i, survey)
                     if logic.value['skip_logic'] == SkipState.QUESTION:
-                        sort_order = logic.value['question'] - 1
-                        questions = (
-                            getattr(self.instance, self.form_field_name)
-                        )
-                        question = question_data[form.cleaned_data['ORDER']].cleaned_data
-                        if 'segment' in data and 'segment' in question:
-                            self.clean_question(i, data['segment'], question['segment'])
+                        target = question_data.get(logic.value['question'])
+                        target_data = target.cleaned_data
+                        self.clean_question(i, data, target_data)
                 if self.clean_errors:
                     form._errors = self.clean_errors
 
@@ -241,9 +237,11 @@ class PersonalisableMoloSurveyForm(BaseMoloSurveyForm):
         'check_question_segment_ok',
     ]
 
-    def check_question_segment_ok(self, current_segment, linked_segment):
+    def check_question_segment_ok(self, question, target):
         # Cannot link from None to segment, but can link from segment to None
-        if (linked_segment and not current_segment) or (linked_segment != current_segment):
+        current_segment = question.get('segment')
+        linked_segment = target.get('segment')
+        if linked_segment and (linked_segment != current_segment):
             return _('Cannot link to a question with a different segment.')
 
     def check_survey_link_valid(self, survey):
