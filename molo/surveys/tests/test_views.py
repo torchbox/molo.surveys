@@ -883,12 +883,11 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
         self.assertNotContains(response, self.molo_survey_page.submit_text)
         self.assertContains(response, self.molo_survey_page.thank_you_text)
 
-
     def test_skip_logic_missed_required_with_checkbox(self):
         self.skip_logic_form_field.field_type = 'checkbox'
         self.skip_logic_form_field.skip_logic = skip_logic_data(
             ['', ''],
-            [self.choices[3], self.choices[2]], # question, survey
+            [self.choices[3], self.choices[2]],  # question, survey
             survey=self.another_molo_survey_page,
             question=self.last_molo_survey_form_field,
         )
@@ -927,4 +926,3 @@ class TestSkipLogicSurveyView(TestCase, MoloTestCaseMixin):
         self.assertNotContains(response, self.skip_logic_form_field.label)
         self.assertNotContains(response, self.molo_survey_form_field.label)
         self.assertContains(response, self.molo_survey_page.submit_text)
-

@@ -52,7 +52,10 @@ class SkipLogicPaginator(Paginator):
     @cached_property
     def next_question_index(self):
         if self.new_answers:
-            return self.next_question_from_previous_index(self.last_question_index, self.new_answers)
+            return self.next_question_from_previous_index(
+                self.last_question_index,
+                self.new_answers,
+            )
         return 0
 
     @cached_property
@@ -76,8 +79,11 @@ class SkipLogicPaginator(Paginator):
 
         if self.answered:
             previous_answers = self.answer_indexed(self.answered)
-            max_previous_answered = max(previous_answers or [self.page_breaks[0]])
-            min_answered = self.next_question_from_previous_index(max_previous_answered, self.answered)
+            max_previous = max(previous_answers or [self.page_breaks[0]])
+            min_answered = self.next_question_from_previous_index(
+                max_previous,
+                self.answered,
+            )
         else:
             min_answered = 0
 
@@ -145,7 +151,7 @@ class SkipLogicPage(Page):
 
     @cached_property
     def last_response(self):
-        return self.paginator.data[self.last_question.clean_name]
+        return self.paginator.new_answers[self.last_question.clean_name]
 
     def is_next_action(self, *actions):
         try:

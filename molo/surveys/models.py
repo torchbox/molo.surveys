@@ -255,7 +255,11 @@ class MoloSurveyPage(
         session_key_data = 'survey_data-%s' % self.pk
         survey_data = json.loads(request.session.get(session_key_data, '{}'))
 
-        paginator = SkipLogicPaginator(self.get_form_fields(), request.POST, survey_data)
+        paginator = SkipLogicPaginator(
+            self.get_form_fields(),
+            request.POST,
+            survey_data,
+        )
 
         is_last_step = False
         step_number = request.GET.get('p', 1)
@@ -277,7 +281,7 @@ class MoloSurveyPage(
 
             # Create a form only for submitted step
             prev_form_class = self.get_form_class_for_step(prev_step)
-            prev_form = prev_form_class(paginator.data, page=self,
+            prev_form = prev_form_class(paginator.new_answers, page=self,
                                         user=request.user)
             if prev_form.is_valid():
                 # If data for step is valid, update the session
