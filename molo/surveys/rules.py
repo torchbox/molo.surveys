@@ -9,8 +9,11 @@ from django.utils import six
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
-from wagtail.wagtailadmin.edit_handlers import FieldPanel, FieldRowPanel, PageChooserPanel
-
+from wagtail.wagtailadmin.edit_handlers import (
+    FieldPanel,
+    FieldRowPanel,
+    PageChooserPanel,
+)
 from wagtail_personalisation.adapters import get_segment_adapter
 from wagtail_personalisation.rules import AbstractBaseRule, VisitCountRule
 
@@ -301,7 +304,7 @@ class ArticleTagRule(AbstractBaseRule):
         blank=True,
         null=True,
         help_text=_(
-            'All times are UTC. Leave both fields blank to search for all time.'
+            'All times are UTC. Leave both fields blank to search all time.'
         ),
     )
 
