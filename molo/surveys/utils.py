@@ -29,6 +29,19 @@ class SkipLogicPaginator(Paginator):
         else:
             self.page_breaks = range(num_questions + 1)
 
+        self.answered_indexes = self.answer_indexed(self.new_answers)
+
+        self.answered_indexes.extend(
+            self.question_labels.index(checkbox.clean_name)
+            for checkbox in self.missing_checkboxes
+        )
+
+        # add the missing data
+        self.new_answers.update({
+            checkbox.clean_name: 'off'
+            for checkbox in self.missing_checkboxes
+        })
+
     def _get_page(self, *args, **kwargs):
         return SkipLogicPage(*args, **kwargs)
 
@@ -37,14 +50,14 @@ class SkipLogicPaginator(Paginator):
         return len(self.page_breaks) - 1
 
     def next_question_from_previous_index(self, index, data):
-        question_ids = [
-            question.sort_order for question in self.object_list
-        ]
         last_question = self.object_list[index]
         last_answer = data[last_question.clean_name]
         if last_question.is_next_action(last_answer, SkipState.QUESTION):
             # Sorted or is 0 based in the backend and 1 on the front
             next_question_id = last_question.next_page(last_answer) - 1
+            question_ids = [
+                question.sort_order for question in self.object_list
+            ]
             return question_ids.index(next_question_id)
 
         return index + 1
@@ -79,10 +92,9 @@ class SkipLogicPaginator(Paginator):
         ]
 
     @cached_property
-    def answered_indexes(self):
-        answered = self.answer_indexed(self.new_answers)
-        # Add in any checkboxes that we missed
-        max_answered = max(answered or [self.page_breaks[1]])
+    def missing_checkboxes(self):
+        # Add in any checkboxes that dont get submitted
+        max_answered = max(self.answered_indexes or [self.page_breaks[1]])
 
         if self.answered:
             previous_answers = self.answer_indexed(self.answered)
@@ -94,22 +106,12 @@ class SkipLogicPaginator(Paginator):
         else:
             min_answered = 0
 
-        answered_check_boxes = [
+        return [
             question
             for question in self.object_list[min_answered:max_answered]
             if question.field_type == 'checkbox' and
             question.clean_name not in self.new_answers
         ]
-        answered.extend(
-            self.question_labels.index(checkbox.clean_name)
-            for checkbox in answered_check_boxes
-        )
-        # add the missing data
-        self.new_answers.update({
-            checkbox.clean_name: 'off'
-            for checkbox in answered_check_boxes
-        })
-        return answered
 
     @cached_property
     def first_question_index(self):
