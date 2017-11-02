@@ -144,3 +144,28 @@ class SkipLogicBlock(blocks.StructBlock):
             cleaned_data['question'] = None
 
         return cleaned_data
+
+
+class RuleSelectBlock(blocks.CharBlock):
+
+    class Meta:
+        icon = 'cog'
+
+
+class AndOrBlock(blocks.ChoiceBlock):
+    choices = [
+        ('and', _('And')),
+        ('or', _('Or'))
+    ]
+
+    class Meta:
+        icon = 'plus'
+
+
+class LogicBlock(blocks.StructBlock):
+    rule_1 = RuleSelectBlock(required=True)
+    operator = AndOrBlock(required=True)
+    rule_2 = RuleSelectBlock(required=True)
+
+    class Meta:
+        icon = 'cogs'

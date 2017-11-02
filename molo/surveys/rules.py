@@ -12,6 +12,7 @@ from wagtail.wagtailadmin.edit_handlers import (
     FieldPanel,
     FieldRowPanel,
     PageChooserPanel,
+    StreamFieldPanel,
 )
 from wagtail_personalisation.adapters import get_segment_adapter
 from wagtail_personalisation.rules import AbstractBaseRule, VisitCountRule
@@ -19,6 +20,8 @@ from wagtail_personalisation.rules import AbstractBaseRule, VisitCountRule
 from molo.core.models import ArticlePageTags
 
 from .edit_handlers import TagPanel
+
+from molo.surveys import blocks
 
 
 # Filer the Visit Count Page only by articles
@@ -368,3 +371,25 @@ class ArticleTagRule(AbstractBaseRule):
                 self.count
             ),
         }
+
+
+class CombinationRule(AbstractBaseRule):
+    body = blocks.StreamField([
+        ('Rule', blocks.RuleSelectBlock()),
+        ('Operator', blocks.AndOrBlock()),
+        ('NestedLogic', blocks.LogicBlock())
+    ])
+
+    panels = [
+        StreamFieldPanel('body'),
+    ]
+
+    def description(self):
+        return {
+            'title': _(
+                'Based on whether they satisfy a '
+                'particular combination of rules'),
+        }
+
+    class Meta:
+        verbose_name = _('Rule Combination')
