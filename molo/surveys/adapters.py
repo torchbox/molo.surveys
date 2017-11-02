@@ -156,7 +156,7 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
             rule_combo = bool_rules[0]
 
             simple_rules = [rule for rule in rules
-                            if isinstance(rule, CombinationRule)]
+                            if not isinstance(rule, CombinationRule)]
 
             rules_indexed_by_type_name = index_rules_by_type(simple_rules)
 
