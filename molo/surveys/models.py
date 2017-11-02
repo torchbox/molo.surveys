@@ -44,7 +44,7 @@ from wagtailsurveys.models import AbstractFormField
 
 from .blocks import SkipLogicField, SkipState, SkipLogicStreamPanel
 from .forms import MoloSurveyForm, PersonalisableMoloSurveyForm
-from .rules import GroupMembershipRule, SurveySubmissionDataRule  # noqa
+from .rules import GroupMembershipRule, SurveySubmissionDataRule, SurveyResponseRule # noqa
 from .utils import SkipLogicPaginator
 
 
