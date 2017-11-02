@@ -14,7 +14,6 @@ from wagtail.wagtailadmin.edit_handlers import (
     PageChooserPanel,
     StreamFieldPanel,
 )
-from wagtail_personalisation.adapters import get_segment_adapter
 from wagtail_personalisation.rules import AbstractBaseRule, VisitCountRule
 
 from molo.core.models import ArticlePageTags
@@ -351,6 +350,7 @@ class ArticleTagRule(AbstractBaseRule):
                 )
 
     def test_user(self, request):
+        from wagtail_personalisation.adapters import get_segment_adapter
         operator = self.OPERATORS[self.operator]
         adapter = get_segment_adapter(request)
         visit_count = adapter.get_tag_count(
