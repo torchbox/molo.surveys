@@ -9,7 +9,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('surveys', '0016_merge'),
+        ('surveys', '0016_articletagrule'),
     ]
 
     operations = [
