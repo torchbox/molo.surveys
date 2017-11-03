@@ -475,7 +475,7 @@ class SkipLogicMixin(models.Model):
 
 
 class MoloSurveyFormField(
-        SkipLogicMixin, QuestionPaginationMixin, AdminLableMixin, AbstractFormField):
+        SkipLogicMixin, QuestionPaginationMixin, AdminLabelMixin, AbstractFormField):
     page = ParentalKey(MoloSurveyPage, related_name='survey_form_fields')
 
     class Meta(AbstractFormField.Meta):
