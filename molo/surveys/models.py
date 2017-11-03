@@ -348,15 +348,18 @@ class MoloSurveyPage(
         )
 
     @cached_property
-    def has_skip_logic(self):
-        return any(field.has_skipping for field in self.get_form_fields())
+    def has_page_breaks(self):
+        return any(
+            field.has_skipping or field.page_break
+            for field in self.get_form_fields()
+        )
 
     def serve(self, request, *args, **kwargs):
         if not self.allow_multiple_submissions_per_user \
                 and self.has_user_submitted_survey(request, self.id):
             return render(request, self.template, self.get_context(request))
 
-        if self.has_skip_logic or self.multi_step:
+        if self.has_page_breaks or self.multi_step:
             return self.serve_questions(request)
 
         if request.method == 'POST':
@@ -398,10 +401,25 @@ class AdminLabelMixin(models.Model):
         abstract = True
 
 
+surveys_models.AbstractFormField.panels.append(FieldPanel('admin_label'))
+
+
+class QuestionPaginationMixin(models.Model):
+    page_break = models.BooleanField(
+        default=False,
+        help_text=_(
+            'Inserts a page break which puts the next question onto a new page'
+        )
+    )
+
+    class Meta:
+        abstract = True
+
+
 surveys_models.AbstractFormField._meta.get_field('label').verbose_name = 'Question'
 
 
-surveys_models.AbstractFormField.panels.append(FieldPanel('admin_label'))
+surveys_models.AbstractFormField.panels.append(FieldPanel('page_break'))
 
 
 class SkipLogicMixin(models.Model):
@@ -454,7 +472,8 @@ class SkipLogicMixin(models.Model):
         return super(SkipLogicMixin, self).save(*args, **kwargs)
 
 
-class MoloSurveyFormField(SkipLogicMixin, AdminLabelMixin, AbstractFormField):
+class MoloSurveyFormField(
+        SkipLogicMixin, QuestionPaginationMixin, AdminLableMixin, AbstractFormField):
     page = ParentalKey(MoloSurveyPage, related_name='survey_form_fields')
 
     class Meta(AbstractFormField.Meta):
@@ -582,7 +601,8 @@ class PersonalisableSurvey(MoloSurveyPage):
             request, *args, **kwargs)
 
 
-class PersonalisableSurveyFormField(SkipLogicMixin, AdminLabelMixin, AbstractFormField):
+class PersonalisableSurveyFormField(
+        SkipLogicMixin, QuestionPaginationMixin, AdminLabelMixin, AbstractFormField):
     """
     Form field that has a segment assigned.
     """
