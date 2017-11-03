@@ -43,7 +43,7 @@ from wagtailsurveys import models as surveys_models
 from wagtailsurveys.models import AbstractFormField
 
 from .blocks import SkipLogicField, SkipState, SkipLogicStreamPanel
-from .forms import MoloSurveyForm, PersonalisableMoloSurveyForm
+from .forms import MoloSurveyForm, PersonalisableMoloSurveyForm, SurveysFormBuilder
 from .rules import ArticleTagRule, GroupMembershipRule, SurveySubmissionDataRule  # noqa
 from .utils import SkipLogicPaginator
 
@@ -91,6 +91,8 @@ class MoloSurveyPage(
     parent_page_types = [
         'surveys.SurveysIndexPage', 'core.SectionPage', 'core.ArticlePage']
     subpage_types = []
+
+    form_builder = SurveysFormBuilder
 
     base_form_class = MoloSurveyForm
 
