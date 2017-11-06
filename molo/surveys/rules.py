@@ -422,6 +422,5 @@ class CombinationRule(AbstractBaseRule):
                     'Rule Combination must follow the <Rule/NestedLogic> '
                     '<Operator> <Rule/NestedLogic> pattern.')])
 
-
     class Meta:
         verbose_name = _('Rule Combination')
