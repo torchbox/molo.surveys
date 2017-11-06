@@ -147,6 +147,12 @@ class SkipLogicBlock(blocks.StructBlock):
 
 
 class RuleSelectBlock(blocks.CharBlock):
+    def __init__(self, *args, **kwargs):
+        super(RuleSelectBlock, self).__init__(*args, **kwargs)
+        self.field.widget = SelectAndHiddenWidget()
+
+    def js_initializer(self):
+        return 'newRuleAdded'
 
     class Meta:
         icon = 'cog'
