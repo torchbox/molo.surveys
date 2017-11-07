@@ -115,7 +115,6 @@ $(function(){
   }
 
   window.addActionToExistingDeleteButtons = function(){
-    // TODO exclude ruleCombination
     var forms = $('[id*="rule_related-FORMS"]')
       .not("#id_surveys_combinationrule_related-FORMS")
       .filter("ul");
@@ -124,7 +123,7 @@ $(function(){
       $("#" + form.id)
         .children("li")
         .not(".deleted")
-        .map(function(index, block) { // TODO: check you can use .each instead
+        .each(function(index, block) {
           var deleteButton = $("#" + block.id).find('button[title^="Delete"]');
           window.addUpdateTrigger(deleteButton, form.id, block.id);
         });
