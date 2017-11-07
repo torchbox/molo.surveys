@@ -8,6 +8,7 @@ from django.utils import six
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
+from wagtail.wagtailcore.blocks.stream_block import StreamBlockValidationError
 from wagtail.wagtailadmin.edit_handlers import (
     FieldPanel,
     FieldRowPanel,
@@ -390,6 +391,34 @@ class CombinationRule(AbstractBaseRule):
                 'Based on whether they satisfy a '
                 'particular combination of rules'),
         }
+
+    def clean(self):
+        super(CombinationRule, self).clean()
+        if isinstance(self.body.stream_data[0], dict):
+            newData = [block['type'] for block in self.body.stream_data]
+        elif isinstance(self.body.stream_data[0], tuple):
+            newData = [block[0] for block in self.body.stream_data]
+
+        if (len(newData) - 1) % 2 != 0:
+            raise StreamBlockValidationError(non_block_errors=[_(
+                'Rule Combination must follow the <Rule/NestedLogic>'
+                '<Operator> <Rule/NestedLogic> pattern.')])
+
+        iterations = (len(newData) - 1) / 2
+        for i in range(iterations):
+            first_rule_index = i * 2
+            operator_index = (i * 2) + 1
+            second_rule_index = (i * 2) + 2
+
+            if not (
+                (newData[first_rule_index] == 'Rule' or
+                 newData[first_rule_index] == 'NestedLogic') and
+                (newData[operator_index] == 'Operator') and
+                (newData[second_rule_index] == 'Rule' or
+                    newData[second_rule_index] == 'NestedLogic')):
+                raise StreamBlockValidationError(non_block_errors=[_(
+                    'Rule Combination must follow the <Rule/NestedLogic> '
+                    '<Operator> <Rule/NestedLogic> pattern.')])
 
     class Meta:
         verbose_name = _('Rule Combination')
