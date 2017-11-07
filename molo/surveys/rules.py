@@ -400,7 +400,7 @@ class CombinationRule(AbstractBaseRule):
             elif isinstance(self.body.stream_data[0], tuple):
                 newData = [block[0] for block in self.body.stream_data]
 
-            if len(newData) ==1 or (len(newData) - 1) % 2 != 0:
+            if len(newData) == 1 or (len(newData) - 1) % 2 != 0:
                 raise StreamBlockValidationError(non_block_errors=[_(
                     'Rule Combination must follow the <Rule/NestedLogic>'
                     '<Operator> <Rule/NestedLogic> pattern.')])
@@ -413,7 +413,7 @@ class CombinationRule(AbstractBaseRule):
 
                 if not (
                     (newData[first_rule_index] == 'Rule' or
-                    newData[first_rule_index] == 'NestedLogic') and
+                     newData[first_rule_index] == 'NestedLogic') and
                     (newData[operator_index] == 'Operator') and
                     (newData[second_rule_index] == 'Rule' or
                         newData[second_rule_index] == 'NestedLogic')):
@@ -422,8 +422,8 @@ class CombinationRule(AbstractBaseRule):
                         '<Operator> <Rule/NestedLogic> pattern.')])
         else:
             raise StreamBlockValidationError(non_block_errors=[_(
-                    'Rule Combination must follow the <Rule/NestedLogic>'
-                    '<Operator> <Rule/NestedLogic> pattern.')])
+                'Rule Combination must follow the <Rule/NestedLogic>'
+                '<Operator> <Rule/NestedLogic> pattern.')])
 
     class Meta:
         verbose_name = _('Rule Combination')
