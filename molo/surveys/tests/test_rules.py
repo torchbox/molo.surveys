@@ -2,7 +2,7 @@ import datetime
 import pytest
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser, Group
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory
