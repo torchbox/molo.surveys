@@ -8,13 +8,14 @@
 
             var skipLogicSelect = $('#' + prefix + '-skip_logic');
             var skipLogicSurvey = $('#' + prefix + '-survey');
+            var skipLogicChoice = $('#' + prefix + '-choice');
             var questionWidgetID = '#' + prefix + '-question';
             var questionSelect = $(questionWidgetID + '_1');
             var questionID = $(questionWidgetID + '_0');
 
             var thisQuestion = question(fieldID);
 
-            var updateBlockState = function () {
+            var updateQuestionSurveyDisplay = function () {
                 hideElement(skipLogicSurvey);
                 hideElement(questionSelect);
                 switch (skipLogicSelect.val()) {
@@ -50,26 +51,29 @@
                 element.closest('li').show();
             };
 
-            var toggle = function() {
+            var updateChoiceLogicDisplay = function() {
                 var shouldShowSkipLogic = validSkipSelectors.indexOf(thisQuestion.fieldSelect().val()) >= 0;
                 if (!shouldShowSkipLogic) {
-                    hideElement(skipLogicSurvey);
-                    hideElement(questionSelect);
                     hideElement(skipLogicSelect);
-                } else {
+                    showElement(skipLogicChoice);
+                } else if (thisQuestion.fieldSelect().val() == 'checkbox') {
                     showElement(skipLogicSelect);
-                    updateBlockState();
+                    hideElement(skipLogicChoice);
+                } else {
+                    showElement(skipLogicChoice);
+                    showElement(skipLogicSelect);
                 }
+                updateQuestionSurveyDisplay();
             };
 
-            toggle();
+            updateChoiceLogicDisplay();
             populateQuestions();
 
             skipLogicSelect.change( function () {
-                updateBlockState();
+                updateQuestionSurveyDisplay();
             });
             thisQuestion.fieldSelect().change( function () {
-                toggle();
+                updateChoiceLogicDisplay();
             });
         };
     };

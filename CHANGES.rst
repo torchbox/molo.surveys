@@ -1,10 +1,24 @@
 CHANGE LOG
 ==========
 
-Upcoming
+5.8.1
 --------
+- Fixed Combination Rule clean method for checking rule operator ordering
+- Bug Fix: removed reference to non-existent migration
 
+5.8.0
+--------
+- Added Combination Rule to allow combining rules within a segment
+- Bug Fix: renamed migration
+
+5.7.0
+--------
+- Added Article Tag Rule to allow segmenting on article visits
 - Added ability to skip questions and surveys based on user's response
+
+5.6.5
+-----
+- Bug Fix: get the correct index page for the correct site when converting YWC to an article
 
 5.6.4
 -----
