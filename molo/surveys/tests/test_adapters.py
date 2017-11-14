@@ -150,3 +150,10 @@ class TestAdapterUtils(TestCase, MoloTestCaseMixin):
                  [False, "and", False], "or",
                  [True, 'and', False]])
         )
+
+    def test_evaluate_8(self):
+        self.assertEqual(
+            ((False or True)),
+            evaluate(
+                [[False, "or", True]])
+        )
