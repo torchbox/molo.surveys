@@ -133,11 +133,6 @@ class TestSurveyAdminViews(TestCase, MoloTestCaseMixin):
             molo_survey_form_field.label.lower().replace(' ', '-'): answer
         })
 
-        SubmissionClass = molo_survey_page.get_submission_class()
-
-        submission = SubmissionClass.objects.filter(
-            page=molo_survey_page).first()
-
         self.client.force_login(self.super_user)
         response = self.client.get(
             '/admin/surveys/submissions/%s/' % (molo_survey_page.id),

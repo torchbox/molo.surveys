@@ -390,7 +390,8 @@ class SurveyTermsConditions(Orderable):
 class AdminLabelMixin(models.Model):
     admin_label = models.CharField(
         max_length=256,
-        help_text=_('Column header used during CSV export of survey responses.'),
+        help_text=_('Column header used during CSV export of survey '
+                    'responses.'),
         default='',
     )
 
@@ -398,7 +399,9 @@ class AdminLabelMixin(models.Model):
         abstract = True
 
 
-surveys_models.AbstractFormField._meta.get_field('label').verbose_name = 'Question'
+surveys_models.AbstractFormField._meta.get_field('label').verbose_name = (
+    'Question'
+)
 
 
 surveys_models.AbstractFormField.panels.append(FieldPanel('admin_label'))
@@ -582,7 +585,8 @@ class PersonalisableSurvey(MoloSurveyPage):
             request, *args, **kwargs)
 
 
-class PersonalisableSurveyFormField(SkipLogicMixin, AdminLabelMixin, AbstractFormField):
+class PersonalisableSurveyFormField(SkipLogicMixin, AdminLabelMixin,
+                                    AbstractFormField):
     """
     Form field that has a segment assigned.
     """
