@@ -62,8 +62,8 @@ class TestSkipLogicPaginator(TestCase, MoloTestCaseMixin):
     def test_correct_num_pages(self):
         self.assertEqual(self.paginator.num_pages, 3)
 
-    def test_skip_indexes_correct(self):
-        self.assertEqual(self.paginator.skip_indexes, [0, 2, 3, 4])
+    def test_page_breaks_correct(self):
+        self.assertEqual(self.paginator.page_breaks, [0, 2, 3, 4])
 
     def test_first_page_correct(self):
         page = self.paginator.page(1)
@@ -152,6 +152,22 @@ class TestSkipLogicPaginator(TestCase, MoloTestCaseMixin):
         self.assertEqual(paginator.next_question_page, 1)
         self.assertEqual(paginator.next_question_index, 0)
 
+    def test_no_data_index_with_checkbox(self):
+        self.first_field.field_type = 'checkbox'
+        self.first_field.skip_logic = skip_logic_data(
+            ['', ''],
+            ['next', 'end'],
+        )
+        self.first_field.save()
+        paginator = SkipLogicPaginator(
+            self.survey.get_form_fields(),
+            data={'csrf': 'dummy'},
+        )
+        self.assertEqual(paginator.previous_question_page, 1)
+        self.assertEqual(paginator.last_question_index, 0)
+        self.assertEqual(paginator.next_question_page, 2)
+        self.assertEqual(paginator.next_question_index, 1)
+
     def test_single_question_quiz_with_skip_logic_pages_correctly(self):
         self.first_field.delete()
         self.third_field.delete()
@@ -225,7 +241,7 @@ class TestSkipLogicEveryPage(TestCase, MoloTestCaseMixin):
         self.paginator = SkipLogicPaginator(self.survey.get_form_fields())
 
     def test_initialises_correctly(self):
-        self.assertEqual(self.paginator.skip_indexes, [0, 1, 2, 3, 4])
+        self.assertEqual(self.paginator.page_breaks, [0, 1, 2, 3, 4])
         self.assertEqual(self.paginator.num_pages, 4)
 
     def test_first_question_skip_to_last(self):
@@ -297,8 +313,8 @@ class SkipLogicPaginatorMulti(TestCase, MoloTestCaseMixin):
     def test_correct_num_pages(self):
         self.assertEqual(self.paginator.num_pages, 3)
 
-    def test_skip_indexes_correct(self):
-        self.assertEqual(self.paginator.skip_indexes, [0, 1, 2, 3])
+    def test_page_breaks_correct(self):
+        self.assertEqual(self.paginator.page_breaks, [0, 1, 2, 3])
 
     def test_first_page_correct(self):
         self.assertEqual(

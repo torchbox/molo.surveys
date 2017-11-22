@@ -14,6 +14,7 @@
     {% if form %}
       <form class="surveys__form" action="{% pageurl self %}{% if self.multi_step or self.has_skip_logic %}?p={{ fields_step.number|add:"1" }}{% endif %}" method="post">
         {% csrf_token %}
+        {{ form.media }}
         {% for field in form %}
           <fieldset>
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>

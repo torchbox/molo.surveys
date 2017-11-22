@@ -5,17 +5,10 @@ from django.contrib.auth.models import User
 from wagtail.contrib.modeladmin.options import modeladmin_register
 from wagtail.wagtailcore import hooks
 
-from django.conf.urls import url
-from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext as _
-
-from wagtail.wagtailadmin.menu import MenuItem
-
 from molo.surveys.models import MoloSurveyPage, SurveyTermsConditions
 from molo.core.models import ArticlePage
 
 from .admin import SegmentUserGroupAdmin
-from .views import create
 
 
 modeladmin_register(SegmentUserGroupAdmin)
