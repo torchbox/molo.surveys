@@ -92,6 +92,40 @@ class SkipLogicPaginator(Paginator):
         ]
 
     @cached_property
+    def answered_indexes(self):
+        answered = self.answer_indexed(self.new_answers)
+        # Add in any checkboxes that we missed
+        max_answered = max(answered or [self.page_breaks[1]])
+
+        if self.answered:
+            previous_answers = self.answer_indexed(self.answered)
+            max_previous = max(previous_answers or [self.page_breaks[0]])
+            min_answered = self.next_question_from_previous_index(
+                max_previous,
+                self.answered,
+            )
+        else:
+            min_answered = 0
+
+        answered_check_boxes = [
+            question
+            for question in self.object_list[min_answered:max_answered]
+            if question.field_type == 'checkbox' and
+            question.clean_name not in self.new_answers
+        ]
+        answered.extend(
+            self.question_labels.index(checkbox.clean_name)
+            for checkbox in answered_check_boxes
+        )
+        # add the missing data
+        self.new_answers.update({
+            checkbox.clean_name: 'off'
+            for checkbox in answered_check_boxes
+        })
+
+        return answered
+
+    @cached_property
     def missing_checkboxes(self):
         # Add in any checkboxes that dont get submitted
         max_answered = max(self.answered_indexes or [self.page_breaks[1]])

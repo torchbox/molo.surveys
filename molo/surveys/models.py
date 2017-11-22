@@ -44,11 +44,12 @@ from wagtailsurveys.models import AbstractFormField
 
 from .blocks import SkipLogicField, SkipState, SkipLogicStreamPanel
 from .forms import MoloSurveyForm, PersonalisableMoloSurveyForm
-from .rules import GroupMembershipRule, SurveySubmissionDataRule  # noqa
+from .rules import ArticleTagRule, GroupMembershipRule, SurveySubmissionDataRule  # noqa
 from .utils import SkipLogicPaginator
 
 
 SKIP = 'NA (Skipped)'
+
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
@@ -196,9 +197,13 @@ class MoloSurveyPage(
 
     def get_data_fields(self):
         data_fields = [
-            ('username', 'Username'),
+            ('username', _('Username')),
+            ('created_at', _('Submission Date')),
         ]
-        data_fields += super(MoloSurveyPage, self).get_data_fields()
+        data_fields += [
+            (field.clean_name, field.admin_label)
+            for field in self.get_form_fields()
+        ]
         return data_fields
 
     def get_submission_class(self):
@@ -400,6 +405,24 @@ class QuestionPaginationMixin(models.Model):
 surveys_models.AbstractFormField.panels.append(FieldPanel('page_break'))
 
 
+class AdminLabelMixin(models.Model):
+    admin_label = models.CharField(
+        max_length=256,
+        help_text=_('Column header used during CSV export of survey '
+                    'responses.'),
+        default='',
+    )
+
+    class Meta:
+        abstract = True
+
+
+surveys_models.AbstractFormField.panels.append(FieldPanel('admin_label'))
+surveys_models.AbstractFormField._meta.get_field('label').verbose_name = (
+    'Question'
+)
+
+
 class SkipLogicMixin(models.Model):
     skip_logic = SkipLogicField()
 
@@ -450,8 +473,8 @@ class SkipLogicMixin(models.Model):
         return super(SkipLogicMixin, self).save(*args, **kwargs)
 
 
-class MoloSurveyFormField(
-        SkipLogicMixin, QuestionPaginationMixin, AbstractFormField):
+class MoloSurveyFormField(SkipLogicMixin, AdminLabelMixin,
+                          QuestionPaginationMixin, AbstractFormField):
     page = ParentalKey(MoloSurveyPage, related_name='survey_form_fields')
 
     class Meta(AbstractFormField.Meta):
@@ -579,8 +602,9 @@ class PersonalisableSurvey(MoloSurveyPage):
             request, *args, **kwargs)
 
 
-class PersonalisableSurveyFormField(
-        SkipLogicMixin, QuestionPaginationMixin, AbstractFormField):
+class PersonalisableSurveyFormField(SkipLogicMixin, AdminLabelMixin,
+                                    QuestionPaginationMixin,
+                                    AbstractFormField):
     """
     Form field that has a segment assigned.
     """
@@ -600,3 +624,14 @@ class PersonalisableSurveyFormField(
 
     class Meta(AbstractFormField.Meta):
         verbose_name = _('personalisable form field')
+
+
+class SegmentUserGroup(models.Model):
+    name = models.CharField(max_length=254)
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='segment_groups',
+    )
+
+    def __str__(self):
+        return self.name
