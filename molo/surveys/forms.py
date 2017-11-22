@@ -7,10 +7,11 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorList
 from django.utils.translation import ugettext_lazy as _
+from django.utils import six
 
 from wagtail.wagtailadmin.forms import WagtailAdminPageForm
 
-from .blocks import SkipState, VALID_SKIP_SELECTORS
+from .blocks import SkipState, VALID_SKIP_LOGIC, VALID_SKIP_SELECTORS
 
 
 class CSVGroupCreationForm(forms.ModelForm):
@@ -91,23 +92,45 @@ class CSVGroupCreationForm(forms.ModelForm):
 class BaseMoloSurveyForm(WagtailAdminPageForm):
     def clean(self):
         cleaned_data = super(BaseMoloSurveyForm, self).clean()
+
+        question_data = {}
         for form in self.formsets[self.form_field_name]:
-            self._clean_errors = defaultdict(lambda: defaultdict(list))
+            form.is_valid()
+            question_data[form.cleaned_data['ORDER']] = form
+
+        for form in question_data.values():
+            self._clean_errors = {}
             if form.is_valid():
                 data = form.cleaned_data
+                if data['field_type'] == 'checkbox':
+                    if len(data['skip_logic']) != 2:
+                        self.add_form_field_error(
+                            'field_type',
+                            _('Checkbox type questions must have 2 Answer '
+                              'Options: a True and False'),
+                        )
+                elif data['field_type'] in VALID_SKIP_LOGIC:
+                    for i, logic in enumerate(data['skip_logic']):
+                        if not logic.value['choice']:
+                            self.add_stream_field_error(
+                                i,
+                                'choice',
+                                _('This field is required.'),
+                            )
+
                 for i, logic in enumerate(data['skip_logic']):
                     if logic.value['skip_logic'] == SkipState.SURVEY:
                         survey = logic.value['survey']
                         self.clean_survey(i, survey)
                     if logic.value['skip_logic'] == SkipState.QUESTION:
-                        sort_order = logic.value['question'] - 1
-                        questions = (
-                            getattr(self.instance, self.form_field_name)
-                        )
-                        question = questions.get(sort_order=sort_order)
-                        self.clean_question(i, data['segment'], question)
+                        target = question_data.get(logic.value['question'])
+                        target_data = target.cleaned_data
+                        self.clean_question(i, data, target_data)
                 if self.clean_errors:
                     form._errors = self.clean_errors
+
+            elif self.form_cant_have_skip_errors(form):
+                del form._errors['skip_logic']
 
         return cleaned_data
 
@@ -123,6 +146,9 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
                         skip_logic.value['skip_logic'] = SkipState.NEXT
                         skip_logic.value['question'] = None
                         skip_logic.value['survey'] = None
+            elif field_type == 'checkbox':
+                for skip_logic in form.instance.skip_logic:
+                    skip_logic.value['choice'] = ''
 
         return super(BaseMoloSurveyForm, self).save(commit)
 
@@ -138,11 +164,24 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
             if error:
                 self.add_stream_field_error(position, field, error)
 
+    def form_cant_have_skip_errors(self, form):
+        return (
+            form.has_error('skip_logic') and
+            form.cleaned_data['field_type'] not in VALID_SKIP_LOGIC
+        )
+
     def check_doesnt_loop_to_self(self, survey):
         if survey and self.instance == survey:
             return _('Cannot skip to self, please select a different survey.')
 
+    def add_form_field_error(self, field, message):
+        if field not in self._clean_errors:
+            self._clean_errors[field] = list()
+        self._clean_errors[field].append(message)
+
     def add_stream_field_error(self, position, field, message):
+        if position not in self._clean_errors:
+            self._clean_errors[position] = defaultdict(list)
         self._clean_errors[position][field].append(message)
 
     @property
@@ -153,23 +192,30 @@ class BaseMoloSurveyForm(WagtailAdminPageForm):
                     [ValidationError('Error in form', params=value)]
                 )
                 for key, value in self._clean_errors.items()
+                if isinstance(key, int)
             }
-            return {
+            errors = {
+                key: ValidationError(value)
+                for key, value in self._clean_errors.items()
+                if isinstance(key, six.string_types)
+            }
+            errors.update({
                 'skip_logic': ErrorList([ValidationError(
                     'Skip Logic Error',
                     params=params,
                 )])
-            }
+            })
+            return errors
 
 
 class MoloSurveyForm(BaseMoloSurveyForm):
     form_field_name = 'survey_form_fields'
     survey_clean_methods = [
         'check_doesnt_loop_to_self',
-        'check_doesnt_link_personalised_survey',
+        'check_doesnt_link_to_personalised_survey',
     ]
 
-    def check_doesnt_link_to_peronsalised_survey(self, survey):
+    def check_doesnt_link_to_personalised_survey(self, survey):
         try:
             segment = survey.personalisablesurvey.segment
         except AttributeError:
@@ -191,10 +237,11 @@ class PersonalisableMoloSurveyForm(BaseMoloSurveyForm):
         'check_question_segment_ok',
     ]
 
-    def check_question_segment_ok(self, current_segment, linked_question):
-        segment = linked_question.segment
+    def check_question_segment_ok(self, question, target):
         # Cannot link from None to segment, but can link from segment to None
-        if (segment and not current_segment) or (segment != current_segment):
+        current_segment = question.get('segment')
+        linked_segment = target.get('segment')
+        if linked_segment and (linked_segment != current_segment):
             return _('Cannot link to a question with a different segment.')
 
     def check_survey_link_valid(self, survey):

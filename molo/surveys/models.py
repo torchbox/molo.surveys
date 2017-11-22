@@ -44,11 +44,17 @@ from wagtailsurveys.models import AbstractFormField
 
 from .blocks import SkipLogicField, SkipState, SkipLogicStreamPanel
 from .forms import MoloSurveyForm, PersonalisableMoloSurveyForm
-from .rules import GroupMembershipRule, SurveySubmissionDataRule, SurveyResponseRule # noqa
+from .rules import (  # noqa
+    ArticleTagRule,
+    GroupMembershipRule,
+    SurveySubmissionDataRule,
+    SurveyResponseRule
+)
 from .utils import SkipLogicPaginator
 
 
 SKIP = 'NA (Skipped)'
+
 
 # See docs: https://github.com/torchbox/wagtailsurveys
 SectionPage.subpage_types += ['surveys.MoloSurveyPage']
@@ -196,9 +202,13 @@ class MoloSurveyPage(
 
     def get_data_fields(self):
         data_fields = [
-            ('username', 'Username'),
+            ('username', _('Username')),
+            ('created_at', _('Submission Date')),
         ]
-        data_fields += super(MoloSurveyPage, self).get_data_fields()
+        data_fields += [
+            (field.clean_name, field.admin_label)
+            for field in self.get_form_fields()
+        ]
         return data_fields
 
     def get_submission_class(self):
@@ -252,9 +262,15 @@ class MoloSurveyPage(
         When the last step is submitted correctly, the whole form is saved in
         the DB.
         """
-        paginator = SkipLogicPaginator(self.get_form_fields(), request.POST)
-
         session_key_data = 'survey_data-%s' % self.pk
+        survey_data = json.loads(request.session.get(session_key_data, '{}'))
+
+        paginator = SkipLogicPaginator(
+            self.get_form_fields(),
+            request.POST,
+            survey_data,
+        )
+
         is_last_step = False
         step_number = request.GET.get('p', 1)
 
@@ -275,12 +291,10 @@ class MoloSurveyPage(
 
             # Create a form only for submitted step
             prev_form_class = self.get_form_class_for_step(prev_step)
-            prev_form = prev_form_class(request.POST, page=self,
+            prev_form = prev_form_class(paginator.new_answers, page=self,
                                         user=request.user)
             if prev_form.is_valid():
                 # If data for step is valid, update the session
-                survey_data = json.loads(
-                    request.session.get(session_key_data, '{}'))
                 survey_data.update(prev_form.cleaned_data)
                 request.session[session_key_data] = json.dumps(
                     survey_data, cls=DjangoJSONEncoder)
@@ -378,6 +392,26 @@ class SurveyTermsConditions(Orderable):
         'terms_and_conditions', 'core.FooterPage')]
 
 
+class AdminLabelMixin(models.Model):
+    admin_label = models.CharField(
+        max_length=256,
+        help_text=_('Column header used during CSV export of survey '
+                    'responses.'),
+        default='',
+    )
+
+    class Meta:
+        abstract = True
+
+
+surveys_models.AbstractFormField._meta.get_field('label').verbose_name = (
+    'Question'
+)
+
+
+surveys_models.AbstractFormField.panels.append(FieldPanel('admin_label'))
+
+
 class SkipLogicMixin(models.Model):
     skip_logic = SkipLogicField()
 
@@ -392,6 +426,12 @@ class SkipLogicMixin(models.Model):
         )
 
     def choice_index(self, choice):
+        if self.field_type == 'checkbox':
+            # clean checkboxes have True/False
+            try:
+                return ['on', 'off'].index(choice)
+            except ValueError:
+                return [True, False].index(choice)
         return self.choices.split(',').index(choice)
 
     def next_action(self, choice):
@@ -416,12 +456,13 @@ class SkipLogicMixin(models.Model):
 
     def save(self, *args, **kwargs):
         self.choices = ','.join(
-            choice.value['choice'] for choice in self.skip_logic
+            choice.value['choice'].replace(',', u'\u201A')
+            for choice in self.skip_logic
         )
         return super(SkipLogicMixin, self).save(*args, **kwargs)
 
 
-class MoloSurveyFormField(SkipLogicMixin, AbstractFormField):
+class MoloSurveyFormField(SkipLogicMixin, AdminLabelMixin, AbstractFormField):
     page = ParentalKey(MoloSurveyPage, related_name='survey_form_fields')
 
     class Meta(AbstractFormField.Meta):
@@ -549,7 +590,8 @@ class PersonalisableSurvey(MoloSurveyPage):
             request, *args, **kwargs)
 
 
-class PersonalisableSurveyFormField(SkipLogicMixin, AbstractFormField):
+class PersonalisableSurveyFormField(SkipLogicMixin, AdminLabelMixin,
+                                    AbstractFormField):
     """
     Form field that has a segment assigned.
     """

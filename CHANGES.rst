@@ -1,10 +1,57 @@
 CHANGE LOG
 ==========
 
-Upcoming
---------
+5.9.4
+-----
+- Bug Fix: Make sure Comment Count Ruls is surface in Combination Rule
 
+5.9.4
+-----
+- Bug Fix: Handle case where single nested logic block is given to the Combination Rule
+
+5.9.3
+-----
+- Add admin label to survey questions
+
+5.9.2
+-----
+- Added a filter to check if a form field is a checkbox
+
+5.9.1
+-----
+- Bug Fix: Update wagtail-personalisation-molo which adds in collectstatic
+- Change NestedBlocks to Nested Blocks in Admin UI
+- Bug Fix:  Ensure that 'Add Rule Combination' button only appears when there is no Rule Combination
+- Add description for how Rule Combination works
+
+5.9.0
+-----
+- Added static and dynamic segments
+- Changed dependency on wagtail personalisation to a forked version
+- Update user privacy
+
+5.8.2
+--------
+- Bug Fix: fixed string replacement bug in combination rule javascript
+
+5.8.1
+--------
+- Fixed Combination Rule clean method for checking rule operator ordering
+- Bug Fix: removed reference to non-existent migration
+
+5.8.0
+--------
+- Added Combination Rule to allow combining rules within a segment
+- Bug Fix: renamed migration
+
+5.7.0
+--------
+- Added Article Tag Rule to allow segmenting on article visits
 - Added ability to skip questions and surveys based on user's response
+
+5.6.5
+-----
+- Bug Fix: get the correct index page for the correct site when converting YWC to an article
 
 5.6.4
 -----

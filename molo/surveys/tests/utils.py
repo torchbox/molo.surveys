@@ -16,8 +16,8 @@ def skip_logic_data(choices=list(), logics=list(), survey=None, question=None):
         {'type': 'skip_logic', 'value': skip_logic_block_data(
             choice,
             logic,
-            survey.id if choice == 'survey' else None,
-            question.sort_order + 1 if choice == 'question' else None,
+            survey.id if logic == 'survey' else None,
+            question.sort_order + 1 if logic == 'question' else None,
         )
         } for choice, logic in izip_longest(choices, logics, fillvalue='next')
     ]
