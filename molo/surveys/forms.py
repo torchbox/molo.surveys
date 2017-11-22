@@ -31,14 +31,14 @@ class MultiLineWidget(forms.Textarea):
         return format_html('<textarea{}>\r\n{}</textarea><span>{}</span>',
                            flatatt(final_attrs),
                            force_text(value),
-                           _('No limit'),
-        )
+                           _('No limit'))
 
 
 class SurveysFormBuilder(FormBuilder):
     def create_singleline_field(self, field, options):
         options['widget'] = CharacterCountWidget
-        return super(SurveysFormBuilder, self).create_singleline_field(field, options)
+        return super(SurveysFormBuilder, self).create_singleline_field(field,
+                                                                       options)
 
     def create_multiline_field(self, field, options):
         options['widget'] = MultiLineWidget
@@ -52,7 +52,8 @@ class SurveysFormBuilder(FormBuilder):
             options = self.get_field_options(field)
 
             if field.field_type in self.FIELD_TYPES:
-                method = getattr(self, self.FIELD_TYPES[field.field_type].__name__)
+                method = getattr(self,
+                                 self.FIELD_TYPES[field.field_type].__name__)
                 formfields[field.clean_name] = method(field, options)
             else:
                 raise Exception("Unrecognised field type: " + field.field_type)
