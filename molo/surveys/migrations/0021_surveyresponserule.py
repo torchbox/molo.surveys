@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('surveys', '0020_formfield_admin_label'),
-        ('wagtail_personalisation', '0016_auto_20171122_1924')
+        ('wagtail_personalisation', '0015_static_users')
     ]
 
     operations = [
