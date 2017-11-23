@@ -22,6 +22,19 @@ class CharacterCountWidget(forms.TextInput):
     class Media:
         js = (static('js/widgets/character_count.js'),)
 
+    def render(self, name, value, attrs=None):
+        if value is None:
+            value = ''
+        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
+        max_length = final_attrs['maxlength']
+        maximum_text = _('Maximum: {max_length}').format(max_length=max_length)
+        if value != '':
+            # Only add the 'value' attribute if a value is non-empty.
+            final_attrs['value'] = force_text(self._format_value(value))
+        return format_html('<input {} /><span>{}</span>',
+                           flatatt(final_attrs),
+                           maximum_text)
+
 
 class MultiLineWidget(forms.Textarea):
     def render(self, name, value, attrs=None):
