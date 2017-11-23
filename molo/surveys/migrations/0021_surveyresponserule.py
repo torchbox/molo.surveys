@@ -10,8 +10,8 @@ import modelcluster.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wagtail_personalisation', '0013_auto_20171116_1811'),
         ('surveys', '0020_formfield_admin_label'),
+        ('wagtail_personalisation', '0016_auto_20171122_1924')
     ]
 
     operations = [
