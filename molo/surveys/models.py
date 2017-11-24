@@ -350,7 +350,7 @@ class MoloSurveyPage(
         context = self.get_context(request)
         context['form'] = form
         context['fields_step'] = step
-        context['is_intermediate_step'] = step.has_next()
+        context['is_intermediate_step'] = step.possibly_has_next()
 
         return render(
             request,

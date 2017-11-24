@@ -181,6 +181,9 @@ class SkipLogicPage(Page):
     def has_next(self):
         return super(SkipLogicPage, self).has_next() and not self.is_end()
 
+    def possibly_has_next(self):
+        return super(SkipLogicPage, self).has_next()
+
     @cached_property
     def last_question(self):
         return self.object_list[-1]
