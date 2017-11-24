@@ -1,7 +1,26 @@
 CHANGE LOG
 ==========
 
-5.9.4
+5.9.9
+-----
+- Bug Fix: Issue with static wrapper
+
+5.9.8
+-----
+- [ERROR]
+- Intended changes not added to release
+
+5.9.7
+-----
+- Add survey response rule
+- Add character limits to multiline text inputs
+- Bug Fix: Fix visitor rule not updating
+
+5.9.6
+-----
+- Bug Fix: Tackle MultiValueKeyError exception when checkboxes answer is empty
+
+5.9.5
 -----
 - Bug Fix: Make sure Comment Count Ruls is surface in Combination Rule
 

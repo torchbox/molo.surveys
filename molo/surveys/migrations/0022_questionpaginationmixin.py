@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('surveys', '0020_formfield_admin_label'),
+        ('surveys', '0021_surveyresponserule'),
     ]
 
     operations = [
