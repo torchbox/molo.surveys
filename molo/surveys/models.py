@@ -366,8 +366,8 @@ class MoloSurveyPage(
         )
 
     def serve(self, request, *args, **kwargs):
-        if not self.allow_multiple_submissions_per_user \
-                and self.has_user_submitted_survey(request, self.id):
+        if (not self.allow_multiple_submissions_per_user and
+                self.has_user_submitted_survey(request, self.id)):
             return render(request, self.template, self.get_context(request))
 
         if self.has_page_breaks or self.multi_step:
