@@ -199,8 +199,6 @@ class TestSurveyAdminViews(TestCase, MoloTestCaseMixin):
             {'action': 'CSV'},
         )
 
-        print response
-
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, 'Username')
         self.assertContains(response, 'Submission Date')
