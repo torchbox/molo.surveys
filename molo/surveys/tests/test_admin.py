@@ -195,7 +195,7 @@ class TestSurveyAdminViews(TestCase, MoloTestCaseMixin):
 
         self.client.force_login(self.super_user)
         response = self.client.get(
-            '/admin/surveys/submissions/%s/'.format(molo_survey_page.id),
+            '/admin/surveys/submissions/{}/'.format(molo_survey_page.id),
             {'action': 'CSV'},
         )
 
