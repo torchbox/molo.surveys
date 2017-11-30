@@ -13,7 +13,6 @@ from molo.surveys.models import (
     SurveysIndexPage,
     PersonalisableSurvey,
     PersonalisableSurveyFormField,
-    MoloSurveySubmission,
 )
 from wagtail_personalisation.models import Segment
 from wagtail_personalisation.rules import UserIsLoggedInRule
@@ -74,7 +73,9 @@ class TestSurveyAdminViews(TestCase, MoloTestCaseMixin):
     def create_personalisable_molo_survey_page(self, parent, **kwargs):
         # create segment for personalisation
         test_segment = Segment.objects.create(name="Test Segment")
-        rule = UserIsLoggedInRule(segment=test_segment, is_logged_in=True)
+        UserIsLoggedInRule.objects.create(
+            segment=test_segment,
+            is_logged_in=True)
 
         personalisable_survey = PersonalisableSurvey(
             title='Test Survey', slug='test-survey',
