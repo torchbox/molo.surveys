@@ -587,7 +587,7 @@ class PersonalisableSurvey(MoloSurveyPage):
 
         # Add segment name to a field label if it is segmented.
         for field in self.get_form_fields():
-            label = field.label
+            label = field.admin_label
 
             if field.segment:
                 label = '%s (%s)' % (label, field.segment.name)
