@@ -582,6 +582,7 @@ class PersonalisableSurvey(MoloSurveyPage):
         if there's one associated.
         """
         data_fields = [
+            ('username', _('Username')),
             ('created_at', _('Submission Date')),
         ]
 
