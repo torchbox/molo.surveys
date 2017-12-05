@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+6.0.0-beta.1
+------------
+- Upgrade to Django 1.0, Molo 6x
+
 5.9.12
 ------
 - Bug Fix: Fix csv headers and columns for personalisable surveys
