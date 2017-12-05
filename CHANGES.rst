@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+6.0.0
+-----
+- Official release for Molo Surveys 6.0.0
+- Dropped support for Django 1.10
+
 6.0.0-beta.1
 ------------
 - Upgrade to Django 1.0, Molo 6x
