@@ -1,10 +1,17 @@
 from django.contrib.auth import get_user_model
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import TestCase, RequestFactory
 from django.test.client import Client
 
 from wagtail_personalisation.rules import UserIsLoggedInRule
 
-from molo.core.models import Main
+from molo.core.models import (
+    ArticlePage,
+    ArticlePageTags,
+    Main,
+    SectionPage,
+    Tag,
+)
 from molo.core.tests.base import MoloTestCaseMixin
 
 from molo.surveys.adapters import (
@@ -12,8 +19,9 @@ from molo.surveys.adapters import (
     index_rules_by_type,
     transform_into_boolean_list,
     evaluate,
+    PersistentSurveysSegmentsAdapter,
 )
-from molo.surveys.models import SegmentUserGroup
+from molo.surveys.models import MoloSurveyPageView, SegmentUserGroup
 
 from molo.surveys.rules import GroupMembershipRule
 
@@ -184,3 +192,59 @@ class TestAdapterUtils(TestCase, MoloTestCaseMixin):
             evaluate(
                 [[False, "or", True]])
         )
+
+
+class TestPersistentSurveysSegmentsAdapter(TestCase, MoloTestCaseMixin):
+    def setUp(self):
+        self.mk_main()
+        self.request = RequestFactory().get('/')
+        session_middleware = SessionMiddleware()
+        session_middleware.process_request(self.request)
+        self.request.session.save()
+
+        self.section = SectionPage(title='test section')
+        self.section_index.add_child(instance=self.section)
+
+        self.tags = [Tag(title='tag one'), Tag(title='tag two')]
+        for tag in self.tags:
+            self.tag_index.add_child(instance=tag)
+            tag.save_revision()
+
+        self.page = ArticlePage(title='test article')
+        self.section.add_child(instance=self.page)
+        self.page.save_revision()
+
+        for tag in self.tags:
+            ArticlePageTags.objects.create(
+                tag=tag,
+                page=self.page,
+            )
+
+        self.adapter = PersistentSurveysSegmentsAdapter(self.request)
+
+    def test_no_exception_raised_if_user_not_set(self):
+        try:
+            self.adapter.add_page_visit(self.page)
+        except AttributeError as e:
+            self.fail('add_page_visit() raised AttributeError: {0}'.format(e))
+
+    def test_no_pageview_stored_if_not_articlepage(self):
+        self.adapter.add_page_visit(self.section)
+        self.assertEqual(MoloSurveyPageView.objects.all().count(), 0)
+
+    def test_no_pageview_stored_for_anonymous_user(self):
+        self.adapter.add_page_visit(self.page)
+        self.assertEqual(MoloSurveyPageView.objects.all().count(), 0)
+
+    def test_pageview_stored_for_each_tag(self):
+        self.request.user = self.login()
+        self.adapter.add_page_visit(self.page)
+
+        pageviews = MoloSurveyPageView.objects.all()
+
+        self.assertEqual(pageviews.count(), 2)
+
+        self.assertEqual(pageviews[0].user, self.request.user)
+        self.assertEqual(pageviews[0].tag, self.tags[0])
+        self.assertEqual(pageviews[0].page, self.page)
+        self.assertEqual(pageviews[1].tag, self.tags[1])
