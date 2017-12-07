@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+6.1.0
+-----
+- New feature: PersistentSurveysSegmentsAdapter can be used instead of SurveysSegmentsAdapter to
+  store ArticleTagRule data in a model.
+
 6.0.0
 -----
 - Official release for Molo Surveys 6.0.0
