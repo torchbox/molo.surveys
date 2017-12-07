@@ -387,6 +387,28 @@ class MoloSurveyPage(
         return super(MoloSurveyPage, self).serve(request, *args, **kwargs)
 
 
+class MoloSurveyPageView(models.Model):
+    visited_at = models.DateTimeField(auto_now_add=True)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+
+    tag = models.ForeignKey(
+        'core.Tag',
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+
+    page = models.ForeignKey(
+        'core.ArticlePage',
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+
+
 class SurveyTermsConditions(Orderable):
     page = ParentalKey(MoloSurveyPage, related_name='terms_and_conditions')
     terms_and_conditions = models.ForeignKey(

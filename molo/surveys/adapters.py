@@ -2,6 +2,7 @@ from collections import defaultdict
 import datetime
 
 from wagtail_personalisation.adapters import SessionSegmentsAdapter
+from django.apps import apps
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
@@ -169,3 +170,33 @@ class SurveysSegmentsAdapter(SessionSegmentsAdapter):
             )
 
             return evaluate(nested_list_of_booleans)
+
+
+class PersistentSurveysSegmentsAdapter(SurveysSegmentsAdapter):
+    '''
+    Implements a segments adapter which persists pageview data in a model.
+    Todo: currently only partially implemented so that we can start collecting
+          data as quickly as possible.
+    '''
+
+    def add_page_visit(self, page):
+        super(PersistentSurveysSegmentsAdapter, self).add_page_visit(page)
+
+        # self.request.user comes from Django's AuthenticationMiddleware.
+        # Defend against the middleware not being present or not working
+        # by returning early.
+        if not hasattr(self.request, 'user'):
+            return
+
+        if isinstance(page.specific, ArticlePage):
+            MoloSurveyPageView = apps.get_model('surveys.MoloSurveyPageView')
+            user = self.request.user
+
+            if user.is_authenticated():
+                for navigation_tag in page.nav_tags.all():
+                    pageview = MoloSurveyPageView.objects.create(
+                        user=user,
+                        tag=navigation_tag.tag.specific,
+                        page=page.specific,
+                    )
+                    pageview.save()
