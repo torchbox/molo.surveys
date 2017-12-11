@@ -1,6 +1,11 @@
 CHANGE LOG
 ==========
 
+6.1.1
+-----
+- Minor improvement: Segments with ArticleTagRule using PersistentSurveysSegmentsAdapter now
+  retrieve data from the model rather than the session.
+
 6.1.0
 -----
 - New feature: PersistentSurveysSegmentsAdapter can be used instead of SurveysSegmentsAdapter to
