@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import TestCase, RequestFactory
 from django.test.client import Client
@@ -198,6 +201,7 @@ class TestPersistentSurveysSegmentsAdapter(TestCase, MoloTestCaseMixin):
     def setUp(self):
         self.mk_main()
         self.request = RequestFactory().get('/')
+        self.request.user = self.login()
         session_middleware = SessionMiddleware()
         session_middleware.process_request(self.request)
         self.request.session.save()
@@ -205,7 +209,9 @@ class TestPersistentSurveysSegmentsAdapter(TestCase, MoloTestCaseMixin):
         self.section = SectionPage(title='test section')
         self.section_index.add_child(instance=self.section)
 
-        self.tags = [Tag(title='tag one'), Tag(title='tag two')]
+        self.important_tag = Tag(title='important tag')
+        self.another_tag = Tag(title='other tag')
+        self.tags = [self.important_tag, self.another_tag]
         for tag in self.tags:
             self.tag_index.add_child(instance=tag)
             tag.save_revision()
@@ -223,6 +229,7 @@ class TestPersistentSurveysSegmentsAdapter(TestCase, MoloTestCaseMixin):
         self.adapter = PersistentSurveysSegmentsAdapter(self.request)
 
     def test_no_exception_raised_if_user_not_set(self):
+        del self.request.user
         try:
             self.adapter.add_page_visit(self.page)
         except AttributeError as e:
@@ -233,11 +240,11 @@ class TestPersistentSurveysSegmentsAdapter(TestCase, MoloTestCaseMixin):
         self.assertEqual(MoloSurveyPageView.objects.all().count(), 0)
 
     def test_no_pageview_stored_for_anonymous_user(self):
+        self.request.user = AnonymousUser()
         self.adapter.add_page_visit(self.page)
         self.assertEqual(MoloSurveyPageView.objects.all().count(), 0)
 
     def test_pageview_stored_for_each_tag(self):
-        self.request.user = self.login()
         self.adapter.add_page_visit(self.page)
 
         pageviews = MoloSurveyPageView.objects.all()
@@ -248,3 +255,85 @@ class TestPersistentSurveysSegmentsAdapter(TestCase, MoloTestCaseMixin):
         self.assertEqual(pageviews[0].tag, self.tags[0])
         self.assertEqual(pageviews[0].page, self.page)
         self.assertEqual(pageviews[1].tag, self.tags[1])
+
+    def test_get_tag_count_zero_if_no_user(self):
+        del self.request.user
+
+        with self.assertNumQueries(0):
+            count = self.adapter.get_tag_count(self.important_tag)
+
+        self.assertEqual(count, 0)
+
+    def test_get_tag_count_zero_if_anonymous_user(self):
+        self.request.user = AnonymousUser()
+
+        with self.assertNumQueries(0):
+            count = self.adapter.get_tag_count(self.important_tag)
+
+        self.assertEqual(count, 0)
+
+    def test_get_tag_count_only_counts_current_user(self):
+        another_user = get_user_model().objects.create_user(
+            username='another_user',
+            email='another_user@example.com',
+            password='x',
+        )
+        MoloSurveyPageView.objects.create(
+            user=self.request.user,
+            tag=self.important_tag,
+            page=self.page,
+        )
+        MoloSurveyPageView.objects.create(
+            user=another_user,
+            tag=self.important_tag,
+            page=self.page,
+        )
+        self.assertEqual(self.adapter.get_tag_count(self.important_tag), 1)
+
+    def test_get_tag_count_only_counts_specified_tag(self):
+        MoloSurveyPageView.objects.create(
+            user=self.request.user,
+            tag=self.important_tag,
+            page=self.page,
+        )
+        MoloSurveyPageView.objects.create(
+            user=self.request.user,
+            tag=self.another_tag,
+            page=self.page,
+        )
+        self.assertEqual(self.adapter.get_tag_count(self.important_tag), 1)
+
+    def test_get_tag_count_uses_date_from_if_provided(self):
+        MoloSurveyPageView.objects.create(
+            user=self.request.user,
+            tag=self.important_tag,
+            page=self.page,
+        )
+        self.assertEqual(self.adapter.get_tag_count(
+            self.important_tag,
+            date_from=datetime(2099, 12, 31),
+        ), 0)
+
+    def test_get_tag_count_uses_date_to_if_provided(self):
+        MoloSurveyPageView.objects.create(
+            user=self.request.user,
+            tag=self.important_tag,
+            page=self.page,
+        )
+        self.assertEqual(self.adapter.get_tag_count(
+            self.important_tag,
+            date_to=datetime(2000, 1, 1),
+        ), 0)
+
+    def test_get_tag_count_groups_by_unique_article(self):
+        MoloSurveyPageView.objects.create(
+            user=self.request.user,
+            tag=self.important_tag,
+            page=self.page,
+        )
+        MoloSurveyPageView.objects.create(
+            user=self.request.user,
+            tag=self.important_tag,
+            page=self.page,
+        )
+        self.assertEqual(self.adapter.get_tag_count(self.important_tag), 1)
