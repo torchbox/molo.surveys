@@ -470,13 +470,16 @@ class SkipLogicMixin(models.Model):
         )
 
     def choice_index(self, choice):
-        if self.field_type == 'checkbox':
-            # clean checkboxes have True/False
-            try:
-                return ['on', 'off'].index(choice)
-            except ValueError:
-                return [True, False].index(choice)
-        return self.choices.split(',').index(choice)
+        if choice:
+            if self.field_type == 'checkbox':
+                # clean checkboxes have True/False
+                try:
+                    return ['on', 'off'].index(choice)
+                except ValueError:
+                    return [True, False].index(choice)
+            return self.choices.split(',').index(choice)
+        else:
+            return False
 
     def next_action(self, choice):
         return self.skip_logic[self.choice_index(choice)].value['skip_logic']
