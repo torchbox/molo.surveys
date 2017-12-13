@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+6.1.2
+-----
+- Bug Fix: Show form validation error when no redio button choice has been selected in skip logic
+
 6.1.1
 -----
 - Minor improvement: Segments with ArticleTagRule using PersistentSurveysSegmentsAdapter now
