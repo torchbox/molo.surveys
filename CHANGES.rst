@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+6.1.3
+-----
+- Bug Fix: Include Include Survey Response Rule in Combination Rule
+
 6.1.2
 -----
 - Bug Fix: Show form validation error when no redio button choice has been selected in skip logic
