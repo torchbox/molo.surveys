@@ -429,7 +429,8 @@ class TestSurveyViews(TestCase, MoloTestCaseMixin):
             'class="footer-link"> <div class="footer-link__thumbnail-icon"> '
             '<img src="/static/img/clipboard.png" '
             'class="menu-list__item--icon" /></div> '
-            '<span class="footer-link__title">French translation of Test Survey', html=True)
+            '<span class="footer-link__title">'
+            'French translation of Test Survey', html=True)
 
     def test_survey_template_tag_on_section_page(self):
         molo_survey_page, molo_survey_form_field = \
