@@ -1,6 +1,10 @@
 CHANGE LOG
 ==========
 
+6.2.0
+-----
+- add support for Django 1.11
+
 6.1.4
 -----
 - Bug Fix: Prevent 404 errors when attempting to access edit view on segments
