@@ -64,10 +64,12 @@ class SkipLogicPaginator(Paginator):
     @cached_property
     def current_page(self):
         # find the first_page the question appears on
-        return next(
-            i + 1  for i, index in enumerate(self.page_breaks)
+        reversed_breaks = reversed(self.page_breaks)
+        page_break = next(
+            index for index in reversed_breaks
             if index <= self.first_question_index
         )
+        return self.page_breaks.index(page_break) + 1
 
     @cached_property
     def first_question_index(self):
@@ -111,10 +113,13 @@ class SkipLogicPaginator(Paginator):
 
     @cached_property
     def next_page(self):
-        return next(
-            page for page, break_index in enumerate(self.page_breaks)
-            if break_index > self.next_question_index
-        )
+        try:
+            return next(
+                page for page, break_index in enumerate(self.page_breaks)
+                if break_index > self.next_question_index
+            )
+        except StopIteration:
+            return self.num_pages
 
     @cached_property
     def previous_page(self):
@@ -158,6 +163,10 @@ class SkipLogicPaginator(Paginator):
             bottom = self.next_question_index
             top_index = index + self.per_page
             top = self.page_breaks[top_index]
+            if bottom == top:
+                # Survey complete, we need last question to find out
+                # where to go
+                bottom -= 1
         return self._get_page(self.object_list[bottom:top], index + 1, self)
 
 
