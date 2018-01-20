@@ -9,6 +9,11 @@ from .blocks import SkipState
 
 
 class SkipLogicPaginator(Paginator):
+    """
+    Breaks a series of questions into pages based on the logic
+    associated with the question. Skipped questions result in
+    empty entries to the data.
+    """
     def __init__(self, object_list, data=dict(), answered=dict()):
         # Create a mutatable version of the query data
         self.new_answers = data.copy()
@@ -23,10 +28,13 @@ class SkipLogicPaginator(Paginator):
         ]
         num_questions = self.object_list.count()
         if self.page_breaks:
+            # Always have a break at start to create first page
             self.page_breaks.insert(0, 0)
             if self.page_breaks[-1] != num_questions:
+                # Must break for last page
                 self.page_breaks.append(num_questions)
         else:
+            # display one question per page
             self.page_breaks = range(num_questions + 1)
 
         self.answered_indexes = self.answer_indexed(self.new_answers)
