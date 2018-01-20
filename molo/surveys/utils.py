@@ -42,18 +42,12 @@ class SkipLogicPaginator(Paginator):
             # display one question per page
             self.page_breaks = range(num_questions + 1)
 
-        self.answered_indexes = self.index_of_questions(self.new_answers)
-
-        self.answered_indexes.extend(
-            self.question_labels.index(checkbox.clean_name)
-            for checkbox in self.missing_checkboxes
-        )
-
         # add the missing data
         self.new_answers.update({
             checkbox.clean_name: 'off'
             for checkbox in self.missing_checkboxes
         })
+
 
     def _get_page(self, *args, **kwargs):
         return SkipLogicPage(*args, **kwargs)
@@ -61,6 +55,33 @@ class SkipLogicPaginator(Paginator):
     @cached_property
     def num_pages(self):
         return len(self.page_breaks) - 1
+
+    @cached_property
+    def last_question_index(self):
+        # The last question on the current page
+        return self.page_breaks[self.current_page] - 1
+
+    @cached_property
+    def current_page(self):
+        return self.page_breaks.index(self.first_question_index) + 1
+
+    @cached_property
+    def first_question_index(self):
+        # The first question on the current page
+        last_answer = self.last_question_previous_page
+        if last_answer:
+            # It isn't the first page
+            return self.next_question_from_previous_index(last_answer, self.previous_answers)
+        return last_answer
+
+    @cached_property
+    def last_question_previous_page(self):
+        previous_answers_indexes = self.index_of_questions(self.previous_answers)
+        try:
+            return max(previous_answers_indexes)
+        except ValueError:
+            # There have been no previous questions, its the first page
+            return 0
 
     def next_question_from_previous_index(self, index, data):
         last_question = self.object_list[index]
@@ -95,7 +116,7 @@ class SkipLogicPaginator(Paginator):
     def previous_page(self):
         return next(
             page for page, break_index in enumerate(self.page_breaks)
-            if break_index > self.last_question_index
+            if break_index > self.last_question_previous_page
         )
 
     def index_of_questions(self, data):
@@ -106,38 +127,15 @@ class SkipLogicPaginator(Paginator):
 
     @cached_property
     def missing_checkboxes(self):
-        new_answers_index = self.index_of_questions(self.new_answers)
-        # Add in any checkboxes that dont get submitted
-        max_answered = max(new_answers_index or [self.page_breaks[1]])
-
-        if self.previous_answers:
-            previous_answers = self.index_of_questions(self.previous_answers)
-            max_previous = max(previous_answers or [self.page_breaks[0]])
-            min_answered = self.next_question_from_previous_index(
-                max_previous,
-                self.previous_answers,
-            )
-        else:
-            min_answered = 0
-
         return [
             question
-            for question in self.object_list[min_answered:max_answered]
+            for question in self.object_list[
+                # Correct for the slice
+                self.first_question_index:self.last_question_index + 1
+            ]
             if question.field_type == 'checkbox' and
             question.clean_name not in self.new_answers
         ]
-
-    @cached_property
-    def first_question_index(self):
-        if self.answered_indexes:
-            return min(self.answered_indexes)
-        return self.page_breaks[0]
-
-    @cached_property
-    def last_question_index(self):
-        if self.answered_indexes:
-            return max(self.answered_indexes)
-        return self.page_breaks[0]
 
     def page(self, number):
         number = self.validate_number(number)
@@ -148,6 +146,7 @@ class SkipLogicPaginator(Paginator):
             top = self.page_breaks[top_index]
         elif self.previous_page == number:
             bottom = self.first_question_index
+            # Correct for the slice
             top = self.last_question_index + 1
         else:
             index = self.next_page - 1
