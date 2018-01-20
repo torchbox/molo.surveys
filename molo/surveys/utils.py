@@ -63,7 +63,7 @@ class SkipLogicPaginator(Paginator):
 
     @cached_property
     def current_page(self):
-        # find the first_page the question appears on
+        # search backwards to ensure we find correct lower bound
         reversed_breaks = reversed(self.page_breaks)
         page_break = next(
             index for index in reversed_breaks
@@ -154,7 +154,8 @@ class SkipLogicPaginator(Paginator):
             top_index = index + self.per_page
             bottom = self.page_breaks[index]
             top = self.page_breaks[top_index]
-        elif self.previous_page == number:
+        elif self.previous_page == number or self.current_page == number:
+            # We are rebuilding the page with the data just submitted
             bottom = self.first_question_index
             # Correct for the slice
             top = self.last_question_index + 1
@@ -163,10 +164,7 @@ class SkipLogicPaginator(Paginator):
             bottom = self.next_question_index
             top_index = index + self.per_page
             top = self.page_breaks[top_index]
-            if bottom == top:
-                # Survey complete, we need last question to find out
-                # where to go
-                bottom -= 1
+
         return self._get_page(self.object_list[bottom:top], index + 1, self)
 
 
