@@ -63,16 +63,20 @@ class SkipLogicPaginator(Paginator):
 
     @cached_property
     def current_page(self):
-        return self.page_breaks.index(self.first_question_index) + 1
+        # find the first_page the question appears on
+        return next(
+            i + 1  for i, index in enumerate(self.page_breaks)
+            if index <= self.first_question_index
+        )
 
     @cached_property
     def first_question_index(self):
         # The first question on the current page
         last_answer = self.last_question_previous_page
-        if last_answer:
+        if last_answer >= 0:
             # It isn't the first page
             return self.next_question_from_previous_index(last_answer, self.previous_answers)
-        return last_answer
+        return 0
 
     @cached_property
     def last_question_previous_page(self):
@@ -81,7 +85,7 @@ class SkipLogicPaginator(Paginator):
             return max(previous_answers_indexes)
         except ValueError:
             # There have been no previous questions, its the first page
-            return 0
+            return -1
 
     def next_question_from_previous_index(self, index, data):
         last_question = self.object_list[index]
@@ -114,10 +118,11 @@ class SkipLogicPaginator(Paginator):
 
     @cached_property
     def previous_page(self):
-        return next(
+        # Prevent returning 0 if the on the first page
+        return max(1, next(
             page for page, break_index in enumerate(self.page_breaks)
             if break_index > self.last_question_previous_page
-        )
+        ))
 
     def index_of_questions(self, data):
         return [
