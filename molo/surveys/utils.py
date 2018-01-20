@@ -17,16 +17,21 @@ class SkipLogicPaginator(Paginator):
     def __init__(self, object_list, data=dict(), answered=dict()):
         # Create a mutatable version of the query data
         self.new_answers = data.copy()
-        self.answered = answered
+        self.previous_answers = answered
+
         super(SkipLogicPaginator, self).__init__(object_list, per_page=1)
+
         self.question_labels = [
             question.clean_name for question in self.object_list
         ]
+
         self.page_breaks = [
             i + 1 for i, field in enumerate(self.object_list)
             if field.has_skipping or field.page_break
         ]
+
         num_questions = self.object_list.count()
+
         if self.page_breaks:
             # Always have a break at start to create first page
             self.page_breaks.insert(0, 0)
@@ -37,7 +42,7 @@ class SkipLogicPaginator(Paginator):
             # display one question per page
             self.page_breaks = range(num_questions + 1)
 
-        self.answered_indexes = self.answer_indexed(self.new_answers)
+        self.answered_indexes = self.index_of_questions(self.new_answers)
 
         self.answered_indexes.extend(
             self.question_labels.index(checkbox.clean_name)
@@ -93,7 +98,7 @@ class SkipLogicPaginator(Paginator):
             if break_index > self.last_question_index
         )
 
-    def answer_indexed(self, data):
+    def index_of_questions(self, data):
         return [
             self.question_labels.index(question) for question in data
             if question in self.question_labels
@@ -105,12 +110,12 @@ class SkipLogicPaginator(Paginator):
         # Add in any checkboxes that we missed
         max_answered = max(answered or [self.page_breaks[1]])
 
-        if self.answered:
-            previous_answers = self.answer_indexed(self.answered)
+        if self.previous_answers:
+            previous_answers = self.index_of_question(self.previous_answers)
             max_previous = max(previous_answers or [self.page_breaks[0]])
             min_answered = self.next_question_from_previous_index(
                 max_previous,
-                self.answered,
+                self.previous_answers,
             )
         else:
             min_answered = 0
@@ -135,15 +140,16 @@ class SkipLogicPaginator(Paginator):
 
     @cached_property
     def missing_checkboxes(self):
+        new_answers_index = self.index_of_questions(self.new_answers)
         # Add in any checkboxes that dont get submitted
-        max_answered = max(self.answered_indexes or [self.page_breaks[1]])
+        max_answered = max(new_answers_index or [self.page_breaks[1]])
 
-        if self.answered:
-            previous_answers = self.answer_indexed(self.answered)
+        if self.previous_answers:
+            previous_answers = self.index_of_questions(self.previous_answers)
             max_previous = max(previous_answers or [self.page_breaks[0]])
             min_answered = self.next_question_from_previous_index(
                 max_previous,
-                self.answered,
+                self.previous_answers,
             )
         else:
             min_answered = 0
